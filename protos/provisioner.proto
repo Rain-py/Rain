@@ -1,0 +1,28 @@
+syntax = "proto3";
+package provision;
+
+service provisioner {
+    // send a Status and IPs
+    rpc SendStatus(emptyMessage) returns (WorkerStatus) {}
+    // define number of worker
+    rpc DefineNWorkers(NumOfWorkers) returns (response) {}
+  }
+
+  enum Status{
+    DOWN = 0;
+    UP = 1;
+  }
+  message WorkerStatus{
+    repeated string IPs = 1;
+    repeated Status statuses = 2;
+  }
+  message NumOfWorkers{
+    // suggested number of worker must receive from divider
+    uint64 NumOfWorkers = 1;
+  }
+  message response {
+    string message = 1;
+  }
+
+  message emptyMessage {
+  }

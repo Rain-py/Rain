@@ -2,6 +2,14 @@ import numpy as np
 import socket
 import dill
 import torch
+import os
+import sys
+# make path in the file directory accessible
+
+sys.path.append('../../Divider')
+from Div_transmitter import div_transmitter
+sys.path.pop()
+
 
 HOST = 'localhost'
 PORT = 5000
@@ -11,12 +19,25 @@ class Divider:
     def __init__(self, config, model, X_train, y_train):
         self.config = config
         self.model = model
+        # define the coord ip
+        self.coordinator_IP = '127.0.0.1'
+        # define the provisioner ip
+        self.provisioner_IP = '127.0.0.1'
+
         for i in range(len(X_train)):
             np.save(f"../../data/X_train_{i + 1}.npy", X_train[i])
             np.save(f"../../data/y_train_{i + 1}.npy", y_train[i])
 
+    def send_data_to_workers(self):
+        path = "../../data/"
 
-    def send_data_to_workers(self, connections, msg):
+        transmitter = div_transmitter()
+        transmitter.create_server()
+        transmitter.send_data(self.coordinator_IP, self.provisioner_IP, self.config["partitions"], path)
+        transmitter.stop_server()
+        
+
+    def send_info_to_workers(self, connections, msg):
         if msg == "initial":
             for j in range(len(connections)):
                 # connections[j].send(dill.dumps([msg, {"ID": j + 1, "config": self.config}]))
@@ -121,16 +142,16 @@ class Divider:
                         print("Connected by", addr)
 
                     print("All workers have connected.")
-                    self.send_data_to_workers(connections, "initial")
+                    self.send_info_to_workers(connections, "initial")
                     self.receive_sync(connections)
 
-                self.send_data_to_workers(connections, "train")
+                self.send_info_to_workers(connections, "train")
                 gradients = self.receive_sync(connections)
 
             self.reduce_gradients_sync(gradients)
             print(f"Iteration {i + 1}/{self.config['iterations']} complete.")
 
-        self.send_data_to_workers(connections, "stop")
+        self.send_info_to_workers(connections, "stop")
         return self.model
 
 
@@ -152,14 +173,14 @@ class Divider:
                         print("Connected by", addr)
 
                     print("All workers have connected.")
-                    self.send_data_to_workers(connections, "initial")
-                    self.send_data_to_workers(connections, "train")
+                    self.send_info_to_workers(connections, "initial")
+                    self.send_info_to_workers(connections, "train")
 
             gradient, connection = self.receive_gradients_async(connections)
-            self.send_data_to_workers([connection], "train")
+            self.send_info_to_workers([connection], "train")
 
             self.reduce_gradients_async(weights, gradient)
             print(f"Iteration {i + 1}/{self.config['iterations']} complete.")
 
-        self.send_data_to_workers(connections, "stop")
+        self.send_info_to_workers(connections, "stop")
         return self.model

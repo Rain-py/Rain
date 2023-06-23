@@ -1,0 +1,46 @@
+syntax = "proto3";
+package coord;
+
+service coordinator {
+    // coordinator downloads (recieve) a file
+    rpc download(stream File) returns (DownloadFileResponse) {}
+    // coordinator upload (sends) a file 
+    rpc upload(MetaData) returns (stream UploadFileResponse) {}
+    // coordinator start its loop which sending the data and receiving the model
+    rpc start_loop(StartLoopMessage) returns (LoopResponse) {}
+  }
+
+  // Define the file metadata message
+  message MetaData {
+    string filename = 1;
+    string extension = 2;
+  }
+  //------------------
+  // for downloading a file
+  message File {
+
+    oneof request {
+      MetaData metadata = 1;
+      bytes chunk_data = 2;
+    }
+  }
+  message DownloadFileResponse {
+    string message = 1;
+  }
+  // ------------------
+
+  // for uploading a file
+  message UploadFileResponse {
+    bytes chunk_data = 1;
+  }
+  
+  // -------------------
+  
+  // for loop
+  message StartLoopMessage {
+    string message = 1;
+  }
+  message LoopResponse {
+    string message = 1;
+  }
+  

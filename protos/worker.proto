@@ -1,0 +1,46 @@
+syntax = "proto3";
+package worker;
+
+service worker {
+    // worker downloads (recieves) a file
+    rpc download(stream File) returns (DownloadFileResponse) {}
+    // worker uploads (sends) a file
+    rpc upload(MetaData) returns (stream UploadFileResponse) {}
+    // execute file
+    rpc Execute(executeData) returns (ExecuteFileResponse) {}
+  }
+
+  
+  message MetaData {
+    string filename = 1;
+    string extension = 2;
+  }
+  // for downloading a file
+  message File {
+
+    oneof request {
+      MetaData metadata = 1;
+      bytes chunk_data = 2;
+    }
+  }
+  message DownloadFileResponse {
+    string message = 1;
+  }
+  // ------------------
+
+  // for uploading a file
+  message UploadFileResponse {
+    bytes chunk_data = 1;
+  }
+
+  // -------------------
+  // for execution
+  message executeData {
+    string filename = 1;
+    string extension = 2;
+    string worker_id = 3;
+  }
+  message ExecuteFileResponse {
+    string message = 1;
+  }
+  

@@ -1,0 +1,40 @@
+syntax = "proto3";
+package divider;
+
+service divider {
+    /*
+    send a file to the coordinator contains the file name and the file data.
+    */
+    rpc upload(MetaData) returns (stream UploadFileResponse) {}
+    /*
+    Recieve a file contains the weights from the workers.
+    */
+    rpc download(stream File) returns (DownloadFileResponse) {}
+  }
+  
+
+  // Define the file metadata message
+  message MetaData {
+    string filename = 1;
+    string extension = 2;
+  }
+  //------------------
+  // for downloading a file
+  message File {
+
+    oneof request {
+      MetaData metadata = 1;
+      bytes chunk_data = 2;
+    }
+  }
+  message DownloadFileResponse {
+    string message = 1;
+  }
+  // ------------------
+
+  // for uploading a file
+  message UploadFileResponse {
+    bytes chunk_data = 1;
+  }
+
+  

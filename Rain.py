@@ -12,7 +12,8 @@ sys.path.pop()
 
 class Rain:
     def __init__(self, config, model, X_train, y_train):
-        self.provisioner = Provisioner(subscription_id='a7ef3688-af58-4835-953c-e51f219fbd0f',
+        self.provisioner = Provisioner(subscription_id= '82305756-d4a0-442d-8e73-625e1ced2113', # Nada's ID
+                                       # Mostafa's ID 'a7ef3688-af58-4835-953c-e51f219fbd0f',
                                 resource_group_name='Rain_resourcegroup',
                                 location='eastus')
         self.divider = Divider(config, model, X_train, y_train)
@@ -53,8 +54,9 @@ class Rain:
     def delete_vms(self):
         del self.provisioner
 
-
-
+    def test(self):
+        self.divider.send_data_to_workers()
+        
     def train_centralized_sync(self):
         # connect vms
         # send data
