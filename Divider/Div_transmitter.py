@@ -5,6 +5,9 @@ import os
 import grpc
 from protos import divider_pb2, divider_pb2_grpc, coord_pb2 , coord_pb2_grpc, provisioner_pb2, provisioner_pb2_grpc
 import time
+import sys
+
+
 def get_filepath(filename, extension):
     return f'{filename}{extension}'
 
@@ -13,11 +16,14 @@ def read_iterfile(filepath, chunk_size=1024):
     split_data = os.path.splitext(filepath)
     filename = split_data[0]
     extension = split_data[1]
-    print(filename)
-    metadata = divider_pb2.MetaData(filename=filename, extension=extension)
+    send_filename = filename.split('/')[-1]
+    metadata = divider_pb2.MetaData(filename="./data/" + send_filename, extension=extension)
     yield divider_pb2.File(metadata=metadata)
-    filepath =  get_filepath(filename, extension)
+    filepath = get_filepath(filename, extension)
+    #print current path
+    print(filepath)
     with open(filepath, mode="rb") as f:
+        print("filepath is opened")
         while True:
             chunk = f.read(chunk_size)
             if chunk:
@@ -55,18 +61,29 @@ class div_transmitter(divider_pb2_grpc.dividerServicer):
             
             # response = coord_stub.download(read_iterfile('install_locally.py'))
             # print(" divider received: " + response.message)
-            # response = coord_stub.download(read_iterfile('Algo.py'))
-            # print(" divider received: " + response.message)
+            
+            response = coord_stub.download(read_iterfile("../../Divider/" + 'Worker.py'))
+            print(" divider received: " + response.message)
 
             for i in range(Num_of_workers):
                 response = coord_stub.download(read_iterfile(path + f'X_train_{i+1}.npy'))
                 print(" divider received: " + response.message)
                 response = coord_stub.download(read_iterfile(path + f'y_train_{i+1}.npy'))
                 print(" divider received: " + response.message)
-            # response = coord_stub.start_loop(coord_pb2.StartLoopMessage(message='start the loop'))
-            # print(" divider received: " + response.message)
-        self.server.wait_for_termination()
+            response = coord_stub.start_loop(coord_pb2.StartLoopMessage(message='start the loop'))
+            print(" divider received: " + response.message)
+        # self.server.wait_for_termination()
 
+    def iteration(self, coordinator_IP):
+        
+        with grpc.insecure_channel(coordinator_IP +':50052') as channel:
+            
+            print("divider is beginning the iteration")
+            # create an interface for the grpc client (coord) 
+            coord_stub = coord_pb2_grpc.coordinatorStub(channel)  
+            response = coord_stub.start_loop(coord_pb2.StartLoopMessage(message='start the loop'))
+            print(" divider received: " + response.message)
+    
     def download(self, request_iterator, context):
         """
         This function will recieve the data from and the coordinator.
@@ -80,6 +97,7 @@ class div_transmitter(divider_pb2_grpc.dividerServicer):
         with open('divider/' + filepath, 'wb') as f:
             f.write(data)
         return divider_pb2.DownloadFileResponse(message='Success!')
+    
     def create_server(self):
         self.server = grpc.server(futures.ThreadPoolExecutor(1))
         divider_pb2_grpc.add_dividerServicer_to_server(self, self.server)

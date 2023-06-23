@@ -2,7 +2,10 @@ from concurrent import futures # indicates the num of workers (threads)
 import logging
 import os
 import grpc
+import sys
+sys.path.append('../')
 from protos import worker_pb2, worker_pb2_grpc
+sys.path.pop()
 
 def get_filepath(filename, extension):
     return f'{filename}{extension}'

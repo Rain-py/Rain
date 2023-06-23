@@ -54,12 +54,11 @@ class Rain:
     def delete_vms(self):
         del self.provisioner
 
-    def test(self):
-        self.divider.send_data_to_workers()
         
     def train_centralized_sync(self):
         # connect vms
         # send data
+        self.divider.send_data_to_workers()
         model = self.divider.train_centralized_sync()
         return model
 

@@ -62,7 +62,7 @@ class coordinator(coord_pb2_grpc.coordinatorServicer):
                 print(f"Downloading {filepath}...")
                 continue
             data.extend(request.chunk_data)
-        with open('coord/data/' + filepath, 'wb') as f:
+        with open('coord/' + filepath, 'wb') as f:
             f.write(data)
         return coord_pb2.DownloadFileResponse(message='Success!')
 
@@ -101,7 +101,7 @@ class coordinator(coord_pb2_grpc.coordinatorServicer):
         # with grpc.insecure_channel(ip +':50051') as channel:
             worker_stub = worker_pb2_grpc.workerStub(channel)   # interface for the grpc client(worker)
 
-            filename = 'worker/Algo'
+            filename = 'Worker'
             extension = '.py'
             
             print(str(worker_id))
@@ -125,6 +125,7 @@ class coordinator(coord_pb2_grpc.coordinatorServicer):
         function: to start sending data to workers and receive models.
         return: it return model to divider.
         """
+        print("start loop")
         # then send the data to the workers
         for id in range(len(self.workers_IPs)):
             self.send('worker',id+1,self.workers_IPs[id])

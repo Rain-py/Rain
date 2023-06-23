@@ -24,16 +24,16 @@ class Divider:
         # define the provisioner ip
         self.provisioner_IP = '127.0.0.1'
 
-        for i in range(len(X_train)):
-            np.save(f"../../data/X_train_{i + 1}.npy", X_train[i])
-            np.save(f"../../data/y_train_{i + 1}.npy", y_train[i])
+        # for i in range(len(X_train)):
+        #     np.save(f"../../data/X_train_{i + 1}.npy", X_train[i])
+        #     np.save(f"../../data/y_train_{i + 1}.npy", y_train[i])
 
     def send_data_to_workers(self):
         path = "../../data/"
-
         transmitter = div_transmitter()
         transmitter.create_server()
-        transmitter.send_data(self.coordinator_IP, self.provisioner_IP, self.config["partitions"], path)
+        transmitter.send_data(self.coordinator_IP, self.provisioner_IP, 1, path) # self.config["partitions"]
+        # transmitter.iteration(self.coordinator_IP)
         transmitter.stop_server()
         
 
