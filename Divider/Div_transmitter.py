@@ -62,7 +62,7 @@ class div_transmitter(divider_pb2_grpc.dividerServicer):
             # response = coord_stub.download(read_iterfile('install_locally.py'))
             # print(" divider received: " + response.message)
             
-            response = coord_stub.download(read_iterfile("../../Divider/" + 'Worker.py'))
+            response = coord_stub.download(read_iterfile("../../Divider/" + 'Algo.py'))
             print(" divider received: " + response.message)
 
             for i in range(Num_of_workers):

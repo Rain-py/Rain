@@ -83,11 +83,11 @@ class coordinator(coord_pb2_grpc.coordinatorServicer):
                 worker_stub = worker_pb2_grpc.workerStub(channel) 
                 response = worker_stub.download(read_file(f'coord/install_locally.py'))
                 print(" coordinator received: " + response.message)
-                response = worker_stub.download(read_file(f'coord/Algo.py'))
+                response = worker_stub.download(read_file(f'coord/data/Algo.py'))
                 print(" coordinator received: " + response.message)
-                response = worker_stub.download(read_file(f'coord/X_train/X_train_{worker_id}.npy'))
+                response = worker_stub.download(read_file(f'coord/data/X_train_{worker_id}.npy'))
                 print(" coordinator received: " + response.message)
-                response = worker_stub.download(read_file(f'coord/Y_train/Y_train_{worker_id}.npy'))
+                response = worker_stub.download(read_file(f'coord/data/Y_train_{worker_id}.npy'))
                 print(" coordinator received: " + response.message)
         elif target == 'divider':
             # Establish a connection with the divider on port 50052
@@ -97,11 +97,11 @@ class coordinator(coord_pb2_grpc.coordinatorServicer):
                 response = divider_stub.download(read_file(f'coord/model_{worker_id}.h5'))
                 print(" coordinator received: " + response.message)
 
-    def execute(self, channel, worker_id,ip):
-        # with grpc.insecure_channel(ip +':50051') as channel:
+    def execute(self, worker_id,ip):
+        with grpc.insecure_channel(ip +':50051') as channel:
             worker_stub = worker_pb2_grpc.workerStub(channel)   # interface for the grpc client(worker)
 
-            filename = 'Worker'
+            filename = 'Algo'
             extension = '.py'
             
             print(str(worker_id))
@@ -132,10 +132,10 @@ class coordinator(coord_pb2_grpc.coordinatorServicer):
 
         # execute the data from the workers
         for id in range(len(self.workers_IPs)):
-            channel = grpc.insecure_channel(self.workers_IPs[id] +':50051')
-            # new_thread = threading.Thread(target=self.execute, args=(channel,id+1,self.workers_IPs[id]))
-            # new_thread.start()
-            self.execute(channel, id+1, self.workers_IPs[id])
+            # channel = grpc.insecure_channel(self.workers_IPs[id] +':50051')
+            # # new_thread = threading.Thread(target=self.execute, args=(channel,id+1,self.workers_IPs[id]))
+            # # new_thread.start()
+            self.execute(id+1, self.workers_IPs[id])
         
         # recieve the data from the workers
         for id in range(len(self.workers_IPs)):

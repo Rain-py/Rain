@@ -24,9 +24,10 @@ class Divider:
         # define the provisioner ip
         self.provisioner_IP = '127.0.0.1'
 
+        # print("saving .. ")
         # for i in range(len(X_train)):
-        #     np.save(f"../../data/X_train_{i + 1}.npy", X_train[i])
-        #     np.save(f"../../data/y_train_{i + 1}.npy", y_train[i])
+        #     np.save(f"../data/X_train_{i + 1}.npy", X_train[i])
+        #     np.save(f"../data/y_train_{i + 1}.npy", y_train[i])
 
     def send_data_to_workers(self):
         path = "../../data/"

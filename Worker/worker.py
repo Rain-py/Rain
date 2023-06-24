@@ -43,8 +43,10 @@ class worker(worker_pb2_grpc.workerServicer):
     def Execute(self, request, context):
         code_filepath = get_filepath(request.filename, request.extension)
         print(code_filepath)
-        print('python ' + code_filepath+ " " + request.worker_id)
-        os.system('python ' + code_filepath +  " " +request.worker_id)
+        # print current directory
+        print(os.getcwd())
+        print('python ' + './worker/data/' + code_filepath+ " " + request.worker_id)
+        os.system('python ' + 'worker/data/' + code_filepath +  " " +request.worker_id)
         return worker_pb2.ExecuteFileResponse(message='Executed yaay!')
         # chunk_size = 1024
         # if os.path.exists('result/'+ result_filepath):
