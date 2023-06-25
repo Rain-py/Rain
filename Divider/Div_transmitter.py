@@ -70,9 +70,17 @@ class div_transmitter(divider_pb2_grpc.dividerServicer):
                 print(" divider received: " + response.message)
                 response = coord_stub.download(read_iterfile(path + f'y_train_{i+1}.npy'))
                 print(" divider received: " + response.message)
-            response = coord_stub.start_loop(coord_pb2.StartLoopMessage(message='start the loop'))
-            print(" divider received: " + response.message)
         # self.server.wait_for_termination()
+
+    def send_file(self, coordinator_IP, file_path):
+        with grpc.insecure_channel(coordinator_IP +':50052') as channel:
+            print("divider is sending information file to the coordinator")
+            # create an interface for the grpc client (coord) 
+            coord_stub = coord_pb2_grpc.coordinatorStub(channel)   
+            # divider will send (upload) the data to the coordinator, so it will call function recieve_from_divider from coord_stub
+            
+            response = coord_stub.download(read_iterfile(file_path))
+            print(" divider received: " + response.message)
 
     def iteration(self, coordinator_IP):
         
@@ -83,6 +91,7 @@ class div_transmitter(divider_pb2_grpc.dividerServicer):
             coord_stub = coord_pb2_grpc.coordinatorStub(channel)  
             response = coord_stub.start_loop(coord_pb2.StartLoopMessage(message='start the loop'))
             print(" divider received: " + response.message)
+            return response.message
     
     def download(self, request_iterator, context):
         """
@@ -94,8 +103,12 @@ class div_transmitter(divider_pb2_grpc.dividerServicer):
                 filepath = get_filepath(request.metadata.filename, request.metadata.extension)
                 continue
             data.extend(request.chunk_data)
+        # print current path
+        sys.path.append('../../Divider')
+        print("filepath is: " + filepath)
         with open('divider/' + filepath, 'wb') as f:
             f.write(data)
+        sys.path.pop() 
         return divider_pb2.DownloadFileResponse(message='Success!')
     
     def create_server(self):

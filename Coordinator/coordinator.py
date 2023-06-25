@@ -89,12 +89,14 @@ class coordinator(coord_pb2_grpc.coordinatorServicer):
                 print(" coordinator received: " + response.message)
                 response = worker_stub.download(read_file(f'coord/data/Y_train_{worker_id}.npy'))
                 print(" coordinator received: " + response.message)
+                response = worker_stub.download(read_file(f'coord/data/{worker_id}.pkl'))
+                print(" coordinator received: " + response.message)
         elif target == 'divider':
             # Establish a connection with the divider on port 50052
             with grpc.insecure_channel(ip +':50053') as channel:
                 # create an interface for the grpc client (divider)
                 divider_stub = divider_pb2_grpc.dividerStub(channel)  
-                response = divider_stub.download(read_file(f'coord/model_{worker_id}.h5'))
+                response = divider_stub.download(read_file(f'coord/data/{worker_id}_trained.pkl'))
                 print(" coordinator received: " + response.message)
 
     def execute(self, worker_id,ip):
@@ -112,13 +114,14 @@ class coordinator(coord_pb2_grpc.coordinatorServicer):
         with grpc.insecure_channel(ip +':50051') as channel:
             worker_stub = worker_pb2_grpc.workerStub(channel)   # interface for the grpc client(worker)
 
-            filename = f'model_{worker_id}'
-            extension = '.h5'
+            filename = f'{worker_id}_trained'
+            extension = '.pkl'
             filepath = get_filepath('coord/' + filename , extension)
 
             for entry_response in worker_stub.upload(worker_pb2.MetaData(filename=filename, extension=extension)):
                 with open(filepath, mode="wb") as f:
                     f.write(entry_response.chunk_data)
+            print(f"Downloaded {filepath} in coordinator")
 
     def start_loop(self, request, context):
         """
