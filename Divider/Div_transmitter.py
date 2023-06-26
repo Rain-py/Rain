@@ -95,7 +95,7 @@ class div_transmitter(divider_pb2_grpc.dividerServicer):
     
     def download(self, request_iterator, context):
         """
-        This function will recieve the data from and the coordinator.
+        This function will receive the data from and the coordinator.
         """
         data = bytearray()
         for request in request_iterator:
@@ -104,11 +104,9 @@ class div_transmitter(divider_pb2_grpc.dividerServicer):
                 continue
             data.extend(request.chunk_data)
         # print current path
-        sys.path.append('../../Divider')
-        print("filepath is: " + filepath)
-        with open('divider/' + filepath, 'wb') as f:
+        print("filepath is: " + '../../Divider/divider/'+filepath)
+        with open('../../Divider/divider/' + filepath, 'wb') as f:
             f.write(data)
-        sys.path.pop() 
         return divider_pb2.DownloadFileResponse(message='Success!')
     
     def create_server(self):

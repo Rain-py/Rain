@@ -115,6 +115,6 @@ if __name__ == '__main__':
 # if __name__ == '__main__':
 #     worker_id = sys.argv[1]
 #     X_train = np.load(f'worker/X_train/X_train_{worker_id}.npy')
-#     y_train = np.load(f'worker/Y_train/Y_train_{worker_id}.npy')
+#     y_train = np.load(f'worker/y_train/y_train_{worker_id}.npy')
 #     model = train_model(X_train, y_train)
 #     model.save(f'worker/model_{worker_id}.h5')

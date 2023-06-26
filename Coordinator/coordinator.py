@@ -87,7 +87,7 @@ class coordinator(coord_pb2_grpc.coordinatorServicer):
                 print(" coordinator received: " + response.message)
                 response = worker_stub.download(read_file(f'coord/data/X_train_{worker_id}.npy'))
                 print(" coordinator received: " + response.message)
-                response = worker_stub.download(read_file(f'coord/data/Y_train_{worker_id}.npy'))
+                response = worker_stub.download(read_file(f'coord/data/y_train_{worker_id}.npy'))
                 print(" coordinator received: " + response.message)
                 response = worker_stub.download(read_file(f'coord/data/{worker_id}.pkl'))
                 print(" coordinator received: " + response.message)
@@ -110,13 +110,13 @@ class coordinator(coord_pb2_grpc.coordinatorServicer):
             response =  worker_stub.Execute(worker_pb2.executeData(filename=filename,extension=extension,worker_id=str(worker_id)))
             print(" coordinator received: " + response.message)
 
-    def recieve(self, worker_id,ip):
+    def receive(self, worker_id,ip):
         with grpc.insecure_channel(ip +':50051') as channel:
             worker_stub = worker_pb2_grpc.workerStub(channel)   # interface for the grpc client(worker)
 
             filename = f'{worker_id}_trained'
             extension = '.pkl'
-            filepath = get_filepath('coord/' + filename , extension)
+            filepath = get_filepath('coord/data/' + filename , extension)
 
             for entry_response in worker_stub.upload(worker_pb2.MetaData(filename=filename, extension=extension)):
                 with open(filepath, mode="wb") as f:
@@ -140,9 +140,9 @@ class coordinator(coord_pb2_grpc.coordinatorServicer):
             # # new_thread.start()
             self.execute(id+1, self.workers_IPs[id])
         
-        # recieve the data from the workers
+        # receive the data from the workers
         for id in range(len(self.workers_IPs)):
-            self.recieve(id+1,self.workers_IPs[id])
+            self.receive(id+1,self.workers_IPs[id])
 
         # send the data to the divider
         for id in range(len(self.workers_IPs)):
