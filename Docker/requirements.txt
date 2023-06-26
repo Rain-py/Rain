@@ -1,0 +1,7 @@
+dill==0.3.6
+numpy==1.23.5
+
+torch==2.0.1
+
+keras==2.12.0
+tensorflow==2.12.0
