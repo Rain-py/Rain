@@ -1,5 +1,5 @@
 # Base image
-FROM python:3.10-slim-buster
+FROM python:3.10-slim-bullseye
 
 # Set environment variables
 ENV PYTHONUNBUFFERED 1
