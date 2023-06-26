@@ -48,6 +48,6 @@ Thumbs.db
 *.mov
 *.wmv
 
-# *.npy
-# *.pkl
+*.npy
+*.pkl
 data/MNIST/*.npy
