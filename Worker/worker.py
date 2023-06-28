@@ -14,7 +14,7 @@ class worker(worker_pb2_grpc.workerServicer):
     
     def download(self, request_iterator, context):
         """
-        function to recieve data files from the coordinator.
+        function to receive data files from the coordinator.
         """
         data = bytearray()
         for request in request_iterator:
@@ -30,8 +30,8 @@ class worker(worker_pb2_grpc.workerServicer):
         chunk_size = 1024
 
         filepath = f'{request.filename}{request.extension}'
-        if os.path.exists('worker/'+filepath):
-            with open('worker/'+filepath, mode="rb") as f:
+        if os.path.exists('worker/data/'+filepath):
+            with open('worker/data/'+filepath, mode="rb") as f:
                 while True:
                     chunk = f.read(chunk_size)
                     if chunk:
@@ -44,9 +44,9 @@ class worker(worker_pb2_grpc.workerServicer):
         code_filepath = get_filepath(request.filename, request.extension)
         print(code_filepath)
         # print current directory
-        # print(os.getcwd())
-        # print('python ' + './worker/data/' + code_filepath+ " " + request.worker_id)
-        # os.system('python ' + 'worker/data/' + code_filepath +  " " +request.worker_id)
+        print(os.getcwd())
+        print('python ' + './worker/data/' + code_filepath+ " " + request.worker_id)
+        os.system('python ' + 'worker/data/' + code_filepath +  " " +request.worker_id)
         
         return worker_pb2.ExecuteFileResponse(message='Executed yaay!')
         

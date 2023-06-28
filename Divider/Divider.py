@@ -26,25 +26,16 @@ class Divider:
 
         self.transmitter = div_transmitter()
         self.transmitter.create_server()
-        # print("saving .. ")
-        # for i in range(len(X_train)):
-        #     np.save(f"../data/X_train_{i + 1}.npy", X_train[i])
-        #     np.save(f"../data/y_train_{i + 1}.npy", y_train[i])
 
     def send_data_to_workers(self):
         path = "../../data/"
         self.transmitter.send_data(self.coordinator_IP, self.provisioner_IP, 1, path) # self.config["partitions"]
         
-    def send_info_to_workers(self, connections, msg):
+    def send_info_to_workers(self, connections):
         path = "../../data/"
         print("sending info to workers")
         for j in range(connections):
-            if msg == "initial":
-                data = [msg, {"ID": j + 1, "config": self.config}]
-            elif msg == "train":
-                data = [msg, self.model]
-            elif msg == "stop":
-                data = [msg]
+            data = [{"config": self.config, "model": self.model}]
             
             file_path = f"{path}{j + 1}.pkl"
             # save the data to the file        
@@ -55,22 +46,22 @@ class Divider:
             self.transmitter.send_file(self.coordinator_IP, file_path) # self.config["partitions"]
         
     def receive_sync(self, connections):
-        msgs = []
-        # while len(msgs) < self.config["partitions"]:
+        gradients = []
         for j in range(connections):
-            # gradients.append(dill.load(data))
-            msgs.append(dill.load(open(f"../../data/{j + 1}.pkl", "rb")))
-        return msgs
+            msg = dill.load(open(f"../../Divider/divider/data/{j + 1}_trained.pkl", "rb"))
+            gradients.append(msg)
+        return gradients
     
 
     def reduce_gradients_sync(self, gradients):
         if self.config["lib"] == "tensorflow":
             weights = self.model.get_weights() 
+            print("gradients: ", gradients)
             # Average the gradients
             gradient_avg = []
             for gradient_list_tuple in zip(*gradients):
                 gradient_avg.append(np.array([np.array(g).mean(axis=0) for g in zip(*gradient_list_tuple)]))
-
+        
             # Weight(new) = Weight(old) — LR * gradient loss
             weights = [weights[i] - self.config["lr"] * gradient_avg[i] for i in range(len(weights))]
             self.model.set_weights(weights)
@@ -117,18 +108,14 @@ class Divider:
                 
 
     def train_centralized_sync(self):
+        for i in range(self.config["iterations"]):       
+            # Notice, the algo.py is stateless
+            self.send_info_to_workers(self.config["partitions"])
+            self.transmitter.iteration(self.coordinator_IP) # start loop
+            gradients = self.receive_sync(self.config["partitions"])
+            self.reduce_gradients_sync(gradients)
+            print(f"Iteration {i + 1}/{self.config['iterations']} complete.")
 
-        self.send_info_to_workers(self.config["partitions"], "initial")
-        self.transmitter.iteration(self.coordinator_IP)
-        self.receive_sync(self.config["partitions"])
-        # for i in range(self.config["iterations"]):            
-        #     self.send_info_to_workers(self.config["partitions"], "train")
-        #     gradients = self.receive_sync(self.config["partitions"])
-
-        #     self.reduce_gradients_sync(gradients)
-        #     print(f"Iteration {i + 1}/{self.config['iterations']} complete.")
-
-        # self.send_info_to_workers(self.config["partitions"], "stop")
         return self.model
 
 
@@ -150,16 +137,15 @@ class Divider:
                         print("Connected by", addr)
 
                     print("All workers have connected.")
-                    self.send_info_to_workers(connections, "initial")
-                    self.send_info_to_workers(connections, "train")
+                    self.send_info_to_workers(connections)
 
             gradient, connection = self.receive_gradients_async(connections)
-            self.send_info_to_workers([connection], "train")
+            self.send_info_to_workers([connection])
 
             self.reduce_gradients_async(weights, gradient)
             print(f"Iteration {i + 1}/{self.config['iterations']} complete.")
 
-        self.send_info_to_workers(connections, "stop")
+        # self.send_info_to_workers(connections, "stop")
         return self.model
     
     # destractor 
