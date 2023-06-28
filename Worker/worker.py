@@ -44,21 +44,12 @@ class worker(worker_pb2_grpc.workerServicer):
         code_filepath = get_filepath(request.filename, request.extension)
         print(code_filepath)
         # print current directory
-        print(os.getcwd())
-        print('python ' + './worker/data/' + code_filepath+ " " + request.worker_id)
-        os.system('python ' + 'worker/data/' + code_filepath +  " " +request.worker_id)
+        # print(os.getcwd())
+        # print('python ' + './worker/data/' + code_filepath+ " " + request.worker_id)
+        # os.system('python ' + 'worker/data/' + code_filepath +  " " +request.worker_id)
+        
         return worker_pb2.ExecuteFileResponse(message='Executed yaay!')
-        # chunk_size = 1024
-        # if os.path.exists('result/'+ result_filepath):
-        #     with open('result/'+ result_filepath, mode="rb") as f:
-        #         while True:
-        #             chunk = f.read(chunk_size)
-        #             if chunk:
-        #                 entry_response = worker_pb2.DownloadFileResponse(chunk_data=chunk)
-        #                 yield entry_response
-        #             else:  # The chunk was empty, which means we're at the end of the file
-        #                 return
-
+        
 def serve():
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=4))
     worker_pb2_grpc.add_workerServicer_to_server(worker(), server)

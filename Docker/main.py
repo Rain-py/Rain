@@ -1,10 +1,24 @@
 import docker
 
+container_config = {
+    'image': 'rain_worker',
+    'volumes': {
+        './algo.py': {
+            'bind': '/app/algo.py',
+            'mode': 'rw'
+        }
+    },
+    'command': '/app/algo.py'
+}
+
 # Create a Docker client
 client = docker.from_env()
 
 # Pull a Docker image
-client.images.pull('nginx:latest')
+client.images.pull('nginx:latest') # mostafaw/rain_worker:1.0.0
+
+# # Run the Docker container
+# container = client.containers.run(**container_config)
 
 # Run a container
 container = client.containers.run('nginx:latest', detach=True)

@@ -41,6 +41,6 @@ RUN apt-get remove -y --purge \
 ENTRYPOINT ["python"]
 
 # Default command to print usage information
-CMD ["-c", "print('You can run your script with: docker run -v /path/to/algo.py:/app/algo.py image_name /app/algo.py')"]
+CMD ["-c", "print('You can run your script with: docker run -v /path/to/algo.py:/app/algo.py mostafaw/rain_worker:1.0.0 /app/algo.py')"]
 
 
