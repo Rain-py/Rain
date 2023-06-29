@@ -14,7 +14,7 @@ class provisioner(provisioner_pb2_grpc.provisionerServicer):
 
     # sendStatus() returns (WorkerStatus) {}
     def SendStatus(self, request, context):
-        print("Recieved request from coordinator to send status", request)
+        print("Received request from coordinator to send status", request)
         print(" self.IPs is: ", self.IPs)
         print(" self.statuses is: ", self.statuses)
         return provisioner_pb2.WorkerStatus(IPs = self.IPs, statuses = self.statuses)
@@ -23,7 +23,7 @@ class provisioner(provisioner_pb2_grpc.provisionerServicer):
     def DefineNWorkers(self, request, context):
         print("Number of workers is: ", request.NumOfWorkers)
         self.n = request.NumOfWorkers
-        return provisioner_pb2.response(message = "Success recieving the number of workers.")
+        return provisioner_pb2.response(message = "Success receiving the number of workers.")
 
 def serve():
     # create instance of provisioner class

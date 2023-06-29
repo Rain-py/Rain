@@ -4,70 +4,90 @@ import dill
 import torch
 import os
 import sys
-# make path in the file directory accessible
 
-sys.path.append('../../Divider')
-from Div_transmitter import div_transmitter
-sys.path.pop()
-
+from Divider.Transceiver import Transceiver
 
 HOST = 'localhost'
 PORT = 5000
 
-
 class Divider:
     def __init__(self, config, model, X_train, y_train):
         self.config = config
+        self.lr  = self.config["lr"]
+        self.optimizer = self.config["optimizer"]
+        self.loss = self.config["loss"]
+        self.lib = self.config["lib"]
+        self.iterations = self.config["iterations"]
+        self.partitions = self.config["partitions"]
         self.model = model
         # define the coord ip
         self.coordinator_IP = '127.0.0.1'
         # define the provisioner ip
         self.provisioner_IP = '127.0.0.1'
-
-        self.transmitter = div_transmitter()
-        self.transmitter.create_server()
+        self.transceiver = Transceiver()
+        self.transceiver.create_server()
+        self.data_base_path = "../../data/"
 
     def send_data_to_workers(self):
-        path = "../../data/"
-        self.transmitter.send_data(self.coordinator_IP, self.provisioner_IP, 1, path) # self.config["partitions"]
+        try:
+            self.transceiver.send_data(self.coordinator_IP, self.provisioner_IP, 1, self.data_base_path)
+        except Exception as e:
+            print("Error in sending data to workers: ", e)
+            return
         
     def send_info_to_workers(self, connections):
-        path = "../../data/"
-        print("sending info to workers")
         for j in range(connections):
             data = [{"config": self.config, "model": self.model}]
-            
-            file_path = f"{path}{j + 1}.pkl"
-            # save the data to the file        
-            with open(file_path, "wb") as f:
-                dill.dump(data, f)
+            file_path = f"{self.data_base_path}{j + 1}.pkl"
+            try:
+                # save the data to the file        
+                with open(file_path, "wb") as f:
+                    dill.dump(data, f)
+            except Exception as e:
+                print("Error in saving the info to the file: ", e)
+                return
 
-            print ("sending file: ", file_path)
-            self.transmitter.send_file(self.coordinator_IP, file_path) # self.config["partitions"]
-        
-    def receive_sync(self, connections):
+            try:
+                print ("sending file: ", file_path)
+                self.transceiver.send_file(self.coordinator_IP, file_path)
+            except Exception as e:
+                print("Error in sending the info to the workers: ", e)
+                return
+
+    # Synchronous Training    
+    def receive_gradients_sync(self, connections):
         gradients = []
-        for j in range(connections):
-            msg = dill.load(open(f"../../Divider/divider/data/{j + 1}_trained.pkl", "rb"))
-            gradients.append(msg)
+        try:
+            for j in range(connections):
+                msg = dill.load(open(f"../../Divider/divider/data/{j + 1}_trained.pkl", "rb"))
+                gradients.append(msg)
+        except Exception as e:
+            print("Error in receiving the gradients from the workers: ", e)
+            return
         return gradients
     
-
     def reduce_gradients_sync(self, gradients):
-        if self.config["lib"] == "tensorflow":
+        if self.lib == "tensorflow":
             weights = self.model.get_weights() 
             print("gradients: ", gradients)
-            # Average the gradients
-            gradient_avg = []
-            for gradient_list_tuple in zip(*gradients):
-                gradient_avg.append(np.array([np.array(g).mean(axis=0) for g in zip(*gradient_list_tuple)]))
+            try:
+                # Average the gradients
+                gradient_avg = []
+                for gradient_list_tuple in zip(*gradients):
+                    gradient_avg.append(np.array([np.array(g).mean(axis=0) for g in zip(*gradient_list_tuple)]))
+            except Exception as e:
+                print("Error in averaging the gradients: ", e)
+                return
+            try:
+                # Weight(new) = Weight(old) — LR * gradient loss
+                weights = [weights[i] - self.lr * gradient_avg[i] for i in range(len(weights))]
+                self.model.set_weights(weights)
+                self.model.compile(loss=self.loss, optimizer=self.optimizer, metrics=['accuracy'])
+            except Exception as e:
+                print("Error in reducing the gradients: ", e)
+                return
         
-            # Weight(new) = Weight(old) — LR * gradient loss
-            weights = [weights[i] - self.config["lr"] * gradient_avg[i] for i in range(len(weights))]
-            self.model.set_weights(weights)
-            self.model.compile(loss=self.config["loss"], optimizer=self.config["optimizer"], metrics=['accuracy'])
-        
-        elif self.config["lib"] == "pytorch":  
+        elif self.lib == "pytorch":  
             weights = [param.clone().detach().numpy() for param in self.model.parameters()]  
             # Average the gradients
             gradient_avg = []
@@ -75,7 +95,7 @@ class Divider:
                 gradient_avg.append(np.array([np.array(g).mean(axis=0) for g in zip(*gradient_list_tuple)]))
 
             # Weight(new) = Weight(old) — LR * gradient loss
-            weights = [weights[i] - self.config["lr"] * gradient_avg[i] for i in range(len(weights))]
+            weights = [weights[i] - self.lr * gradient_avg[i] for i in range(len(weights))]
             
             state_dict = self.model.state_dict()
             for key, value in zip(state_dict.keys(), weights):
@@ -83,7 +103,22 @@ class Divider:
 
             self.model.load_state_dict(state_dict)
 
+    def train_centralized_sync(self):
+        for i in range(self.iterations):    
+            try:   
+                # Notice, the algo.py is stateless
+                self.send_info_to_workers(self.partitions)
+                self.transceiver.iteration(self.coordinator_IP) # start loop
+                gradients = self.receive_gradients_sync(self.partitions)
+                self.reduce_gradients_sync(gradients)
+                print(f"Iteration {i + 1}/{self.iterations} complete.")
+                return self.model
+            except Exception as e:
+                print("Error in training the model: ", e)
+                return
 
+
+    # Asynchronous Training  
     def receive_gradients_async(self, connections):
         gradient = None
         connection = None
@@ -98,30 +133,16 @@ class Divider:
                     break
         return gradient, connection
     
-
     def reduce_gradients_async(self, weights, gradient, lib):
         if lib == "tensorflow":
             # Weight(new) = Weight(old) — LR * gradient loss
-            weights = [weights[i] - self.config["lr"] * gradient[i] for i in range(len(weights))]
+            weights = [weights[i] - self.lr * gradient[i] for i in range(len(weights))]
             self.model.set_weights(weights)
-            self.model.compile(loss=self.config["loss"], optimizer=self.config["optimizer"], metrics=['accuracy'])
+            self.model.compile(loss=self.loss, optimizer=self.optimizer, metrics=['accuracy'])
                 
-
-    def train_centralized_sync(self):
-        for i in range(self.config["iterations"]):       
-            # Notice, the algo.py is stateless
-            self.send_info_to_workers(self.config["partitions"])
-            self.transmitter.iteration(self.coordinator_IP) # start loop
-            gradients = self.receive_sync(self.config["partitions"])
-            self.reduce_gradients_sync(gradients)
-            print(f"Iteration {i + 1}/{self.config['iterations']} complete.")
-
-        return self.model
-
-
     def train_centralized_async(self):
         connections = []
-        for i in range(self.config["iterations"]):
+        for i in range(self.iterations):
             weights = self.model.get_weights()
             
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
@@ -131,7 +152,7 @@ class Divider:
 
                 if connections == []:
                     print("Server listening on port", PORT)
-                    for j in range(self.config["partitions"]):
+                    for j in range(self.partitions):
                         conn, addr = server_socket.accept()
                         connections.append(conn)
                         print("Connected by", addr)
@@ -143,11 +164,9 @@ class Divider:
             self.send_info_to_workers([connection])
 
             self.reduce_gradients_async(weights, gradient)
-            print(f"Iteration {i + 1}/{self.config['iterations']} complete.")
-
-        # self.send_info_to_workers(connections, "stop")
+            print(f"Iteration {i + 1}/{self.iterations} complete.")
         return self.model
     
-    # destractor 
+    # destructor 
     def __del__(self):
-        self.transmitter.stop_server()
+        self.transceiver.stop_server()
