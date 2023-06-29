@@ -1,5 +1,4 @@
 import asyncio
-import subprocess
 
 async def run_command(command):
     # Run the command in a subprocess

@@ -84,7 +84,7 @@ class coordinator(coord_pb2_grpc.coordinatorServicer):
             with open(self.base_path + filepath, 'wb') as f:
                 f.write(data)
             # return success message
-            return worker_pb2.DownloadFileResponse(message='Success!')
+            return worker_pb2.DownloadFileResponse(message='File received successfully')
         except Exception as e:
             print("Error downloading the file: ", e)
             # return error message

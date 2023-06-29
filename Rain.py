@@ -65,6 +65,7 @@ class Rain:
 
 
     def train_centralized_async(self):
+        self.divider.send_data_to_workers()
         model = self.divider.train_centralized_async()
         return model
     

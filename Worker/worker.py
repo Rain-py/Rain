@@ -31,7 +31,7 @@ class worker(worker_pb2_grpc.workerServicer):
             with open(self.base_path + filepath, 'wb') as f:
                 f.write(data)
             # return success message
-            return worker_pb2.DownloadFileResponse(message='Success!')
+            return worker_pb2.DownloadFileResponse(message='File downloaded successfully')
         except Exception as e:
             print("Error downloading the file: ", e)
             # return error message
@@ -69,7 +69,7 @@ def serve():
     try:
         # create a gRPC server
         server = grpc.server(futures.ThreadPoolExecutor(max_workers=4))
-        # add the defined class to the server
+        # add the worker to the server
         worker_pb2_grpc.add_workerServicer_to_server(worker(), server)
         # listen on port 50051
         server.add_insecure_port('[::]:50051')
