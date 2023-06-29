@@ -15,20 +15,15 @@ import time
 import sys
 
 
-def get_filepath(filename, extension):
-    return f"{filename}{extension}"
-
-
-def read_iterfile(filepath, chunk_size=1024):
+def read_file(filepath, chunk_size=1024):
     split_data = os.path.splitext(filepath)
-    filename = split_data[0]
-    extension = split_data[1]
+    filename, extension = split_data[0], split_data[1]
     send_filename = filename.split("/")[-1]
     metadata = divider_pb2.MetaData(
         filename="./data/" + send_filename, extension=extension
     )
     yield divider_pb2.File(metadata=metadata)
-    filepath = get_filepath(filename, extension)
+    filepath = filename + extension
     with open(filepath, mode="rb") as f:
         while True:
             chunk = f.read(chunk_size)
@@ -39,45 +34,46 @@ def read_iterfile(filepath, chunk_size=1024):
                 return
 
 class Transceiver(divider_pb2_grpc.dividerServicer):
-
+    def __init__(self):
+        self.base_path = 'divider/'
+        self.data_base_path = self.base_path +'data/'
+        
     def send_data(self, coordinator_IP, Provisioner_IP, Num_of_workers, path):
         """
         This function will send the data to the coordinator and the provisioner.
         send the num of workers to the provisioner to create the workers.
         send the data to coordinator to distribute it among workers.
-        """
-        # instantiate a channel to the provisioner
-        with grpc.insecure_channel(Provisioner_IP + ":50054") as channel:
-            # create an interface for the grpc client (provisionar)
-            provisioner_stub = provisioner_pb2_grpc.provisionerStub(channel)
+        """ 
+        try:
+            # instantiate a channel to the provisioner
+            with grpc.insecure_channel(Provisioner_IP + ":50054") as channel:
+                # create an interface for the grpc client (provisioner)
+                provisioner_stub = provisioner_pb2_grpc.provisionerStub(channel)
 
-            # send the num of workers to the provisionar to create the workers, so will call function create workers from provisionar stub.
-            response = provisioner_stub.DefineNWorkers(
-                provisioner_pb2.NumOfWorkers(NumOfWorkers=Num_of_workers)
-            )
-            print(" divider received: " + response.message)
+                # send the num of workers to the provisioner to create the workers, so will call function create workers from provisioner stub.
+                response = provisioner_stub.DefineNWorkers(
+                    provisioner_pb2.NumOfWorkers(NumOfWorkers=Num_of_workers)
+                )
+                print("divider received: " + response.message)
+        except Exception as e:
+            print("Error sending the num of workers to the provisioner: ", e)
+            return
 
-        time.sleep(5)
         # instantiate a channel to the coord
         with grpc.insecure_channel(coordinator_IP + ":50052") as channel:
             print("divider is sending data to the coordinator")
             # create an interface for the grpc client (coord)
             coord_stub = coord_pb2_grpc.coordinatorStub(channel)
-            # divider will send (upload) the data to the coordinator, so it will call function recieve_from_divider from coord_stub
-
-            # response = coord_stub.download(read_iterfile('install_locally.py'))
-            # print(" divider received: " + response.message)
-
-            response = coord_stub.download(read_iterfile("../../Divider/" + "Algo.py"))
+            response = coord_stub.download(read_file("../../Divider/" + "Algo.py"))
             print(" divider received: " + response.message)
 
             for i in range(Num_of_workers):
                 response = coord_stub.download(
-                    read_iterfile(path + f"X_train_{i+1}.npy")
+                    read_file(path + f"X_train_{i+1}.npy")
                 )
                 print(" divider received: " + response.message)
                 response = coord_stub.download(
-                    read_iterfile(path + f"y_train_{i+1}.npy")
+                    read_file(path + f"y_train_{i+1}.npy")
                 )
                 print(" divider received: " + response.message)
         # self.server.wait_for_termination()
@@ -89,7 +85,7 @@ class Transceiver(divider_pb2_grpc.dividerServicer):
             coord_stub = coord_pb2_grpc.coordinatorStub(channel)
             # divider will send (upload) the data to the coordinator, so it will call function recieve_from_divider from coord_stub
 
-            response = coord_stub.download(read_iterfile(file_path))
+            response = coord_stub.download(read_file(file_path))
             print(" divider received: " + response.message)
 
     def iteration(self, coordinator_IP):
@@ -110,11 +106,9 @@ class Transceiver(divider_pb2_grpc.dividerServicer):
         data = bytearray()
         for request in request_iterator:
             if request.metadata.filename and request.metadata.extension:
-                filepath = get_filepath(
-                    request.metadata.filename, request.metadata.extension
-                )
-                continue
-            data.extend(request.chunk_data)
+                filepath = request.metadata.filename + request.metadata.extension
+            else:
+                data.extend(request.chunk_data)
         # print current path
         print("filepath is: " + "../../Divider/divider/" + filepath)
         with open("../../Divider/divider/" + filepath, "wb") as f:

@@ -57,7 +57,7 @@ class worker(worker_pb2_grpc.workerServicer):
     def Execute(self, request, context):
         try:
             filepath = self.data_base_path + request.filename +  request.extension
-            command = 'python3 '  + filepath +  " " + request.worker_id 
+            command = 'python3 '  + filepath +  " " + request.worker_id + " " + self.data_base_path
             print("executing command: ", command)
             os.system(command)
             return worker_pb2.ExecuteFileResponse(message='Executed!')
