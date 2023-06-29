@@ -1,10 +1,7 @@
 from __future__ import print_function
 from concurrent import futures  # indicates the num of (threads)
-import logging
 import os
-import threading
 import grpc
-import time
 import re
 import sys
 
@@ -26,57 +23,86 @@ sys.path.pop()
 ## Coordinator class
 class coordinator(coord_pb2_grpc.coordinatorServicer):
     def __init__(self, divider_IP):
-        print("Coordinator initialized successfully")
-        self.divider_IP = divider_IP
+        print("Coordinator initialized successfully") 
+        self.divider_IP = divider_IP  
+        self.base_path = 'coord/'
+        self.data_base_path = self.base_path + 'data/'
 
     def get_IPs_from_provisioner(self, provisioner_IP):
         """
         function :
-            Defines the interface for the provisioner and establishes a connection with the provisioner
-            and gets the IPs of the workers and thier status (Up or Down).
+            Defines the interface for the provisioner and establishes a connection with the provisioner 
+            and gets the IPs of the workers and their status (Up or Down).
         input : Provisioner IP
         output: list of IPs and their status
         """
-        with grpc.insecure_channel(provisioner_IP + ":50054") as channel:
-            # create an interface for the grpc client (provisioner)
-            provisioner_stub = provisioner_pb2_grpc.provisionerStub(channel)
-            # call function send Status from provisioner stub
-            response = provisioner_stub.SendStatus(provisioner_pb2.emptyMessage())
-            # response is a list of IPs and their status
-            self.workers_IPs = response.IPs
-            self.statuses = response.statuses
-            return response.IPs, response.statuses
+        try:
+            with grpc.insecure_channel(provisioner_IP +':50054') as channel:
+                # create an interface for the grpc client (provisioner)
+                provisioner_stub = provisioner_pb2_grpc.provisionerStub(channel) 
+                # call function send Status from provisioner stub 
+                response = provisioner_stub.SendStatus(provisioner_pb2.emptyMessage())
+                # response is a list of IPs and their status
+                self.workers_IPs = response.IPs
+                self.statuses = response.statuses
+                return response.IPs, response.statuses
+        except Exception as e:
+            print("Error getting IPs from provisioner: ", e)
+            return [], []
 
     def upload(self, request, context):
         chunk_size = 1024
 
-        filepath = f"{request.filename}{request.extension}"
-        if os.path.exists("coord/data/" + filepath):
-            with open("coord/data/" + filepath, mode="rb") as f:
+        filepath = self.base_path + request.filename + request.extension
+        try:
+            with open(filepath, mode="rb") as f:
                 while True:
                     chunk = f.read(chunk_size)
                     if chunk:
-                        entry_response = coord_pb2.UploadFileResponse(chunk_data=chunk)
+                        entry_response = worker_pb2.UploadFileResponse(chunk_data=chunk)
                         yield entry_response
                     else:  # The chunk was empty, which means we're at the end of the file
                         return
+        except Exception as e:
+            print("Error uploading the file: ", e)
+            return worker_pb2.UploadFileResponse(chunk_data=b'') # No file to upload, upload an empty chunk
 
     def download(self, request_iterator, context):
         """
-        function to recieve data files from the coordinator.
+        function to receive data files from the coordinator.
         """
         data = bytearray()
-        for request in request_iterator:
-            if request.metadata.filename and request.metadata.extension:
-                filepath = get_filepath(
-                    request.metadata.filename, request.metadata.extension
-                )
-                print(f"Downloading {filepath}...")
-                continue
-            data.extend(request.chunk_data)
-        with open("coord/" + filepath, "wb") as f:
-            f.write(data)
-        return coord_pb2.DownloadFileResponse(message="Success!")
+        try:
+            # receive file name and its data
+            for request in request_iterator:
+                if request.metadata.filename and request.metadata.extension:
+                    filepath = request.metadata.filename + request.metadata.extension
+                else:
+                    # the request is a file data, collect it
+                    data.extend(request.chunk_data)
+            # save file data
+            with open(self.base_path + filepath, 'wb') as f:
+                f.write(data)
+            # return success message
+            return worker_pb2.DownloadFileResponse(message='Success!')
+        except Exception as e:
+            print("Error downloading the file: ", e)
+            # return error message
+            return worker_pb2.DownloadFileResponse(message='Error downloading the file')
+
+    def execute(self, worker_id,ip):
+        try:
+            with grpc.insecure_channel(ip +':50051') as channel:
+                worker_stub = worker_pb2_grpc.workerStub(channel)   # interface for the grpc client(worker)
+
+                filename, extension = 'Algo', '.py'
+                
+                print(f'Executing {filename}{extension}, worker_id: {worker_id}')
+                response =  worker_stub.Execute(worker_pb2.executeData(filename=filename,extension=extension,worker_id=str(worker_id)))
+                print("coordinator received: " + response.message)
+        except Exception as e:
+            print("Error executing the file: ", e)
+            return worker_pb2.executeData(message='Error executing the file')
 
     def send(self, target, worker_id, ip):
         """
@@ -92,69 +118,43 @@ class coordinator(coord_pb2_grpc.coordinatorServicer):
             # Establish a connection with the worker on port 50051
             with grpc.insecure_channel(ip + ":50051") as channel:
                 # create an interface for the grpc client (worker)
-                worker_stub = worker_pb2_grpc.workerStub(channel)
-                response = worker_stub.download(read_file(f"coord/install_locally.py"))
-                print(" coordinator received: " + response.message)
-                response = worker_stub.download(read_file(f"coord/data/Algo.py"))
-                print(" coordinator received: " + response.message)
-                response = worker_stub.download(
-                    read_file(f"coord/data/X_train_{worker_id}.npy")
-                )
-                print(" coordinator received: " + response.message)
-                response = worker_stub.download(
-                    read_file(f"coord/data/y_train_{worker_id}.npy")
-                )
-                print(" coordinator received: " + response.message)
-                response = worker_stub.download(
-                    read_file(f"coord/data/{worker_id}.pkl")
-                )
-                print(" coordinator received: " + response.message)
-        elif target == "divider":
+                worker_stub = worker_pb2_grpc.workerStub(channel) 
+                # send files
+                response = worker_stub.download(read_file(f'{self.data_base_path}Algo.py'))
+                print("coordinator received: " + response.message)
+                response = worker_stub.download(read_file(f'{self.data_base_path}X_train_{worker_id}.npy'))
+                print("coordinator received: " + response.message)
+                response = worker_stub.download(read_file(f'{self.data_base_path}y_train_{worker_id}.npy'))
+                print("coordinator received: " + response.message)
+                response = worker_stub.download(read_file(f'{self.data_base_path}{worker_id}.pkl'))
+                print("coordinator received: " + response.message)
+        elif target == 'divider':
             # Establish a connection with the divider on port 50052
             with grpc.insecure_channel(ip + ":50053") as channel:
                 # create an interface for the grpc client (divider)
-                divider_stub = divider_pb2_grpc.dividerStub(channel)
-                response = divider_stub.download(
-                    read_file(f"coord/data/{worker_id}_trained.pkl")
-                )
-                print(" coordinator received: " + response.message)
+                divider_stub = divider_pb2_grpc.dividerStub(channel)  
+                response = divider_stub.download(read_file(f'{self.data_base_path}{worker_id}_trained.pkl'))
+                print("coordinator received: " + response.message)
 
-    def execute(self, worker_id, ip):
-        with grpc.insecure_channel(ip + ":50051") as channel:
-            worker_stub = worker_pb2_grpc.workerStub(
-                channel
-            )  # interface for the grpc client(worker)
+    def receive(self, worker_id,ip):
+        try:
+            with grpc.insecure_channel(ip +':50051') as channel:
+                worker_stub = worker_pb2_grpc.workerStub(channel)   # interface for the grpc client(worker)
 
-            filename = "Algo"
-            extension = ".py"
+                filename, extension = f'{worker_id}_trained', '.pkl'
+                filepath = self.data_base_path + filename + extension
+                data = bytearray()
+                for request in worker_stub.upload(
+                    worker_pb2.MetaData(filename=filename, extension=extension)
+                ):
+                    data.extend(request.chunk_data)
 
-            print(str(worker_id))
-            response = worker_stub.Execute(
-                worker_pb2.executeData(
-                    filename=filename, extension=extension, worker_id=str(worker_id)
-                )
-            )
-            print(" coordinator received: " + response.message)
-
-    def receive(self, worker_id, ip):
-        with grpc.insecure_channel(ip + ":50051") as channel:
-            worker_stub = worker_pb2_grpc.workerStub(
-                channel
-            )  # interface for the grpc client(worker)
-
-            filename = f"{worker_id}_trained"
-            extension = ".pkl"
-            filepath = get_filepath("coord/data/" + filename, extension)
-
-            data = bytearray()
-            for request in worker_stub.upload(
-                worker_pb2.MetaData(filename=filename, extension=extension)
-            ):
-                data.extend(request.chunk_data)
-
-            with open(filepath, mode="wb") as f:
-                f.write(data)
-            print(f"Downloaded {filepath} in coordinator")
+                with open(filepath, mode="wb") as f:
+                    f.write(data)
+                print(f"Downloaded {filepath} in coordinator")
+        except Exception as e:
+            print("Error receiving the file: ", e)
+            return worker_pb2.UploadFileResponse(chunk_data=b'')
 
     def start_loop(self, request, context):
         """
@@ -195,7 +195,7 @@ def get_filepath(filename, extension):
 def read_file(filepath, chunk_size=1024):
     """
     function :
-        divide the file into chuncks and send it as stream of small chunks using yield.
+        divide the file into chunks and send it as stream of small chunks using yield.
     input : filepath
     output: stream of small chunks of the file
     """
@@ -203,48 +203,52 @@ def read_file(filepath, chunk_size=1024):
         split_data = os.path.splitext(re.sub("coord/", "", filepath))
     else:
         split_data = os.path.splitext(filepath)
-    filename = split_data[0]
-    extension = split_data[1]
-    print(filename)
-    metadata = coord_pb2.MetaData(filename=filename, extension=extension)
-    yield coord_pb2.File(metadata=metadata)
-    # filepath = get_filepath(filename, extension)
-    with open(filepath, mode="rb") as f:
-        while True:
-            chunk = f.read(chunk_size)
-            if chunk:
-                entry_request = coord_pb2.File(chunk_data=chunk)
-                yield entry_request
-            else:  # The chunk was empty, which means we're at the end of the file
-                return
+    filename, extension = split_data[0], split_data[1]
+    try:
+        metadata = coord_pb2.MetaData(filename=filename, extension=extension)
+        yield coord_pb2.File(metadata=metadata)
+        with open(filepath, mode="rb") as f:
+            while True:
+                chunk = f.read(chunk_size)
+                if chunk:
+                    entry_request = coord_pb2.File(chunk_data=chunk)
+                    yield entry_request
+                else:  # The chunk was empty, which means we're at the end of the file
+                    return
+    except Exception as e:
+        print("Error reading the file: ", e)
+        return coord_pb2.File(chunk_data=b'')
 
 
-def serve(provisioner_IP, divider_IP, coordinator_stub):
-    server = grpc.server(futures.ThreadPoolExecutor(1))
+def serve(provisioner_IP, coordinator_stub):
+    try:
 
-    coord_pb2_grpc.add_coordinatorServicer_to_server(coordinator_stub, server)
+        server = grpc.server(futures.ThreadPoolExecutor(1))
 
-    server.add_insecure_port(
-        "[::]:50052"
-    )  # open port for communictaion with the coordinator
+        coord_pb2_grpc.add_coordinatorServicer_to_server(coordinator_stub, server)
 
-    server.start()
-    print("coordinator is running")
+        server.add_insecure_port('[::]:50052') # open port for communication with the coordinator
 
-    # first get the IPs and the status of the workers from the provisioner
-    workers_IPs, statuses = coordinator_stub.get_IPs_from_provisioner(provisioner_IP)
-    print(IP + " , " for IP in workers_IPs)
+        server.start()
+        print("coordinator is running")
 
-    # get the data files from the divider
-    # wait for the divider to send the data files
+        # first get the IPs and the status of the workers from the provisioner
+        workers_IPs, statuses = coordinator_stub.get_IPs_from_provisioner(provisioner_IP)
+        print(IP + " , " for IP in workers_IPs)
+        
+        # since server.start() will not block, a sleep-loop is added to keep alive
+        server.wait_for_termination()
+    except Exception as e:
+        print("Error in the coordinator server: ", e)
+        return coord_pb2.LoopResponse(message = 'Error in the coordinator server')
 
-    server.wait_for_termination()
+
+            
+# main function 
+if __name__ == '__main__':
+    provisioner_IP = '127.0.0.1'
+    divider_IP = '127.0.0.1'
+    coordinator = coordinator(divider_IP)
+    serve(provisioner_IP, coordinator)
 
 
-## main function
-if __name__ == "__main__":
-    logging.basicConfig()
-    provisioner_IP = "127.0.0.1"
-    divider_IP = "127.0.0.1"
-    coordinator_ = coordinator(divider_IP)
-    serve(provisioner_IP, divider_IP, coordinator_)

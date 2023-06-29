@@ -9,35 +9,40 @@ from protos import worker_pb2, worker_pb2_grpc
 
 sys.path.pop()
 
-
-def get_filepath(filename, extension):
-    return f"{filename}{extension}"
-
-
 class worker(worker_pb2_grpc.workerServicer):
+    def __init__(self):
+        self.base_path = 'worker/'
+        self.data_base_path = self.base_path + 'data/'
+
     def download(self, request_iterator, context):
         """
         function to receive data files from the coordinator.
         """
         data = bytearray()
-        for request in request_iterator:
-            if request.metadata.filename and request.metadata.extension:
-                filepath = get_filepath(
-                    request.metadata.filename, request.metadata.extension
-                )
-                continue
-            data.extend(request.chunk_data)
-        with open("worker/" + filepath, "wb") as f:
-            f.write(data)
-        return worker_pb2.DownloadFileResponse(message="Success!")
+        try:
+            # receive file name and its data
+            for request in request_iterator:
+                if request.metadata.filename and request.metadata.extension:
+                    filepath = request.metadata.filename + request.metadata.extension
+                else:
+                    # the request is a file data, collect it
+                    data.extend(request.chunk_data)
+            # save file data
+            with open(self.base_path + filepath, 'wb') as f:
+                f.write(data)
+            # return success message
+            return worker_pb2.DownloadFileResponse(message='Success!')
+        except Exception as e:
+            print("Error downloading the file: ", e)
+            # return error message
+            return worker_pb2.DownloadFileResponse(message='Error downloading the file')
 
     def upload(self, request, context):
-        chunk_size = 1024
-
-        filepath = f"{request.filename}{request.extension}"
-        if os.path.exists("worker/data/" + filepath):
-            print("uploading file: " + filepath)
-            with open("worker/data/" + filepath, mode="rb") as f:
+        chunk_size = 1024 # size of chunks used for uploading files
+        
+        filepath = self.data_base_path + request.filename + request.extension
+        try:
+            with open(filepath, mode="rb") as f:
                 while True:
                     chunk = f.read(chunk_size)
                     if chunk:  # or len(chunk) > 0
@@ -45,26 +50,40 @@ class worker(worker_pb2_grpc.workerServicer):
                         yield entry_response
                     else:  # The chunk was empty, which means we're at the end of the file
                         return
+        except Exception as e:
+            print("Error uploading the file: ", e)
+            return worker_pb2.UploadFileResponse(chunk_data=b'') # No file to upload, upload an empty chunk
 
     def Execute(self, request, context):
-        code_filepath = get_filepath(request.filename, request.extension)
-        print(code_filepath)
-        # print current directory
-        print(os.getcwd())
-        print("python " + "./worker/data/" + code_filepath + " " + request.worker_id)
-        os.system("python " + "worker/data/" + code_filepath + " " + request.worker_id)
-
-        return worker_pb2.ExecuteFileResponse(message="Executed yaay!")
-
-
+        try:
+            filepath = self.data_base_path + request.filename +  request.extension
+            command = 'python3 '  + filepath +  " " + request.worker_id 
+            print("executing command: ", command)
+            os.system(command)
+            return worker_pb2.ExecuteFileResponse(message='Executed!')
+        except Exception as e:
+            print("Error executing the file: ", e)
+            return worker_pb2.ExecuteFileResponse(message='Error executing the file')
+        
 def serve():
-    server = grpc.server(futures.ThreadPoolExecutor(max_workers=4))
-    worker_pb2_grpc.add_workerServicer_to_server(worker(), server)
-    server.add_insecure_port("[::]:50051")
-    server.start()
-    server.wait_for_termination()
+    try:
+        # create a gRPC server
+        server = grpc.server(futures.ThreadPoolExecutor(max_workers=4))
+        # add the defined class to the server
+        worker_pb2_grpc.add_workerServicer_to_server(worker(), server)
+        # listen on port 50051
+        server.add_insecure_port('[::]:50051')
+        # start the server
+        server.start()
+        # since server.start() will not block, a sleep-loop is added to keep alive
+        server.wait_for_termination()
+    except Exception as e:
+        print("Error in the worker server: ", e)
+        return
 
 
-if __name__ == "__main__":
-    logging.basicConfig()
+if __name__ == '__main__':
+    # create a directory for the worker data if does not exist
+    if not os.path.exists('worker/data'):
+      os.makedirs('worker/data') 
     serve()

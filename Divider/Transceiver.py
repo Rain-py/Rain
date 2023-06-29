@@ -38,8 +38,8 @@ def read_iterfile(filepath, chunk_size=1024):
             else:  # The chunk was empty, which means we're at the end of the file
                 return
 
+class Transceiver(divider_pb2_grpc.dividerServicer):
 
-class div_transmitter(divider_pb2_grpc.dividerServicer):
     def send_data(self, coordinator_IP, Provisioner_IP, Num_of_workers, path):
         """
         This function will send the data to the coordinator and the provisioner.
@@ -134,28 +134,3 @@ class div_transmitter(divider_pb2_grpc.dividerServicer):
         self.server.stop(0)
         print("divider is stopped")
 
-
-# def serve(divider, coordinator_IP, provisioner_IP, Num_of_workers):
-#     server = grpc.server(futures.ThreadPoolExecutor(1))
-#     divider_pb2_grpc.add_dividerServicer_to_server(divider, server)
-#     server.add_insecure_port('[::]:50053') # for other nodes to connect with divider
-#     server.start()
-#     print("divider is running")
-#     divider.send(coordinator_IP, provisioner_IP, Num_of_workers)
-#     server.wait_for_termination()
-
-# if __name__ == '__main__':
-#     # Configures the root logger. This function does nothing if the root logger already has handlers configured for it.
-#     logging.basicConfig()
-
-#     # define the coord ip
-#     coordinator_IP = '127.0.0.1'
-
-#     # define the provisioner ip
-#     provisioner_IP = '127.0.0.1'
-
-#     # define the number of workers
-#     Num_of_workers = 1
-
-#     divider_ = div_transmitter()
-#     serve(divider_, coordinator_IP, provisioner_IP, Num_of_workers)
