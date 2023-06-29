@@ -9,7 +9,8 @@ sys.path.pop()
 
 class worker(worker_pb2_grpc.workerServicer):
     def __init__(self):
-        self.data_base_path = 'worker/data/'
+        self.base_path = 'worker/'
+        self.data_base_path = self.base_path + 'data/'
 
     def download(self, request_iterator, context):
         """
@@ -25,7 +26,7 @@ class worker(worker_pb2_grpc.workerServicer):
                     # the request is a file data, collect it
                     data.extend(request.chunk_data)
             # save file data
-            with open('worker/' + filepath, 'wb') as f:
+            with open(self.base_path + filepath, 'wb') as f:
                 f.write(data)
             # return success message
             return worker_pb2.DownloadFileResponse(message='Success!')
@@ -50,7 +51,6 @@ class worker(worker_pb2_grpc.workerServicer):
         except Exception as e:
             print("Error uploading the file: ", e)
             return worker_pb2.UploadFileResponse(chunk_data=b'') # No file to upload, upload an empty chunk
-
 
     def Execute(self, request, context):
         try:
@@ -81,7 +81,7 @@ def serve():
 
 
 if __name__ == '__main__':
-    # # create a directory for the worker data if does not exist
-    # if not os.path.exists('worker/data'):
-    #   os.makedirs('worker/data') 
+    # create a directory for the worker data if does not exist
+    if not os.path.exists('worker/data'):
+      os.makedirs('worker/data') 
     serve()
