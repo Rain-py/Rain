@@ -52,3 +52,6 @@ Thumbs.db
 *.pkl
 data/MNIST/*.npy
 Divider/divider/data/.fuse_hidden0000050200000003
+
+# vscode settings
+.vscode

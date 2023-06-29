@@ -21,12 +21,12 @@ class TrainingWorker:
         return data
 
     def send_data(self, msg, ID):
-        print(f"Algo is saving {msg} ..")
+        # print(f"Algo is saving {msg} ..")
         dill.dump(msg, open(f"{self.path}{ID}_trained.pkl", "wb"))
         # check if the dump was successful
         data = dill.load(open(f"{self.path}{ID}_trained.pkl", "rb"))
-        print(f"Algo saved {data} ..")
-        print("sending data to coordinator")
+        # print(f"Algo saved {data} ..")
+        # print("sending data to coordinator")
 
     def calculate_gradient(self, model, X_train, y_train):
         if self.config ["lib"] == "tensorflow":
@@ -88,14 +88,14 @@ class TrainingWorker:
 
     def run(self):
         self.ID = sys.argv[1]
-        print("Worker", self.ID, "started")
+        # print("Worker", self.ID, "started")
         # while True:
         data = self.receive_data(self.ID)[0]
-        print(f"Algo received {data} ..")
+        # print(f"Algo received {data} ..")
 
         model = data["model"]
         self.config = data["config"]
-        print(f"The algo config is {self.config}")
+        # print(f"The algo config is {self.config}")
 
         X_train = np.load(f"{self.path}/X_train_{self.ID}.npy")
         y_train = np.load(f"{self.path}/y_train_{self.ID}.npy")
