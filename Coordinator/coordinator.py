@@ -4,6 +4,7 @@ import os
 import grpc
 import re
 import sys
+import threading
 
 sys.path.append("../")
 from protos import (
@@ -45,7 +46,9 @@ class coordinator(coord_pb2_grpc.coordinatorServicer):
                 # response is a list of IPs and their status
                 self.workers_IPs = response.IPs
                 self.statuses = response.statuses
-                return response.IPs, response.statuses
+                self.ports = response.ports
+                self.ids = response.ids
+                return response.IPs, response.statuses, response.ports, response.ids
         except Exception as e:
             print("Error getting IPs from provisioner: ", e)
             return [], []
@@ -90,21 +93,19 @@ class coordinator(coord_pb2_grpc.coordinatorServicer):
             # return error message
             return worker_pb2.DownloadFileResponse(message='Error downloading the file')
 
-    def execute(self, worker_id, ip, iteration_num = 0):
+    def execute(self, worker_id, ip, port, iteration_num = 0):
         try:
-            with grpc.insecure_channel(ip +':50051') as channel:
+            with grpc.insecure_channel(f'{ip}:{port}') as channel:
                 worker_stub = worker_pb2_grpc.workerStub(channel)   # interface for the grpc client(worker)
 
-                filename, extension = 'Algo', '.py'
-                
-                print(f'Executing {filename}{extension}, worker_id: {worker_id}, iteration_num: {iteration_num}')
+                filename, extension = 'Algo', '.py'  
                 response =  worker_stub.Execute(worker_pb2.executeData(filename=filename,extension=extension,worker_id=str(worker_id), iteration_num=str(iteration_num)))
                 print("coordinator received: " + response.message)
         except Exception as e:
             print("Error executing the file: ", e)
             return worker_pb2.executeData(message='Error executing the file')
 
-    def send(self, target, worker_id, ip, iteration_num = 0):
+    def send(self, target, worker_id, ip, port, iteration_num = 0):
         """
         function :
             Defines the interface for the workers and establishes a connection with the workers
@@ -116,7 +117,7 @@ class coordinator(coord_pb2_grpc.coordinatorServicer):
         """
         if target == "worker":
             # Establish a connection with the worker on port 50051
-            with grpc.insecure_channel(ip + ":50051") as channel:
+            with grpc.insecure_channel(f'{ip}:{port}') as channel:
                 # create an interface for the grpc client (worker)
                 worker_stub = worker_pb2_grpc.workerStub(channel) 
                 # send files
@@ -136,9 +137,10 @@ class coordinator(coord_pb2_grpc.coordinatorServicer):
                 response = divider_stub.download(read_file(f'{self.data_base_path}{worker_id}_{iteration_num}_trained.pkl'))
                 print("coordinator received: " + response.message)
 
-    def receive(self, worker_id, ip, iteration_num):
+    def receive(self, worker_id, ip, port, iteration_num):
         try:
-            with grpc.insecure_channel(ip +':50051') as channel:
+            
+            with grpc.insecure_channel(f'{ip}:{port}') as channel:
                 worker_stub = worker_pb2_grpc.workerStub(channel)   # interface for the grpc client(worker)
 
                 filename, extension = f'{worker_id}_{iteration_num}_trained', '.pkl'
@@ -163,23 +165,26 @@ class coordinator(coord_pb2_grpc.coordinatorServicer):
         """
         print("start loop")
         # then send the data to the workers
-        for id in range(len(self.workers_IPs)):
-            self.send("worker", id + 1, self.workers_IPs[id], request.iteration_num)
+        for i in range(len(self.workers_IPs)):
+            self.send("worker", self.ids[i], self.workers_IPs[self.ids[i] - 1], self.ports[self.ids[i] - 1], request.iteration_num)
 
+        threads = list()
         # execute the data from the workers
-        for id in range(len(self.workers_IPs)):
-            # channel = grpc.insecure_channel(self.workers_IPs[id] +':50051')
-            # # new_thread = threading.Thread(target=self.execute, args=(channel,id+1,self.workers_IPs[id]))
-            # # new_thread.start()
-            self.execute(id + 1, self.workers_IPs[id], request.iteration_num) 
-
+        for i in range(len(self.workers_IPs)):
+            new_thread = threading.Thread(target=self.execute, args=(self.ids[i],self.workers_IPs[self.ids[i] - 1], self.ports[self.ids[i] - 1], request.iteration_num))
+            threads.append(new_thread)
+            new_thread.start()
+            # self.execute(id+1,self.workers_IPs[id])
+        
         # receive the data from the workers
-        for id in range(len(self.workers_IPs)):
-            self.receive(id + 1, self.workers_IPs[id], request.iteration_num)
+        for i in range(len(self.workers_IPs)):
+            threads[self.ids[i] - 1].join()
+            print("thread " + str(self.ids[i]) + " is done")
+            self.receive(self.ids[i],self.workers_IPs[self.ids[i] - 1], self.ports[self.ids[i] - 1], request.iteration_num)
 
         # send the data to the divider
-        for id in range(len(self.workers_IPs)):
-            self.send("divider", id + 1, self.divider_IP, request.iteration_num)
+        for i in range(len(self.workers_IPs)):
+            self.send("divider", self.ids[i], self.divider_IP, self.ports[self.ids[i] - 1], request.iteration_num)
 
         return coord_pb2.LoopResponse(message="one loop is done")
 
@@ -233,7 +238,7 @@ def serve(provisioner_IP, coordinator_stub):
         print("coordinator is running")
 
         # first get the IPs and the status of the workers from the provisioner
-        workers_IPs, statuses = coordinator_stub.get_IPs_from_provisioner(provisioner_IP)
+        workers_IPs, statuses, ports, ids = coordinator_stub.get_IPs_from_provisioner(provisioner_IP)
         print(IP + " , " for IP in workers_IPs)
         
         # since server.start() will not block, a sleep-loop is added to keep alive

@@ -19,6 +19,7 @@ class Divider:
         self.lib = self.config["lib"]
         self.iterations = self.config["iterations"]
         self.partitions = self.config["partitions"]
+        self.num_of_workers = self.config["partitions"]
         self.model = model
         # define the coord ip
         self.coordinator_IP = '127.0.0.1'
@@ -31,19 +32,18 @@ class Divider:
 
     def send_data_to_workers(self):
         try:
-            self.transceiver.send_data(self.coordinator_IP, self.provisioner_IP, 1, self.data_base_path)
+            self.transceiver.send_data(self.coordinator_IP, self.provisioner_IP, self.num_of_workers, self.data_base_path)
         except Exception as e:
             print("Error in sending data to workers: ", e)
             return
         
     def send_info_to_workers(self, iteration_num):
         data = [{"config": self.config, "model": self.model}]
-        file_path = f"{self.data_base_path}{iteration_num}.pkl"
+        file_path = f"{self.model_base_path}{iteration_num}.pkl"
         try:
             # save the data to the file        
             with open(file_path, "wb") as f:
                 dill.dump(data, f)
-            msg = dill.load(open(file_path, "rb"))
         except Exception as e:
             print("Error in saving the info to the file: ", e)
             return
