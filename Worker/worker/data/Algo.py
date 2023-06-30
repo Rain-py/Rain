@@ -112,6 +112,7 @@ class TrainingWorker:
             self.lr = data["config"]["lr"]
             self.loss = data["config"]["loss"]
             model = data["model"]
+            self.iterationNum = data["iterationNum"]
         except Exception as e:
             print("Error in configuring the parameters: ", e)
             return
@@ -129,6 +130,6 @@ class TrainingWorker:
 
 if __name__ == '__main__':
     id = sys.argv[1]
-    data_base_path = "./worker/data/"
+    data_base_path = sys.argv[2]
     worker = TrainingWorker(id, data_base_path)
     worker.run()

@@ -27,6 +27,7 @@ class Divider:
         self.transceiver = Transceiver()
         self.transceiver.create_server()
         self.data_base_path = "../../data/"
+        self.model_base_path = "../../Divider/divider/data/"
 
     def send_data_to_workers(self):
         try:
@@ -35,9 +36,9 @@ class Divider:
             print("Error in sending data to workers: ", e)
             return
         
-    def send_info_to_workers(self, connections):
-        for j in range(connections):
-            data = [{"config": self.config, "model": self.model}]
+    def send_info_to_workers(self, partitions, iterationNum):
+        for j in range(partitions):
+            data = [{"config": self.config, "model": self.model, "iterationNum": iterationNum}]
             file_path = f"{self.data_base_path}{j + 1}.pkl"
             try:
                 # save the data to the file        
@@ -55,10 +56,10 @@ class Divider:
                 return
 
     # Synchronous Training    
-    def receive_gradients_sync(self, connections):
+    def receive_gradients_sync(self, partitions, iterationNum):
         gradients = []
         try:
-            for j in range(connections):
+            for j in range(partitions):
                 msg = dill.load(open(f"../../Divider/divider/data/{j + 1}_trained.pkl", "rb"))
                 gradients.append(msg)
         except Exception as e:
@@ -76,15 +77,15 @@ class Divider:
                 for gradient_list_tuple in zip(*gradients):
                     gradient_avg.append(np.array([np.array(g).mean(axis=0) for g in zip(*gradient_list_tuple)]))
             except Exception as e:
-                print("Error in averaging the gradients: ", e)
+                print("Error in reducing the gradients: ", e)
                 return
             try:
-                # Weight(new) = Weight(old) — LR * gradient loss
-                weights = [weights[i] - self.lr * gradient_avg[i] for i in range(len(weights))]
+                # Weight(new) = Weight(old) — (LR * NumWorkers) * gradient loss
+                weights = [weights[i] - (self.lr * self.partitions) * gradient_avg[i] for i in range(len(weights))]
                 self.model.set_weights(weights)
                 self.model.compile(loss=self.loss, optimizer=self.optimizer, metrics=['accuracy'])
             except Exception as e:
-                print("Error in reducing the gradients: ", e)
+                print("Error in calculating the new weights: ", e)
                 return
         
         elif self.lib == "pytorch":  
@@ -105,11 +106,12 @@ class Divider:
 
     def train_centralized_sync(self):
         try:  
-            for i in range(self.iterations):    
+            for i in range(self.iterations):   
+                print (f"Starting iteration {i + 1}/{self.iterations}")
                 # Notice, the algo.py is stateless
-                self.send_info_to_workers(self.partitions)
+                self.send_info_to_workers(self.partitions, i+1)
                 self.transceiver.iteration(self.coordinator_IP) # start loop
-                gradients = self.receive_gradients_sync(self.partitions)
+                gradients = self.receive_gradients_sync(self.partitions, i+1)
                 self.reduce_gradients_sync(gradients)
                 print(f"Iteration {i + 1}/{self.iterations} complete.")
             return self.model
