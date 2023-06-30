@@ -1,6 +1,0 @@
-https://www.uber.com/en-EG/blog/horovod/
-https://neptune.ai/blog/distributed-training
-https://towardsdatascience.com/distributed-deep-learning-illustrated-6256e07a0468
-https://web.stanford.edu/~rezab/classes/cme323/S16/projects_reports/hedge_usmani.pdf
-https://www.semanticscholar.org/paper/Deep-Learning-and-Its-Parallelization-%3A-Concepts-Li-Zhang/9c1afcd79521a7312ee8f26c16ca20116a4d6b87
-https://papers.nips.cc/paper_files/paper/2012/hash/6aca97005c68f1206823815f66102863-Abstract.html
