@@ -26,8 +26,8 @@ class Divider:
         self.provisioner_IP = '127.0.0.1'
         self.transceiver = Transceiver()
         self.transceiver.create_server()
-        self.data_base_path = "../../../data/"
-        self.model_base_path = "../../../Divider/divider/data/"
+        self.data_base_path = "../../data/"
+        self.model_base_path = "../../Divider/divider/data/"
 
     def send_data_to_workers(self):
         try:
