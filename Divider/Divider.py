@@ -104,18 +104,18 @@ class Divider:
             self.model.load_state_dict(state_dict)
 
     def train_centralized_sync(self):
-        for i in range(self.iterations):    
-            try:   
+        try:  
+            for i in range(self.iterations):    
                 # Notice, the algo.py is stateless
                 self.send_info_to_workers(self.partitions)
                 self.transceiver.iteration(self.coordinator_IP) # start loop
                 gradients = self.receive_gradients_sync(self.partitions)
                 self.reduce_gradients_sync(gradients)
                 print(f"Iteration {i + 1}/{self.iterations} complete.")
-                return self.model
-            except Exception as e:
-                print("Error in training the model: ", e)
-                return
+            return self.model
+        except Exception as e:
+            print("Error in training the model: ", e)
+            return
 
 
     # Asynchronous Training  
