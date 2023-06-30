@@ -39,6 +39,7 @@ class Transceiver(divider_pb2_grpc.dividerServicer):
         self.data_base_path = self.base_path +'data/'
         
     def send_data(self, coordinator_IP, Provisioner_IP, Num_of_workers, path):
+
         """
         This function will send the data to the coordinator and the provisioner.
         send the num of workers to the provisioner to create the workers.
@@ -88,13 +89,13 @@ class Transceiver(divider_pb2_grpc.dividerServicer):
             response = coord_stub.download(read_file(file_path))
             print(" divider received: " + response.message)
 
-    def iteration(self, coordinator_IP):
+    def iteration(self, coordinator_IP, iteration_num):
         with grpc.insecure_channel(coordinator_IP + ":50052") as channel:
-            print("divider is beginning the iteration")
+            print("divider begins the iteration")
             # create an interface for the grpc client (coord)
             coord_stub = coord_pb2_grpc.coordinatorStub(channel)
             response = coord_stub.start_loop(
-                coord_pb2.StartLoopMessage(message="start the loop")
+                coord_pb2.StartLoopMessage(message="start the loop", iteration_num=iteration_num)
             )
             print(" divider received: " + response.message)
             return response.message
@@ -126,5 +127,5 @@ class Transceiver(divider_pb2_grpc.dividerServicer):
 
     def stop_server(self):
         self.server.stop(0)
-        print("divider is stopped")
+        print("divider stopped")
 

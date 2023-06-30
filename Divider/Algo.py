@@ -31,7 +31,7 @@ class TrainingWorker:
 
     def send_data(self, msg, ID):
         try:
-            dill.dump(msg, open(f"{self.base_path}{ID}_trained.pkl", "wb"))
+            dill.dump(msg, open(f"{self.base_path}{ID}_{self.iterationNum}_trained.pkl", "wb"))
         except Exception as e:
             print("Error in sending the data: ", e)
             return
