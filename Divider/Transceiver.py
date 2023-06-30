@@ -65,8 +65,8 @@ class Transceiver(divider_pb2_grpc.dividerServicer):
             print("divider is sending data to the coordinator")
             # create an interface for the grpc client (coord)
             coord_stub = coord_pb2_grpc.coordinatorStub(channel)
-            response = coord_stub.download(read_file("../../Divider/" + "Algo.py"))
-            print(" divider received: " + response.message)
+            # response = coord_stub.download(read_file("../../Divider/" + "Algo.py"))
+            # print(" divider received: " + response.message)
 
             for i in range(Num_of_workers):
                 response = coord_stub.download(

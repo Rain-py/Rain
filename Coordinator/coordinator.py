@@ -120,8 +120,8 @@ class coordinator(coord_pb2_grpc.coordinatorServicer):
                 # create an interface for the grpc client (worker)
                 worker_stub = worker_pb2_grpc.workerStub(channel) 
                 # send files
-                response = worker_stub.download(read_file(f'{self.data_base_path}Algo.py'))
-                print("coordinator received: " + response.message)
+                # response = worker_stub.download(read_file(f'{self.data_base_path}Algo.py'))
+                # print("coordinator received: " + response.message)
                 response = worker_stub.download(read_file(f'{self.data_base_path}X_train_{worker_id}.npy'))
                 print("coordinator received: " + response.message)
                 response = worker_stub.download(read_file(f'{self.data_base_path}y_train_{worker_id}.npy'))
