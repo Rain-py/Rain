@@ -111,8 +111,8 @@ class Transceiver(divider_pb2_grpc.dividerServicer):
             else:
                 data.extend(request.chunk_data)
         # print current path
-        print("filepath is: " + "../../Divider/divider/" + filepath)
-        with open("../../Divider/divider/" + filepath, "wb") as f:
+        print("filepath is: " + "../../../Divider/divider/" + filepath)
+        with open("../../../Divider/divider/" + filepath, "wb") as f:
             f.write(data)
         return divider_pb2.DownloadFileResponse(message="Success!")
 
