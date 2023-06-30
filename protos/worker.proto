@@ -39,7 +39,6 @@ service worker {
     string filename = 1;
     string extension = 2;
     string worker_id = 3;
-    string iteration_num = 4;
   }
   message ExecuteFileResponse {
     string message = 1;

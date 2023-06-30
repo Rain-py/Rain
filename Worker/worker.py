@@ -3,8 +3,10 @@ import logging
 import os
 import grpc
 import sys
+
 sys.path.append("../")
 from protos import worker_pb2, worker_pb2_grpc
+
 sys.path.pop()
 
 class worker(worker_pb2_grpc.workerServicer):
@@ -55,11 +57,9 @@ class worker(worker_pb2_grpc.workerServicer):
     def Execute(self, request, context):
         try:
             filepath = self.data_base_path + request.filename +  request.extension
-            command = 'python3 '  + filepath +  " " + request.worker_id + " " + self.data_base_path + " " + request.iteration_num
+            command = 'python3 '  + filepath +  " " + request.worker_id + " " + self.data_base_path
             print("executing command: ", command)
-            # execute the command and return the output
             os.system(command)
-            
             return worker_pb2.ExecuteFileResponse(message='Executed!')
         except Exception as e:
             print("Error executing the file: ", e)

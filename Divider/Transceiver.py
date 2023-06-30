@@ -39,7 +39,6 @@ class Transceiver(divider_pb2_grpc.dividerServicer):
         self.data_base_path = self.base_path +'data/'
         
     def send_data(self, coordinator_IP, Provisioner_IP, Num_of_workers, path):
-
         """
         This function will send the data to the coordinator and the provisioner.
         send the num of workers to the provisioner to create the workers.
@@ -65,8 +64,8 @@ class Transceiver(divider_pb2_grpc.dividerServicer):
             print("divider is sending data to the coordinator")
             # create an interface for the grpc client (coord)
             coord_stub = coord_pb2_grpc.coordinatorStub(channel)
-            # response = coord_stub.download(read_file("../../Divider/" + "Algo.py"))
-            # print(" divider received: " + response.message)
+            response = coord_stub.download(read_file("../../Divider/" + "Algo.py"))
+            print(" divider received: " + response.message)
 
             for i in range(Num_of_workers):
                 response = coord_stub.download(
@@ -89,13 +88,13 @@ class Transceiver(divider_pb2_grpc.dividerServicer):
             response = coord_stub.download(read_file(file_path))
             print(" divider received: " + response.message)
 
-    def iteration(self, coordinator_IP, iteration_num):
+    def iteration(self, coordinator_IP):
         with grpc.insecure_channel(coordinator_IP + ":50052") as channel:
-            print("divider begins the iteration")
+            print("divider is beginning the iteration")
             # create an interface for the grpc client (coord)
             coord_stub = coord_pb2_grpc.coordinatorStub(channel)
             response = coord_stub.start_loop(
-                coord_pb2.StartLoopMessage(message="start the loop", iteration_num=iteration_num)
+                coord_pb2.StartLoopMessage(message="start the loop")
             )
             print(" divider received: " + response.message)
             return response.message
@@ -127,5 +126,5 @@ class Transceiver(divider_pb2_grpc.dividerServicer):
 
     def stop_server(self):
         self.server.stop(0)
-        print("divider stopped")
+        print("divider is stopped")
 

@@ -5,10 +5,10 @@
 Local Mode
 
 - [ ] Don't send the algo.py to the worker.
-- [x] Sync training until evaluation.
+- [ ] Sync training until evaluation.
 - [ ] Add multiple workers.
-- [ ] Support PyTorch.
 - [ ] Async training until evaluation.
+- [ ] Support PyTorch.
 - [ ] Add the local mode to the configuration.
 - [ ] Coordinator and worker should start automatically in the local mode.
 
