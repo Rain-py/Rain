@@ -121,20 +121,20 @@ class coordinator(coord_pb2_grpc.coordinatorServicer):
                 # create an interface for the grpc client (worker)
                 worker_stub = worker_pb2_grpc.workerStub(channel) 
                 # send files
-                # response = worker_stub.download(read_file(f'{self.data_base_path}Algo.py'))
-                # print("coordinator received: " + response.message)
+                response = worker_stub.download(read_file(f'{self.data_base_path}Algo.py'))
+                print("coordinator received: " + response.message)
                 response = worker_stub.download(read_file(f'{self.data_base_path}X_train_{worker_id}.npy'))
                 print("coordinator received: " + response.message)
                 response = worker_stub.download(read_file(f'{self.data_base_path}y_train_{worker_id}.npy'))
                 print("coordinator received: " + response.message)
-                response = worker_stub.download(read_file(f'{self.data_base_path}{iteration_num}.pkl'))
+                response = worker_stub.download(read_file(f'{self.data_base_path}{worker_id}.pkl'))
                 print("coordinator received: " + response.message)
         elif target == 'divider':
             # Establish a connection with the divider on port 50052
             with grpc.insecure_channel(ip + ":50053") as channel:
                 # create an interface for the grpc client (divider)
                 divider_stub = divider_pb2_grpc.dividerStub(channel)  
-                response = divider_stub.download(read_file(f'{self.data_base_path}{worker_id}_{iteration_num}_trained.pkl'))
+                response = divider_stub.download(read_file(f'{self.data_base_path}{worker_id}_trained.pkl'))
                 print("coordinator received: " + response.message)
 
     def receive(self, worker_id, ip, port, iteration_num):
@@ -143,7 +143,7 @@ class coordinator(coord_pb2_grpc.coordinatorServicer):
             with grpc.insecure_channel(f'{ip}:{port}') as channel:
                 worker_stub = worker_pb2_grpc.workerStub(channel)   # interface for the grpc client(worker)
 
-                filename, extension = f'{worker_id}_{iteration_num}_trained', '.pkl'
+                filename, extension = f'{worker_id}_trained', '.pkl'
                 filepath = self.data_base_path + filename + extension
                 data = bytearray()
                 for request in worker_stub.upload(
