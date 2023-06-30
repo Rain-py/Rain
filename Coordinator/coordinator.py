@@ -90,15 +90,15 @@ class coordinator(coord_pb2_grpc.coordinatorServicer):
             # return error message
             return worker_pb2.DownloadFileResponse(message='Error downloading the file')
 
-    def execute(self, worker_id, ip):
+    def execute(self, worker_id, ip, iteration_num = 0):
         try:
             with grpc.insecure_channel(ip +':50051') as channel:
                 worker_stub = worker_pb2_grpc.workerStub(channel)   # interface for the grpc client(worker)
 
                 filename, extension = 'Algo', '.py'
                 
-                print(f'Executing {filename}{extension}, worker_id: {worker_id}')
-                response =  worker_stub.Execute(worker_pb2.executeData(filename=filename,extension=extension,worker_id=str(worker_id)))
+                print(f'Executing {filename}{extension}, worker_id: {worker_id}, iteration_num: {iteration_num}')
+                response =  worker_stub.Execute(worker_pb2.executeData(filename=filename,extension=extension,worker_id=str(worker_id), iteration_num=str(iteration_num)))
                 print("coordinator received: " + response.message)
         except Exception as e:
             print("Error executing the file: ", e)
@@ -171,7 +171,7 @@ class coordinator(coord_pb2_grpc.coordinatorServicer):
             # channel = grpc.insecure_channel(self.workers_IPs[id] +':50051')
             # # new_thread = threading.Thread(target=self.execute, args=(channel,id+1,self.workers_IPs[id]))
             # # new_thread.start()
-            self.execute(id + 1, self.workers_IPs[id]) 
+            self.execute(id + 1, self.workers_IPs[id], request.iteration_num) 
 
         # receive the data from the workers
         for id in range(len(self.workers_IPs)):

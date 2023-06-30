@@ -36,13 +36,14 @@ class Divider:
             print("Error in sending data to workers: ", e)
             return
         
-    def send_info_to_workers(self, iterationNum):
-        data = [{"config": self.config, "model": self.model, "iterationNum": iterationNum}]
-        file_path = f"{self.data_base_path}{iterationNum}.pkl"
+    def send_info_to_workers(self, iteration_num):
+        data = [{"config": self.config, "model": self.model}]
+        file_path = f"{self.data_base_path}{iteration_num}.pkl"
         try:
             # save the data to the file        
             with open(file_path, "wb") as f:
                 dill.dump(data, f)
+            msg = dill.load(open(file_path, "rb"))
         except Exception as e:
             print("Error in saving the info to the file: ", e)
             return
@@ -55,11 +56,11 @@ class Divider:
             return
 
     # Synchronous Training    
-    def receive_gradients_sync(self, partitions, iterationNum):
+    def receive_gradients_sync(self, partitions, iteration_num):
         gradients = []
         try:
             for j in range(partitions):
-                msg = dill.load(open(f"../../Divider/divider/data/{j + 1}_{iterationNum}_trained.pkl", "rb"))
+                msg = dill.load(open(f"{self.model_base_path}{j + 1}_{iteration_num}_trained.pkl", "rb"))
                 gradients.append(msg)
         except Exception as e:
             print("Error in receiving the gradients from the workers: ", e)
@@ -83,6 +84,7 @@ class Divider:
                 weights = [weights[i] - (self.lr * self.partitions) * gradient_avg[i] for i in range(len(weights))]
                 self.model.set_weights(weights)
                 self.model.compile(loss=self.loss, optimizer=self.optimizer, metrics=['accuracy'])
+                print("Model summary: ", self.model.summary())
             except Exception as e:
                 print("Error in calculating the new weights: ", e)
                 return
