@@ -39,6 +39,7 @@ service coordinator {
   // for loop
   message StartLoopMessage {
     string message = 1;
+    int32 iteration_num = 2;
   }
   message LoopResponse {
     string message = 1;

@@ -48,19 +48,19 @@ class Divider:
             print("Error in saving the info to the file: ", e)
             return
 
-            try:
-                print ("sending file: ", file_path)
-                self.transceiver.send_file(self.coordinator_IP, file_path)
-            except Exception as e:
-                print("Error in sending the info to the workers: ", e)
-                return
+        try:
+            print ("sending file: ", file_path)
+            self.transceiver.send_file(self.coordinator_IP, file_path)
+        except Exception as e:
+            print("Error in sending the info to the workers: ", e)
+            return
 
     # Synchronous Training    
-    def receive_gradients_sync(self, partitions, iterationNum):
+    def receive_gradients_sync(self, partitions, iteration_num):
         gradients = []
         try:
             for j in range(partitions):
-                msg = dill.load(open(f"../../Divider/divider/data/{j + 1}_trained.pkl", "rb"))
+                msg = dill.load(open(f"{self.model_base_path}{j + 1}_{iteration_num}_trained.pkl", "rb"))
                 gradients.append(msg)
         except Exception as e:
             print("Error in receiving the gradients from the workers: ", e)
@@ -84,6 +84,7 @@ class Divider:
                 weights = [weights[i] - (self.lr * self.partitions) * gradient_avg[i] for i in range(len(weights))]
                 self.model.set_weights(weights)
                 self.model.compile(loss=self.loss, optimizer=self.optimizer, metrics=['accuracy'])
+                print("Model summary: ", self.model.summary())
             except Exception as e:
                 print("Error in calculating the new weights: ", e)
                 return
@@ -109,8 +110,8 @@ class Divider:
             for i in range(self.iterations):   
                 print (f"Starting iteration {i + 1}/{self.iterations}")
                 # Notice, the algo.py is stateless
-                self.send_info_to_workers(self.partitions, i+1)
-                self.transceiver.iteration(self.coordinator_IP) # start loop
+                self.send_info_to_workers(i+1) #self.partitions,
+                self.transceiver.iteration(self.coordinator_IP, i+1) # start loop
                 gradients = self.receive_gradients_sync(self.partitions, i+1)
                 self.reduce_gradients_sync(gradients)
                 print(f"Iteration {i + 1}/{self.iterations} complete.")
