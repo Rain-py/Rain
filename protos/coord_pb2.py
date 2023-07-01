@@ -13,7 +13,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x12protos/coord.proto\x12\x05\x63oord\"/\n\x08MetaData\x12\x10\n\x08\x66ilename\x18\x01 \x01(\t\x12\x11\n\textension\x18\x02 \x01(\t\"L\n\x04\x46ile\x12#\n\x08metadata\x18\x01 \x01(\x0b\x32\x0f.coord.MetaDataH\x00\x12\x14\n\nchunk_data\x18\x02 \x01(\x0cH\x00\x42\t\n\x07request\"\'\n\x14\x44ownloadFileResponse\x12\x0f\n\x07message\x18\x01 \x01(\t\"(\n\x12UploadFileResponse\x12\x12\n\nchunk_data\x18\x01 \x01(\x0c\":\n\x10StartLoopMessage\x12\x0f\n\x07message\x18\x01 \x01(\t\x12\x15\n\riteration_num\x18\x02 \x01(\x05\"\x1f\n\x0cLoopResponse\x12\x0f\n\x07message\x18\x01 \x01(\t2\xbf\x01\n\x0b\x63oordinator\x12\x38\n\x08\x64ownload\x12\x0b.coord.File\x1a\x1b.coord.DownloadFileResponse\"\x00(\x01\x12\x38\n\x06upload\x12\x0f.coord.MetaData\x1a\x19.coord.UploadFileResponse\"\x00\x30\x01\x12<\n\nstart_loop\x12\x17.coord.StartLoopMessage\x1a\x13.coord.LoopResponse\"\x00\x62\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x12protos/coord.proto\x12\x05\x63oord\"/\n\x08MetaData\x12\x10\n\x08\x66ilename\x18\x01 \x01(\t\x12\x11\n\textension\x18\x02 \x01(\t\"L\n\x04\x46ile\x12#\n\x08metadata\x18\x01 \x01(\x0b\x32\x0f.coord.MetaDataH\x00\x12\x14\n\nchunk_data\x18\x02 \x01(\x0cH\x00\x42\t\n\x07request\"\'\n\x14\x44ownloadFileResponse\x12\x0f\n\x07message\x18\x01 \x01(\t\"(\n\x12UploadFileResponse\x12\x12\n\nchunk_data\x18\x01 \x01(\x0c\":\n\x10StartLoopMessage\x12\x0f\n\x07message\x18\x01 \x01(\t\x12\x15\n\riteration_num\x18\x02 \x01(\x05\"\x1f\n\x0cLoopResponse\x12\x0f\n\x07message\x18\x01 \x01(\t\"R\n\x15StartLoopMessageAsync\x12\x0f\n\x07message\x18\x01 \x01(\t\x12\x15\n\riteration_num\x18\x02 \x01(\x05\x12\x11\n\tworker_id\x18\x03 \x01(\x05\x32\x88\x02\n\x0b\x63oordinator\x12\x38\n\x08\x64ownload\x12\x0b.coord.File\x1a\x1b.coord.DownloadFileResponse\"\x00(\x01\x12\x38\n\x06upload\x12\x0f.coord.MetaData\x1a\x19.coord.UploadFileResponse\"\x00\x30\x01\x12<\n\nstart_loop\x12\x17.coord.StartLoopMessage\x1a\x13.coord.LoopResponse\"\x00\x12G\n\x10start_loop_async\x12\x1c.coord.StartLoopMessageAsync\x1a\x13.coord.LoopResponse\"\x00\x62\x06proto3')
 
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, globals())
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'protos.coord_pb2', globals())
@@ -32,6 +32,8 @@ if _descriptor._USE_C_DESCRIPTORS == False:
   _STARTLOOPMESSAGE._serialized_end=297
   _LOOPRESPONSE._serialized_start=299
   _LOOPRESPONSE._serialized_end=330
-  _COORDINATOR._serialized_start=333
-  _COORDINATOR._serialized_end=524
+  _STARTLOOPMESSAGEASYNC._serialized_start=332
+  _STARTLOOPMESSAGEASYNC._serialized_end=414
+  _COORDINATOR._serialized_start=417
+  _COORDINATOR._serialized_end=681
 # @@protoc_insertion_point(module_scope)

@@ -24,8 +24,8 @@ sys.path.pop()
 ## Coordinator class
 class coordinator(coord_pb2_grpc.coordinatorServicer):
     def __init__(self, divider_IP):
-        print("Coordinator initialized successfully")
-        self.divider_IP = divider_IP
+        print("Coordinator initialized successfully") 
+        self.divider_IP = divider_IP  
         self.base_path = 'coord/'
         self.data_base_path = self.base_path + 'data/'
 
@@ -48,6 +48,7 @@ class coordinator(coord_pb2_grpc.coordinatorServicer):
                 self.statuses = response.statuses
                 self.ports = response.ports
                 self.ids = response.ids
+                self.data_status = [0] * len(self.workers_IPs) # 0 means no data sent yet, 1 means data is already sent to the workers
                 return response.IPs, response.statuses, response.ports, response.ids
         except Exception as e:
             print("Error getting IPs from provisioner: ", e)
@@ -123,10 +124,13 @@ class coordinator(coord_pb2_grpc.coordinatorServicer):
                 # send files
                 # response = worker_stub.download(read_file(f'{self.data_base_path}Algo.py'))
                 # print("coordinator received: " + response.message)
-                response = worker_stub.download(read_file(f'{self.data_base_path}X_train_{worker_id}.npy'))
-                print("coordinator received: " + response.message)
-                response = worker_stub.download(read_file(f'{self.data_base_path}y_train_{worker_id}.npy'))
-                print("coordinator received: " + response.message)
+                if not self.data_status[worker_id - 1]:
+                    response = worker_stub.download(read_file(f'{self.data_base_path}X_train_{worker_id}.npy'))
+                    print("coordinator received: " + response.message)
+                    response = worker_stub.download(read_file(f'{self.data_base_path}y_train_{worker_id}.npy'))
+                    print("coordinator received: " + response.message)
+                    self.data_status[worker_id - 1] = 1
+
                 response = worker_stub.download(read_file(f'{self.data_base_path}{iteration_num}.pkl'))
                 print("coordinator received: " + response.message)
         elif target == 'divider':
@@ -158,6 +162,7 @@ class coordinator(coord_pb2_grpc.coordinatorServicer):
             print("Error receiving the file: ", e)
             return worker_pb2.UploadFileResponse(chunk_data=b'')
 
+    # synchronous function
     def start_loop(self, request, context):
         """
         function: to start sending data to workers and receive models.
@@ -188,6 +193,27 @@ class coordinator(coord_pb2_grpc.coordinatorServicer):
 
         return coord_pb2.LoopResponse(message="one loop is done")
 
+    # asynchronous function
+    def start_loop_async(self, request, context):
+        """
+        function: to start sending data to workers and receive models.
+        return: it return model to divider.
+        """
+        print("start loop")
+
+        # then send the data to the workers
+        self.send("worker", request.worker_id , self.workers_IPs[request.worker_id - 1], self.ports[request.worker_id - 1], request.iteration_num)
+
+        # execute the data from the workers
+        self.execute(request.worker_id, self.workers_IPs[request.worker_id - 1], self.ports[request.worker_id - 1], request.iteration_num)
+
+        print("worker  " + str(request.worker_id ) + " is done")
+        self.receive(request.worker_id,self.workers_IPs[request.worker_id - 1], self.ports[request.worker_id - 1], request.iteration_num)
+
+
+        self.send("divider", request.worker_id , self.divider_IP, self.ports[request.worker_id - 1], request.iteration_num)
+
+        return coord_pb2.LoopResponse(message="one loop is done")
 
 ## Helper functions
 def get_filepath(filename, extension):
