@@ -50,7 +50,6 @@ class TrainingWorker:
                 print("Error in calculating the gradient: ", e)
                 return
 
-
         elif self.lib == "pytorch":
             try:
                 # Convert numpy arrays to PyTorch tensors
@@ -62,7 +61,7 @@ class TrainingWorker:
                 train_loader = DataLoader(train_dataset, batch_size=self.batch_size, shuffle=False)
                 
                 # TODO: Remove hardcoding
-                self.optimizer = optim.Adam(model.parameters(), lr=0.001)
+                # self.optimizer = optim.Adam(model.parameters(), lr=0.001)
                 old_weights = [param.clone() for param in model.parameters()]
                 for epoch in range(self.epochs):
                     total_correct, total_samples, total_loss = 0, 0, 0
