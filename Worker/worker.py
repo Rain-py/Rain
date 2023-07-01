@@ -9,8 +9,9 @@ sys.path.pop()
 
 class worker(worker_pb2_grpc.workerServicer):
     def __init__(self, port):
-        self.base_path = './Worker/worker/'
-        self.data_base_path = self.base_path + 'data/'
+        self.base_path = './Worker/'
+        self.worker_path = self.base_path + 'worker/'
+        self.data_base_path = self.worker_path + 'data/'
         self.port = port
         if not os.path.exists(self.data_base_path):
             os.makedirs(self.data_base_path) 
@@ -28,8 +29,11 @@ class worker(worker_pb2_grpc.workerServicer):
                 else:
                     # the request is a file data, collect it
                     data.extend(request.chunk_data)
+            # if filepath has 'data/', remove it
+            if filepath.startswith('data/'):
+                filepath = filepath[5:]
             # save file data
-            with open(self.base_path + filepath, 'wb') as f:
+            with open(self.data_base_path + filepath, 'wb') as f:
                 f.write(data)
             # return success message
             return worker_pb2.DownloadFileResponse(message='File downloaded successfully')
@@ -57,7 +61,7 @@ class worker(worker_pb2_grpc.workerServicer):
 
     def Execute(self, request, context):
         try:
-            filepath = self.data_base_path + request.filename +  request.extension
+            filepath = self.base_path + request.filename +  request.extension
             command = 'python3 '  + filepath +  " " + request.worker_id + " " + self.data_base_path + " " + request.iteration_num
             print("executing command: ", command)
             # execute the command and return the output
