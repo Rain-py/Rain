@@ -27,8 +27,8 @@ class Divider:
         self.provisioner_IP = '127.0.0.1'
         self.transceiver = Transceiver()
         self.transceiver.create_server()
-        self.data_base_path = "../../data/"
-        self.model_base_path = "../../Divider/divider/data/"
+        self.data_base_path = "../../../data/"
+        self.model_base_path = "../../../Divider/divider/data/"
 
     def send_data_to_workers(self):
         try:
@@ -80,8 +80,8 @@ class Divider:
                 print("Error in reducing the gradients: ", e)
                 return
             try:
-                # Weight(new) = Weight(old) — (LR * NumWorkers) * gradient loss
-                weights = [weights[i] - (self.lr * self.partitions) * gradient_avg[i] for i in range(len(weights))]
+                # Weight(new) = Weight(old) — LR * gradient loss
+                weights = [weights[i] - self.lr * gradient_avg[i] for i in range(len(weights))]
                 self.model.set_weights(weights)
                 self.model.compile(loss=self.loss, optimizer=self.optimizer, metrics=['accuracy'])
                 print("Model summary: ", self.model.summary())

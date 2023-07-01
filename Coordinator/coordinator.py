@@ -24,8 +24,8 @@ sys.path.pop()
 ## Coordinator class
 class coordinator(coord_pb2_grpc.coordinatorServicer):
     def __init__(self, divider_IP):
-        print("Coordinator initialized successfully") 
-        self.divider_IP = divider_IP  
+        print("Coordinator initialized successfully")
+        self.divider_IP = divider_IP
         self.base_path = 'coord/'
         self.data_base_path = self.base_path + 'data/'
 

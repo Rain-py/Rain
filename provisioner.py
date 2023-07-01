@@ -22,7 +22,7 @@ class provisioner(provisioner_pb2_grpc.provisionerServicer):
             print("statuses:", self.statuses)
             return provisioner_pb2.WorkerStatus(IPs = self.IPs, statuses = self.statuses, ports = self.ports, ids = self.ids)
         except Exception as e:
-            print("Error sending status: ", e)
+            print("Error sending status:", e)
             return provisioner_pb2.WorkerStatus(IPs = [], statuses = [], ports = [], ids = [])
 
     # DefineNWorkers(NumOfWorkers) returns () {}
@@ -72,10 +72,10 @@ def serve():
         print("provisioner is running")
         
         # send the IPs and statuses to the coordinator
-        _provisioner.IPs = ['127.0.0.1', '127.0.0.1'] # '197.56.23.126', 
-        _provisioner.statuses =[provisioner_pb2.Status.UP, provisioner_pb2.Status.UP]
-        _provisioner.ports = [50151, 50152]
-        _provisioner.ids = [1, 2]
+        _provisioner.IPs = ['127.0.0.1', '127.0.0.1', '127.0.0.1'] # '197.56.23.126', 
+        _provisioner.statuses =[provisioner_pb2.Status.UP, provisioner_pb2.Status.UP, provisioner_pb2.Status.UP]
+        _provisioner.ports = [50151, 50152, 50153]
+        _provisioner.ids = [1, 2, 3]
 
         # while _provisioner.NumOfWorkers == 0:
         #     continue
