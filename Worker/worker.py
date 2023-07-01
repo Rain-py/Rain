@@ -9,7 +9,7 @@ sys.path.pop()
 
 class worker(worker_pb2_grpc.workerServicer):
     def __init__(self, port):
-        self.base_path = './worker/'
+        self.base_path = './Worker/worker/'
         self.data_base_path = self.base_path + 'data/'
         self.port = port
         if not os.path.exists(self.data_base_path):
@@ -87,10 +87,10 @@ class worker(worker_pb2_grpc.workerServicer):
     
 
 
-if __name__ == '__main__':
-    # create a directory for the worker data if does not exist
-    if len(sys.argv) > 1:
-        port = int(sys.argv[1])
+# if __name__ == '__main__':
+#     # create a directory for the worker data if does not exist
+#     if len(sys.argv) > 1:
+#         port = int(sys.argv[1])
     
-    _worker = worker(port)
-    _worker.serve()
+#     _worker = worker(port)
+#     _worker.serve()

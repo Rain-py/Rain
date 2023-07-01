@@ -8,6 +8,8 @@ service coordinator {
     rpc upload(MetaData) returns (stream UploadFileResponse) {}
     // coordinator start its loop which sending the data and receiving the model
     rpc start_loop(StartLoopMessage) returns (LoopResponse) {}
+    // coordinator stop its loop which sending the data and receiving the model asynchronusly 
+    rpc start_loop_async(StartLoopMessageAsync) returns (LoopResponse) {}
   }
 
   // Define the file metadata message
@@ -43,5 +45,10 @@ service coordinator {
   }
   message LoopResponse {
     string message = 1;
+  }
+  message StartLoopMessageAsync {
+    string message = 1;
+    int32 iteration_num = 2;
+    int32 worker_id = 3;
   }
   

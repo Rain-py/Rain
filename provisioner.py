@@ -77,11 +77,11 @@ def serve():
         _provisioner.ports = [50151, 50152, 50153]
         _provisioner.ids = [1, 2, 3]
 
-        # while _provisioner.NumOfWorkers == 0:
-        #     continue
+        while _provisioner.NumOfWorkers == 0:
+            continue
 
         # create the workers
-        # _provisioner.create_workers(_provisioner.NumOfWorkers, _provisioner.IPs, _provisioner.ports)
+        _provisioner.create_workers(_provisioner.NumOfWorkers, _provisioner.IPs, _provisioner.ports)
         # since server.start() will not block, a sleep-loop is added to keep alive
         server.wait_for_termination()
     except Exception as e:
