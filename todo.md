@@ -7,16 +7,16 @@ Local Mode
 - [x] Don't send the algo.py to the worker.
 - [x] Sync training until evaluation.
 - [x] Add multiple workers.
-- [ ] Support PyTorch.
-- [ ] Async training until evaluation.
-- [ ] Add the local mode to the configuration.
-- [ ] Coordinator and worker should start automatically in the local mode.
+- [x] Support PyTorch.
+- [x] Test on cifar dataset.
 
 ## Saturday 1/7
 
 Local Mode
 
-- [ ] Test on cifar dataset.
+- [ ] Async training until evaluation.
+- [ ] Add the local mode to the configuration.
+- [ ] Coordinator and worker should start automatically in the local mode.
 - [ ] Add the local provisioner inside the cloud provisioner.
 
 ## Sunday 2/7
