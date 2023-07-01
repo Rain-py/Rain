@@ -2,8 +2,6 @@ import numpy as np
 import socket
 import dill
 import torch
-import os
-import sys
 
 from Divider.Transceiver import Transceiver
 
@@ -26,10 +24,14 @@ class Divider:
         # define the provisioner ip
         self.provisioner_IP = '127.0.0.1'
         self.transceiver = Transceiver()
-        self.transceiver.create_server()
         self.data_base_path = "../../../data/"
         self.model_base_path = "../../../Divider/divider/data/"
 
+    def serve(self):
+        self.transceiver.serve()
+    def stop_serving(self):
+        self.transceiver.stop_serving()
+    
     def send_data_to_workers(self):
         try:
             self.transceiver.send_data(self.coordinator_IP, self.provisioner_IP, self.num_of_workers, self.data_base_path)
@@ -177,4 +179,4 @@ class Divider:
     
     # destructor 
     def __del__(self):
-        self.transceiver.stop_server()
+        self.transceiver.stop_serving()

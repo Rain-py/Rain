@@ -9,7 +9,7 @@ sys.path.pop()
 
 class worker(worker_pb2_grpc.workerServicer):
     def __init__(self, port):
-        self.base_path = '../Worker/'
+        self.base_path = '../../../Worker/'
         self.worker_path = self.base_path + 'worker/'
         self.data_base_path = self.worker_path + 'data/'
         self.port = port
@@ -29,9 +29,6 @@ class worker(worker_pb2_grpc.workerServicer):
                 else:
                     # the request is a file data, collect it
                     data.extend(request.chunk_data)
-            # if filepath has 'data/', remove it
-            if filepath.startswith('data/'):
-                filepath = filepath[5:]
             # save file data
             with open(self.data_base_path + filepath, 'wb') as f:
                 f.write(data)

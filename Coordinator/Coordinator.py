@@ -22,14 +22,18 @@ sys.path.pop()
 
 
 ## Coordinator class
-class coordinator(coord_pb2_grpc.coordinatorServicer):
-    def __init__(self, divider_IP):
+class Coordinator(coord_pb2_grpc.coordinatorServicer):
+    def __init__(self, divider_IP, provisioner_IP):
         print("Coordinator initialized successfully") 
         self.divider_IP = divider_IP  
-        self.base_path = 'coord/'
+        self.provisioner_IP = provisioner_IP
+        self.server  = None
+        self.base_path = '../../../Coordinator/coord/'
         self.data_base_path = self.base_path + 'data/'
+    def __del__(self):
+        self.stop_serving()
 
-    def get_IPs_from_provisioner(self, provisioner_IP):
+    def get_IPs_from_provisioner(self):
         """
         function :
             Defines the interface for the provisioner and establishes a connection with the provisioner 
@@ -38,7 +42,7 @@ class coordinator(coord_pb2_grpc.coordinatorServicer):
         output: list of IPs and their status
         """
         try:
-            with grpc.insecure_channel(provisioner_IP +':50054') as channel:
+            with grpc.insecure_channel(self.provisioner_IP +':50054') as channel:
                 # create an interface for the grpc client (provisioner)
                 provisioner_stub = provisioner_pb2_grpc.provisionerStub(channel) 
                 # call function send Status from provisioner stub 
@@ -57,7 +61,7 @@ class coordinator(coord_pb2_grpc.coordinatorServicer):
     def upload(self, request, context):
         chunk_size = 1024
 
-        filepath = self.base_path + request.filename + request.extension
+        filepath = self.date_base_path + request.filename + request.extension
         try:
             with open(filepath, mode="rb") as f:
                 while True:
@@ -85,7 +89,7 @@ class coordinator(coord_pb2_grpc.coordinatorServicer):
                     # the request is a file data, collect it
                     data.extend(request.chunk_data)
             # save file data
-            with open(self.base_path + filepath, 'wb') as f:
+            with open(self.data_base_path + filepath, 'wb') as f:
                 f.write(data)
             # return success message
             return worker_pb2.DownloadFileResponse(message='File received successfully')
@@ -167,7 +171,7 @@ class coordinator(coord_pb2_grpc.coordinatorServicer):
         return: it return model to divider.
         """
         print("start loop")
-        self.get_IPs_from_provisioner(provisioner_IP)
+        self.get_IPs_from_provisioner()
         # then send the data to the workers
         for i in range(len(self.workers_IPs)):
             self.send("worker", self.ids[i], self.workers_IPs[self.ids[i] - 1], self.ports[self.ids[i] - 1], request.iteration_num)
@@ -213,24 +217,26 @@ class coordinator(coord_pb2_grpc.coordinatorServicer):
         self.send("divider", request.worker_id , self.divider_IP, self.ports[request.worker_id - 1], request.iteration_num)
 
         return coord_pb2.LoopResponse(message="one loop is done")
+    
     def serve(self):
         try:
 
-            server = grpc.server(futures.ThreadPoolExecutor(1))
+            self.server = grpc.server(futures.ThreadPoolExecutor(1))
 
-            coord_pb2_grpc.add_coordinatorServicer_to_server(self, server)
+            coord_pb2_grpc.add_coordinatorServicer_to_server(self, self.server)
 
-            server.add_insecure_port('[::]:50052') # open port for communication with the coordinator
+            self.server.add_insecure_port('[::]:50052') # open port for communication with the coordinator
 
-            server.start()
-            print("coordinator is running")
+            self.server.start()
+            print("coordinator is serving")
             
-            # since server.start() will not block, a sleep-loop is added to keep alive
-            server.wait_for_termination()
         except Exception as e:
             print("Error in the coordinator server: ", e)
             return coord_pb2.LoopResponse(message = 'Error in the coordinator server')
 
+    def stop_serving(self):
+        if self.server:
+            self.server.stop(0)
 ## Helper functions
 def get_filepath(filename, extension):
     """
@@ -246,11 +252,9 @@ def read_file(filepath, chunk_size=1024):
     input : filepath
     output: stream of small chunks of the file
     """
-    if "coord/" in filepath:
-        split_data = os.path.splitext(re.sub("coord/", "", filepath))
-    else:
-        split_data = os.path.splitext(filepath)
-    filename, extension = split_data[0], split_data[1]
+    # split filepath on '/' to get the filename and extension
+    split_data = filepath.split("/")
+    filename, extension = split_data[-1].split(".")[0], "." + split_data[-1].split(".")[1]
     try:
         metadata = coord_pb2.MetaData(filename=filename, extension=extension)
         yield coord_pb2.File(metadata=metadata)
@@ -272,9 +276,9 @@ def read_file(filepath, chunk_size=1024):
             
 # main function 
 if __name__ == '__main__':
-    provisioner_IP = '127.0.0.1'
     divider_IP = '127.0.0.1'
-    coordinator = coordinator(divider_IP)
+    provisioner_IP = '127.0.0.1'
+    coordinator = Coordinator(divider_IP, provisioner_IP)
     coordinator.serve()
 
 

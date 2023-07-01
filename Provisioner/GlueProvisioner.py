@@ -14,7 +14,10 @@ class GlueProvisioner(provisioner_pb2_grpc.provisionerServicer):
         self.ids = []
         self.workers = []
         self.num_workers = 0
-        
+        self.server = None
+
+    def __del__(self):
+        self.stop_serving()
      # sendStatus() returns (WorkerStatus) {}
     def SendStatus(self, request, context):
         try:
@@ -41,24 +44,32 @@ class GlueProvisioner(provisioner_pb2_grpc.provisionerServicer):
         pass
     def get_num_workers(self):
         return self.num_workers
-    def serve(self):
+    def start_coordinator(self):
+        pass
+    
+    def stop_serving(self):
+        if self.server:
+            self.server.stop(0)
+
+    def serve(self, num_workers):
         try:
             # create a gRPC server
-            server = grpc.server(futures.ThreadPoolExecutor(max_workers=1))
+            self.server = grpc.server(futures.ThreadPoolExecutor(max_workers=1))
             # add the provisioner to the server
-            provisioner_pb2_grpc.add_provisionerServicer_to_server(self, server)
+            provisioner_pb2_grpc.add_provisionerServicer_to_server(self, self.server)
             # listen on port 50054
-            server.add_insecure_port('[::]:50054')
+            self.server.add_insecure_port('[::]:50054')
             # start the server
-            server.start()
-            print("provisioner is running")
+            self.server.start()
+            print("provisioner is serving")
             
-            while self.num_workers == 0:
-                continue
+            self.start_coordinator()
+
+            self.num_workers = num_workers
             # create the workers
             self.workers  = self.create_workers()
-            # since server.start() will not block, a sleep-loop is added to keep alive
-            server.wait_for_termination()
+            return
+
         except Exception as e:
             print("Error in the provisioner server: ", e)
             return
