@@ -13,23 +13,23 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x18protos/provisioner.proto\x12\tprovision\"@\n\x0cWorkerStatus\x12\x0b\n\x03IPs\x18\x01 \x03(\t\x12#\n\x08statuses\x18\x02 \x03(\x0e\x32\x11.provision.Status\"$\n\x0cNumOfWorkers\x12\x14\n\x0cNumOfWorkers\x18\x01 \x01(\x04\"\x1b\n\x08response\x12\x0f\n\x07message\x18\x01 \x01(\t\"\x0e\n\x0c\x65mptyMessage*\x1a\n\x06Status\x12\x08\n\x04\x44OWN\x10\x00\x12\x06\n\x02UP\x10\x01\x32\x91\x01\n\x0bprovisioner\x12@\n\nSendStatus\x12\x17.provision.emptyMessage\x1a\x17.provision.WorkerStatus\"\x00\x12@\n\x0e\x44\x65\x66ineNWorkers\x12\x17.provision.NumOfWorkers\x1a\x13.provision.response\"\x00\x62\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x18protos/provisioner.proto\x12\tprovision\"\\\n\x0cWorkerStatus\x12\x0b\n\x03IPs\x18\x01 \x03(\t\x12#\n\x08statuses\x18\x02 \x03(\x0e\x32\x11.provision.Status\x12\r\n\x05ports\x18\x03 \x03(\x05\x12\x0b\n\x03ids\x18\x04 \x03(\x05\"$\n\x0cNumOfWorkers\x12\x14\n\x0cNumOfWorkers\x18\x01 \x01(\x04\"\x1b\n\x08response\x12\x0f\n\x07message\x18\x01 \x01(\t\"\x0e\n\x0c\x65mptyMessage*\x1a\n\x06Status\x12\x08\n\x04\x44OWN\x10\x00\x12\x06\n\x02UP\x10\x01\x32\x91\x01\n\x0bprovisioner\x12@\n\nSendStatus\x12\x17.provision.emptyMessage\x1a\x17.provision.WorkerStatus\"\x00\x12@\n\x0e\x44\x65\x66ineNWorkers\x12\x17.provision.NumOfWorkers\x1a\x13.provision.response\"\x00\x62\x06proto3')
 
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, globals())
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'protos.provisioner_pb2', globals())
 if _descriptor._USE_C_DESCRIPTORS == False:
 
   DESCRIPTOR._options = None
-  _STATUS._serialized_start=188
-  _STATUS._serialized_end=214
+  _STATUS._serialized_start=216
+  _STATUS._serialized_end=242
   _WORKERSTATUS._serialized_start=39
-  _WORKERSTATUS._serialized_end=103
-  _NUMOFWORKERS._serialized_start=105
-  _NUMOFWORKERS._serialized_end=141
-  _RESPONSE._serialized_start=143
-  _RESPONSE._serialized_end=170
-  _EMPTYMESSAGE._serialized_start=172
-  _EMPTYMESSAGE._serialized_end=186
-  _PROVISIONER._serialized_start=217
-  _PROVISIONER._serialized_end=362
+  _WORKERSTATUS._serialized_end=131
+  _NUMOFWORKERS._serialized_start=133
+  _NUMOFWORKERS._serialized_end=169
+  _RESPONSE._serialized_start=171
+  _RESPONSE._serialized_end=198
+  _EMPTYMESSAGE._serialized_start=200
+  _EMPTYMESSAGE._serialized_end=214
+  _PROVISIONER._serialized_start=245
+  _PROVISIONER._serialized_end=390
 # @@protoc_insertion_point(module_scope)

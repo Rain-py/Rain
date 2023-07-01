@@ -9,9 +9,10 @@ import torch.optim as optim
 from torch.utils.data import TensorDataset, DataLoader
 
 class TrainingWorker:
-    def __init__(self, id, data_base_path):
+    def __init__(self, id, data_base_path, iteration_num):
         self.id = id
         self.base_path = data_base_path
+        self.iteration_num = iteration_num
         self.config = None
         self.epochs = None
         self.optimizer = None
@@ -19,11 +20,9 @@ class TrainingWorker:
         self.loss = None
         self.batch_size = None
         
-        print("Worker", self.id, "started")
-
-    def receive_data(self, ID):
+    def receive_data(self):
         try:
-            data = dill.load(open(f"{self.base_path}{ID}.pkl", "rb"))
+            data = dill.load(open(f"{self.base_path}{self.iteration_num}.pkl", "rb"))
             return data
         except Exception as e:
             print("Error in loading the data: ", e)
@@ -31,11 +30,11 @@ class TrainingWorker:
 
     def send_data(self, msg, ID):
         try:
-            dill.dump(msg, open(f"{self.base_path}{ID}_trained.pkl", "wb"))
+            dill.dump(msg, open(f"{self.base_path}{ID}_{self.iteration_num}_trained.pkl", "wb"))
+            print("sending data to coordinator")
         except Exception as e:
             print("Error in sending the data: ", e)
             return
-        print("sending data to coordinator")
 
     def calculate_gradient(self, model, X_train, y_train):
         if self.lib == "tensorflow":
@@ -95,7 +94,7 @@ class TrainingWorker:
 
     def run(self):
         try:
-            data = self.receive_data(self.id)[0]
+            data = self.receive_data()[0]
         except Exception as e:
             print("Error in receiving the data: ", e)
             return
@@ -111,7 +110,6 @@ class TrainingWorker:
             self.lr = data["config"]["lr"]
             self.loss = data["config"]["loss"]
             model = data["model"]
-            self.iterationNum = data["iterationNum"]
         except Exception as e:
             print("Error in configuring the parameters: ", e)
             return
@@ -130,5 +128,6 @@ class TrainingWorker:
 if __name__ == '__main__':
     id = sys.argv[1]
     data_base_path = sys.argv[2]
-    worker = TrainingWorker(id, data_base_path)
+    iteration_num = sys.argv[3]
+    worker = TrainingWorker(id, data_base_path, iteration_num)
     worker.run()
