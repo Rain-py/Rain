@@ -86,12 +86,3 @@ class worker(worker_pb2_grpc.workerServicer):
             print("Error in the worker server: ", e)
             return
     
-
-
-# if __name__ == '__main__':
-#     # create a directory for the worker data if does not exist
-#     if len(sys.argv) > 1:
-#         port = int(sys.argv[1])
-    
-#     _worker = worker(port)
-#     _worker.serve()

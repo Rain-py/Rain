@@ -14,20 +14,21 @@ Local Mode
 
 Local Mode
 
-- [ ] Async training until evaluation.
-- [ ] Add the local mode to the configuration.
-- [ ] Coordinator and worker should start automatically in the local mode.
-- [ ] Add the local provisioner inside the cloud provisioner.
+- [x] Add the local mode to the configuration.
+- [x] Coordinator and worker should start automatically in the local mode.
+- [x] Add the local provisioner inside the cloud provisioner.
+- [ ] Hard coded the number of workers in the coordinator.
+- [ ] Publish package to pypi.
 
 ## Sunday 2/7
 
 Cloud Mode
 
-- [ ] Start working on the documentation.
+- [ ] Async training until evaluation.
 - [ ] Add the ML algorithms to the local mode.
+- [ ] Start working on the documentation.
 - [ ] Finish the Docker image of the worker and the algo.
-- [ ] Test the code using pre-provisioned instances.
-- [ ] Test the code using auto-provisioned instances.
+- [ ] Test the code using provisioned instances.
 
 ## Monday 3/7
 

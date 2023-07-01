@@ -43,20 +43,6 @@ class Transceiver(divider_pb2_grpc.dividerServicer):
         send the num of workers to the provisioner to create the workers.
         send the data to coordinator to distribute it among workers.
         """ 
-        # try:
-        #     # instantiate a channel to the provisioner
-        #     with grpc.insecure_channel(Provisioner_IP + ":50054") as channel:
-        #         # create an interface for the grpc client (provisioner)
-        #         provisioner_stub = provisioner_pb2_grpc.provisionerStub(channel)
-
-        #         # send the num of workers to the provisioner to create the workers, so will call function create workers from provisioner stub.
-        #         response = provisioner_stub.DefineNWorkers(
-        #             provisioner_pb2.NumOfWorkers(NumOfWorkers=Num_of_workers)
-        #         )
-        #         print("divider received: " + response.message + " from provisioner")
-        # except Exception as e:
-        #     print("Error sending the num of workers to the provisioner: ", e)
-        #     return
 
         try:
             # instantiate a channel to the coord

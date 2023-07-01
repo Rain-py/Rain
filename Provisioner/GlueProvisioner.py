@@ -51,7 +51,7 @@ class GlueProvisioner(provisioner_pb2_grpc.provisionerServicer):
         if self.server:
             self.server.stop(0)
 
-    def serve(self, num_workers):
+    def serve(self):
         try:
             # create a gRPC server
             self.server = grpc.server(futures.ThreadPoolExecutor(max_workers=1))
@@ -65,7 +65,8 @@ class GlueProvisioner(provisioner_pb2_grpc.provisionerServicer):
             
             self.start_coordinator()
 
-            self.num_workers = num_workers
+            while self.num_workers == 0:
+                continue
             # create the workers
             self.workers  = self.create_workers()
             return

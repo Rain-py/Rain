@@ -33,6 +33,22 @@ class Coordinator(coord_pb2_grpc.coordinatorServicer):
     def __del__(self):
         self.stop_serving()
 
+    def set_num_of_workers(self, num_of_workers):
+        try:
+            print("Coordinator: sending the num of workers to the provisioner")
+            # instantiate a channel to the provisioner
+            with grpc.insecure_channel(self.provisioner_IP + ":50054") as channel:
+                # create an interface for the grpc client (provisioner)
+                provisioner_stub = provisioner_pb2_grpc.provisionerStub(channel)
+
+                # send the num of workers to the provisioner to create the workers, so will call function create workers from provisioner stub.
+                response = provisioner_stub.DefineNWorkers(
+                    provisioner_pb2.NumOfWorkers(NumOfWorkers=num_of_workers)
+                )
+                print("divider received: " + response.message + " from provisioner")
+        except Exception as e:
+            print("Error sending the num of workers to the provisioner: ", e)
+            return
     def get_IPs_from_provisioner(self):
         """
         function :
@@ -220,7 +236,6 @@ class Coordinator(coord_pb2_grpc.coordinatorServicer):
     
     def serve(self):
         try:
-
             self.server = grpc.server(futures.ThreadPoolExecutor(1))
 
             coord_pb2_grpc.add_coordinatorServicer_to_server(self, self.server)
@@ -229,6 +244,7 @@ class Coordinator(coord_pb2_grpc.coordinatorServicer):
 
             self.server.start()
             print("coordinator is serving")
+            self.set_num_of_workers(3)
             
         except Exception as e:
             print("Error in the coordinator server: ", e)

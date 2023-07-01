@@ -12,7 +12,7 @@ class Rain:
     def __init__(self, config, model, X_train, y_train):
         print("Rain is initialized")
         self.config = config
-        self.provisioner = Provisioner('local')
+        self.provisioner = Provisioner(self.config['mode'])
         self.divider = Divider(config, model, X_train, y_train)
         self.ip_addresses = []
 
@@ -23,7 +23,7 @@ class Rain:
     def train_centralized_sync(self):
         # create workers
         print("Rain: Creating workers")
-        self.provisioner.serve(self.config["partitions"])
+        self.provisioner.serve()
         # send data
         self.divider.serve()
         print("Rain: Sending data to workers")
