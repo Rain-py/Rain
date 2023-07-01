@@ -3,7 +3,7 @@ import sys
 import os
 
 sys.path.append('./Provisioner')
-from Provisioner.Provisioner import Provisioner
+from Provisioner.CloudProvisioner import CloudProvisioner
 sys.path.pop()
 
 sys.path.append('./Divider')
@@ -13,7 +13,7 @@ sys.path.pop()
 class Rain:
     def __init__(self, config, model, X_train, y_train):
         print("Rain is initialized")
-        self.provisioner = Provisioner(subscription_id= '82305756-d4a0-442d-8e73-625e1ced2113', # Nada's ID
+        self.provisioner = CloudProvisioner(subscription_id= '82305756-d4a0-442d-8e73-625e1ced2113', # Nada's ID
                                        # Mostafa's ID 'a7ef3688-af58-4835-953c-e51f219fbd0f',
                                 resource_group_name='Rain_resourcegroup',
                                 location='eastus')
