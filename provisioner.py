@@ -18,8 +18,8 @@ class provisioner(provisioner_pb2_grpc.provisionerServicer):
         try:
             print("Received request from coordinator to send status", request)
             # print IPs and statuses
-            print("IPs: ", self.IPs)
-            print("statuses: ", self.statuses)
+            print("IPs:", self.IPs)
+            print("statuses:", self.statuses)
             return provisioner_pb2.WorkerStatus(IPs = self.IPs, statuses = self.statuses, ports = self.ports, ids = self.ids)
         except Exception as e:
             print("Error sending status: ", e)
@@ -28,7 +28,7 @@ class provisioner(provisioner_pb2_grpc.provisionerServicer):
     # DefineNWorkers(NumOfWorkers) returns () {}
     def DefineNWorkers(self, request, context):
         try:
-            print("Number of workers is: ", request.NumOfWorkers)
+            print("Number of workers is:", request.NumOfWorkers)
             self.NumOfWorkers = request.NumOfWorkers
             return provisioner_pb2.response(message = "Success receiving the number of workers")
         except Exception as e:

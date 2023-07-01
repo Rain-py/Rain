@@ -78,7 +78,7 @@ class worker(worker_pb2_grpc.workerServicer):
             server.add_insecure_port(f'[::]:{self.port}')
             # start the server
             server.start()
-            print("worker is running on port: ", self.port)
+            print("Worker is running on port:", self.port)
             # since server.start() will not block, a sleep-loop is added to keep alive
             server.wait_for_termination()
         except Exception as e:
