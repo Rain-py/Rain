@@ -13,7 +13,7 @@ PORT = 5000
 class Divider:
     def __init__(self, config, model, X_train, y_train):
         self.config = config
-        self.lr  = self.config["lr"]
+        self.lr = self.config["lr"]
         self.optimizer = self.config["optimizer"]
         self.loss = self.config["loss"]
         self.lib = self.config["lib"]
@@ -70,7 +70,7 @@ class Divider:
     def reduce_gradients_sync(self, gradients):
         if self.lib == "tensorflow":
             weights = self.model.get_weights() 
-            print("gradients: ", gradients)
+            # print("gradients: ", gradients)
             try:
                 # Average the gradients
                 gradient_avg = []
@@ -84,7 +84,7 @@ class Divider:
                 weights = [weights[i] - self.lr * gradient_avg[i] for i in range(len(weights))]
                 self.model.set_weights(weights)
                 self.model.compile(loss=self.loss, optimizer=self.optimizer, metrics=['accuracy'])
-                print("Model summary: ", self.model.summary())
+                # print("Model summary: ", self.model.summary())
             except Exception as e:
                 print("Error in calculating the new weights: ", e)
                 return
@@ -136,12 +136,17 @@ class Divider:
                     break
         return gradient, connection
     
-    def reduce_gradients_async(self, weights, gradient, lib):
-        if lib == "tensorflow":
-            # Weight(new) = Weight(old) — LR * gradient loss
-            weights = [weights[i] - self.lr * gradient[i] for i in range(len(weights))]
-            self.model.set_weights(weights)
-            self.model.compile(loss=self.loss, optimizer=self.optimizer, metrics=['accuracy'])
+    def reduce_gradients_async(self, gradient):
+        if self.lib == "tensorflow":
+            weights = self.model.get_weights() 
+            try:
+                # Weight(new) = Weight(old) — LR * gradient loss
+                weights = [weights[i] - self.lr * gradient[i] for i in range(len(weights))]
+                self.model.set_weights(weights)
+                self.model.compile(loss=self.loss, optimizer=self.optimizer, metrics=['accuracy'])
+            except Exception as e:
+                print("Error in calculating the new weights: ", e)
+                return
                 
     def train_centralized_async(self):
         connections = []
