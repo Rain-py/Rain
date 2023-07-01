@@ -4,7 +4,6 @@ from Worker.worker import worker
 from protos import provisioner_pb2
 sys.path.pop()
 
-import threading
 BASE_PORT = 50151
 
 
@@ -35,16 +34,14 @@ class LocalProvisioner():
         try:
             for i in range(self.num_workers):
                 worker_instance = worker(self.ports[i])
-                thread = threading.Thread(target=worker_instance.serve)
-                thread.start()
-                self.workers.append(thread)
+                worker_instance.serve()
+                self.workers.append(worker_instance)
             return self.workers
         except Exception as e:
             print("Error creating the workers: ", e)
             return
     def delete_workers(self):
-       for worker in self.workers:
-           worker.join()
+        del self.workers        
     def get_workers_ids(self):
         return self.ids
     def get_workers_ips(self):

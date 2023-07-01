@@ -13,8 +13,12 @@ class worker(worker_pb2_grpc.workerServicer):
         self.worker_path = self.base_path + 'worker/'
         self.data_base_path = self.worker_path + 'data/'
         self.port = port
+        self.server = None
         if not os.path.exists(self.data_base_path):
             os.makedirs(self.data_base_path) 
+
+    def __del__(self):
+        self.stop_serving()
 
     def download(self, request_iterator, context):
         """
@@ -72,17 +76,18 @@ class worker(worker_pb2_grpc.workerServicer):
     def serve(self):
         try:
             # create a gRPC server
-            server = grpc.server(futures.ThreadPoolExecutor(max_workers=4))
+            self.server = grpc.server(futures.ThreadPoolExecutor(max_workers=4))
             # add the worker to the server
-            worker_pb2_grpc.add_workerServicer_to_server(self, server)
+            worker_pb2_grpc.add_workerServicer_to_server(self, self.server)
             # listen on port 50051 as a server based
-            server.add_insecure_port(f'[::]:{self.port}')
+            self.server.add_insecure_port(f'[::]:{self.port}')
             # start the server
-            server.start()
+            self.server.start()
             print("Worker is running on port:", self.port)
-            # since server.start() will not block, a sleep-loop is added to keep alive
-            server.wait_for_termination()
         except Exception as e:
             print("Error in the worker server: ", e)
             return
+    def stop_serving(self):
+        if self.server:
+            self.server.stop(0)
     
