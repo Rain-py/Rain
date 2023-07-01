@@ -55,29 +55,30 @@ class Transceiver(divider_pb2_grpc.dividerServicer):
                 response = provisioner_stub.DefineNWorkers(
                     provisioner_pb2.NumOfWorkers(NumOfWorkers=Num_of_workers)
                 )
-                print("divider received: " + response.message)
+                print("divider received: " + response.message + " from provisioner")
         except Exception as e:
             print("Error sending the num of workers to the provisioner: ", e)
             return
 
-        # instantiate a channel to the coord
-        with grpc.insecure_channel(coordinator_IP + ":50052") as channel:
-            print("divider is sending data to the coordinator")
-            # create an interface for the grpc client (coord)
-            coord_stub = coord_pb2_grpc.coordinatorStub(channel)
-            # response = coord_stub.download(read_file("../../Divider/" + "Algo.py"))
-            # print(" divider received: " + response.message)
+        try:
+            # instantiate a channel to the coord
+            with grpc.insecure_channel(coordinator_IP + ":50052") as channel:
+                print("divider is sending data to the coordinator")
+                # create an interface for the grpc client (coord)
+                coord_stub = coord_pb2_grpc.coordinatorStub(channel)
 
-            for i in range(Num_of_workers):
-                response = coord_stub.download(
-                    read_file(path + f"X_train_{i+1}.npy")
-                )
-                print(" divider received: " + response.message)
-                response = coord_stub.download(
-                    read_file(path + f"y_train_{i+1}.npy")
-                )
-                print(" divider received: " + response.message)
-        # self.server.wait_for_termination()
+                for i in range(Num_of_workers):
+                    response = coord_stub.download(
+                        read_file(path + f"X_train_{i+1}.npy")
+                    )
+                    print(" divider received: " + response.message + " from coordinator")
+                    response = coord_stub.download(
+                        read_file(path + f"y_train_{i+1}.npy")
+                    )
+                    print(" divider received: " + response.message + " from coordinator")
+        except Exception as e:
+            print("Error sending the data to the coordinator: ", e)
+            return
 
     def send_file(self, coordinator_IP, file_path):
         with grpc.insecure_channel(coordinator_IP + ":50052") as channel:
@@ -87,7 +88,7 @@ class Transceiver(divider_pb2_grpc.dividerServicer):
             # divider will send (upload) the data to the coordinator, so it will call function recieve_from_divider from coord_stub
 
             response = coord_stub.download(read_file(file_path))
-            print(" divider received: " + response.message)
+            print(" divider received: " + response.message  + " from coordinator")
 
     def iteration(self, coordinator_IP, iteration_num):
         with grpc.insecure_channel(coordinator_IP + ":50052") as channel:
@@ -97,7 +98,7 @@ class Transceiver(divider_pb2_grpc.dividerServicer):
             response = coord_stub.start_loop(
                 coord_pb2.StartLoopMessage(message="start the loop", iteration_num=iteration_num)
             )
-            print(" divider received: " + response.message)
+            print(" divider received: " + response.message + " from coordinator")
             return response.message
 
     def download(self, request_iterator, context):
