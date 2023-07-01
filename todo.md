@@ -4,9 +4,9 @@
 
 Local Mode
 
-- [ ] Don't send the algo.py to the worker.
+- [x] Don't send the algo.py to the worker.
 - [x] Sync training until evaluation.
-- [ ] Add multiple workers.
+- [x] Add multiple workers.
 - [ ] Support PyTorch.
 - [ ] Async training until evaluation.
 - [ ] Add the local mode to the configuration.
