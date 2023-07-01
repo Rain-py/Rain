@@ -1,10 +1,12 @@
 from concurrent import futures # indicates the num of workers (threads)
 import grpc
+import sys
+sys.path.append('../')
 from protos import provisioner_pb2, provisioner_pb2_grpc
-import multiprocessing as mp
+from Worker.worker import worker
+sys.path.pop()
 
 import threading
-from Worker.worker import worker
 BASE_PORT = 50151
 
 

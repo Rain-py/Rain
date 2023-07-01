@@ -9,7 +9,7 @@ sys.path.pop()
 
 class worker(worker_pb2_grpc.workerServicer):
     def __init__(self, port):
-        self.base_path = './Worker/'
+        self.base_path = '../Worker/'
         self.worker_path = self.base_path + 'worker/'
         self.data_base_path = self.worker_path + 'data/'
         self.port = port
