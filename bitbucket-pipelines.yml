@@ -6,26 +6,29 @@ pipelines:
   default:
     - parallel:
         - step:
+            name: Lint the Dockerfile
+            image: hadolint/hadolint:latest-debian
+            script:
+              - cd ./Docker
+              - hadolint Dockerfile
+        - step:
             name: Build and Test
             script:
               - IMAGE_NAME=rain_worker
+              - cd ./Docker
               - docker build . --file Dockerfile --tag ${IMAGE_NAME}
             services:
               - docker
             caches:
               - docker
-        - step:
-            name: Lint the Dockerfile
-            image: hadolint/hadolint:latest-debian
-            script:
-              - hadolint Dockerfile
   branches:
     master:
       - step:
           name: Build and Test
           script:
             - IMAGE_NAME=rain_worker
-            - docker build . --file ./Docker/Dockerfile --tag ${IMAGE_NAME}
+            - cd ./Docker
+            - docker build . --file Dockerfile --tag ${IMAGE_NAME}
             - docker save ${IMAGE_NAME} --output "${IMAGE_NAME}.tar"
           services:
             - docker
@@ -34,8 +37,8 @@ pipelines:
           artifacts:
             - "*.tar"
       - step:
-          name: Deploy to Production
-          deployment: Production
+          name: Deploy to Alpha
+          deployment: Alpha
           script:
             - IMAGE_NAME=rain_worker
             - echo ${DOCKERHUB_PASSWORD} | docker login --username "$DOCKERHUB_USERNAME" --password-stdin
