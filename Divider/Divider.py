@@ -38,6 +38,21 @@ class Divider:
         self.divider_ambassador.stop_serving()
         self.logger.log('debug', f"Divider stopped serving")
 
+
+    def send_data_to_workers(self, X_train, y_train):
+        try: 
+            X_train_partitions, y_train_partitions = self.partition_train_data(X_train, y_train)
+            self.logger.log('debug', f"Data partitioned")
+        except Exception as e:
+            self.logger.log('debug', f"Error in partitioning data: {e}")
+            return
+        try:
+            self.divider_ambassador.send_data(self.coordinator_IP, self.num_of_workers, X_train_partitions, y_train_partitions)
+        except Exception as e:
+            self.logger.log('debug', f"Error in sending data to workers: {e}")
+            return
+
+
     def partition_train_data(self, X_train, y_train):
         num_samples = X_train.shape[0]
 

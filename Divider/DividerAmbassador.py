@@ -9,6 +9,7 @@ from protos import (
     worker_pb2_grpc,
     worker_pb2
 )
+import numpy as np
 import sys
 sys.path.append('../LogService')
 from LogService.LogService import LogService
@@ -29,6 +30,22 @@ def read_file(filepath, chunk_size=1024):
                 yield entry_request
             else:  # The chunk was empty, which means we're at the end of the file
                 return
+def read_partitioned_data(data, filename, extension, chunk_size = 1024):
+    # The data is a list of numpy arrays
+    metadata = divider_pb2.MetaData(
+        filename= filename, extension=extension
+    )
+    yield divider_pb2.File(metadata=metadata)
+    # We need to yield the data in chunks
+    # convert data to byte array
+    dataBytes = data.tobytes()
+    # split the data into chunks
+    data = [dataBytes[i:i+chunk_size] for i in range(0, len(dataBytes), chunk_size)]
+    for i in range(len(data)):
+        yield divider_pb2.File(chunk_data=data[i])
+    return
+    
+
 
 class DividerAmbassador(divider_pb2_grpc.dividerServicer):
     def __init__(self):
@@ -39,13 +56,14 @@ class DividerAmbassador(divider_pb2_grpc.dividerServicer):
     def __del__(self):
         self.stop_serving()
     
-    def send_data(self, coordinator_IP, Num_of_workers, path):
+    def send_data(self, coordinator_IP, num_workers, X_train_partitions, y_train_partitions):
         """
         This function will send the data to the coordinator and the provisioner.
         send the num of workers to the provisioner to create the workers.
         send the data to coordinator to distribute it among workers.
         """ 
-
+        # TODO: Remove writing and reading the file
+        data_base_path = "../../../data/"
         try:
             # instantiate a channel to the coord
             with grpc.insecure_channel(coordinator_IP + ":50052") as channel:
@@ -53,13 +71,17 @@ class DividerAmbassador(divider_pb2_grpc.dividerServicer):
                 # create an interface for the grpc client (coord)
                 coord_stub = coord_pb2_grpc.coordinatorStub(channel)
 
-                for i in range(Num_of_workers):
+                for i in range(num_workers):
+                    np.save(f"{data_base_path}X_train_{i + 1}.npy", X_train_partitions[i])
                     response = coord_stub.download(
-                        read_file(path + f"X_train_{i+1}.npy")
+                        read_file(data_base_path + f"X_train_{i+1}.npy")
+                        # read_partitioned_data(X_train_partitions[i], f"X_train_{i+1}", ".npy")
                     )
                     self.logger.log('debug', "divider is sending data to the provisioner")
+                    np.save(f"{data_base_path}y_train_{i + 1}.npy", y_train_partitions[i])
                     response = coord_stub.download(
-                        read_file(path + f"y_train_{i+1}.npy")
+                        read_file(data_base_path + f"y_train_{i+1}.npy")
+                        # read_partitioned_data(y_train_partitions[i], f"X_train_{i+1}", ".npy")
                     )
                     self.logger.log('debug', "divider received: " + response.message + " from coordinator")
         except Exception as e:

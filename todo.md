@@ -25,8 +25,7 @@ Local Mode
 
 - [ ] Start working on the documentation.
 - [ ] Add the ML algorithms to the local mode.
-- [ ] Remove data sending to/from the coordinator.
-- [ ] Circuit breaking.
+- [x] Remove data sending to/from the coordinator.
 - [x] Hard coding info in the divider.
 - [x] Finish the Docker image of the worker and the algo.
 - [x] Add divider proxy.
@@ -36,6 +35,7 @@ Local Mode
 
 Cloud Mode
 
+- [ ] Circuit breaking.
 - [ ] Continue working on the documentation.
 - [ ] Test the code using provisioned instances.
 - [ ] Add unit tests to the local mode.
