@@ -17,24 +17,27 @@ Local Mode
 - [x] Add the local mode to the configuration.
 - [x] Coordinator and worker should start automatically in the local mode.
 - [x] Add the local provisioner inside the cloud provisioner.
-- [ ] Hard coded the number of workers in the coordinator.
-- [ ] Publish package to pypi.
+- [x] Async training until evaluation.
 
 ## Sunday 2/7
 
-Cloud Mode
+Local Mode
 
-- [ ] Async training until evaluation.
-- [ ] Add the ML algorithms to the local mode.
 - [ ] Start working on the documentation.
+- [ ] Add the ML algorithms to the local mode.
+- [ ] Remove data sending to/from the coordinator.
+- [ ] Hard coding info in the divider.
+- [ ] Circuit breaking.
 - [ ] Finish the Docker image of the worker and the algo.
-- [ ] Test the code using provisioned instances.
+- [ ] Add divider interface.
+- [ ] Publish package to pypi.
 
 ## Monday 3/7
 
 Cloud Mode
 
 - [ ] Continue working on the documentation.
+- [ ] Test the code using provisioned instances.
 - [ ] Add unit tests to the local mode.
 
 ## Tuesday 4/7
@@ -49,6 +52,7 @@ Cloud Mode
 Cloud Mode
 
 - [ ] Test scheduling on multiple workers.
+- [ ] Solve hard coding the number of workers in the coordinator.
 - [ ] Test fault tolerance.
 - [ ] Decide what to do with the planar.
 
@@ -72,4 +76,3 @@ Full demo
 
 ## Monday 10/7
 
-## Tuesday 11/7
