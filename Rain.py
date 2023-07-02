@@ -13,7 +13,7 @@ class Rain:
         print("Rain is initialized")
         self.config = config
         self.provisioner = Provisioner(self.config['mode'])
-        self.divider = Divider(config, model, X_train, y_train)
+        self.divider = Divider(config, model)
         self.ip_addresses = []
 
     def __del__(self):

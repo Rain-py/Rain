@@ -2,7 +2,6 @@ from __future__ import print_function
 from concurrent import futures  # indicates the num of (threads)
 import os
 import grpc
-import re
 import sys
 import threading
 
@@ -14,7 +13,6 @@ from protos import (
     worker_pb2_grpc,
     provisioner_pb2,
     provisioner_pb2_grpc,
-    divider_pb2,
     divider_pb2_grpc,
 )
 
@@ -30,6 +28,8 @@ class Coordinator(coord_pb2_grpc.coordinatorServicer):
         self.server  = None
         self.base_path = '../../../Coordinator/coord/'
         self.data_base_path = self.base_path + 'data/'
+        if not os.path.exists(self.data_base_path):
+            os.makedirs(self.data_base_path) 
     def __del__(self):
         self.stop_serving()
 

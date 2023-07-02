@@ -4,12 +4,12 @@ import dill
 import torch
 
 from Divider.DividerAmbassador import DividerAmbassador
-
+import os
 HOST = 'localhost'
 PORT = 5000
 
 class Divider:
-    def __init__(self, config, model, X_train, y_train):
+    def __init__(self, config, model):
         self.config = config
         self.lr = self.config["lr"]
         self.optimizer = self.config["optimizer"]
@@ -23,18 +23,20 @@ class Divider:
         self.coordinator_IP = '127.0.0.1'
         # define the provisioner ip
         self.provisioner_IP = '127.0.0.1'
-        self.transceiver = DividerAmbassador()
+        self.divider_ambassador = DividerAmbassador()
         self.data_base_path = "../../../data/"
         self.model_base_path = "../../../Divider/divider/data/"
+        if not os.path.exists(self.model_base_path):
+            os.makedirs(self.model_base_path) 
 
     def serve(self):
-        self.transceiver.serve()
+        self.divider_ambassador.serve()
     def stop_serving(self):
-        self.transceiver.stop_serving()
+        self.divider_ambassador.stop_serving()
     
     def send_data_to_workers(self):
         try:
-            self.transceiver.send_data(self.coordinator_IP, self.provisioner_IP, self.num_of_workers, self.data_base_path)
+            self.divider_ambassador.send_data(self.coordinator_IP, self.provisioner_IP, self.num_of_workers, self.data_base_path)
         except Exception as e:
             print("Error in sending data to workers: ", e)
             return
@@ -52,7 +54,7 @@ class Divider:
 
         try:
             print ("sending file: ", file_path)
-            self.transceiver.send_file(self.coordinator_IP, file_path)
+            self.divider_ambassador.send_file(self.coordinator_IP, file_path)
         except Exception as e:
             print("Error in sending the info to the workers: ", e)
             return
@@ -113,7 +115,7 @@ class Divider:
                 print (f"Starting iteration {i + 1}/{self.iterations}")
                 # Notice, the algo.py is stateless
                 self.send_info_to_workers(i+1) #self.partitions,
-                self.transceiver.iteration(self.coordinator_IP, i+1) # start loop
+                self.divider_ambassador.iteration(self.coordinator_IP, i+1) # start loop
                 gradients = self.receive_gradients_sync(self.partitions, i+1)
                 self.reduce_gradients_sync(gradients)
                 print(f"Iteration {i + 1}/{self.iterations} complete.")
@@ -179,4 +181,4 @@ class Divider:
     
     # destructor 
     def __del__(self):
-        self.transceiver.stop_serving()
+        self.divider_ambassador.stop_serving()
