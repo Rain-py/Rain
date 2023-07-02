@@ -8,10 +8,13 @@ sys.path.append('../LogService')
 from LogService.LogService import LogService
 sys.path.pop()
 
+from Provisioner.ProvisionerInterface import ProvisionerInterface
+
+
 BASE_PORT = 50151
 
 
-class LocalProvisioner():
+class LocalProvisioner(ProvisionerInterface):
     def __init__(self):
         self.ips = [] 
         self.statuses = []
@@ -21,8 +24,12 @@ class LocalProvisioner():
         self.num_workers = 0
         self.logger = LogService("LocalProvisioner")
         self.logger.log('debug', f"LocalProvisioner is initialized")
+    
     def __del__(self):
         self.delete_workers()
+
+    def delete_workers(self):
+        del self.workers        
     
     def create_workers(self, num_workers):
         self.logger.log('debug', f"Creating {num_workers} workers")
@@ -45,8 +52,7 @@ class LocalProvisioner():
         except Exception as e:
             self.logger.log('error', f"Error creating the workers: {e}")
             return
-    def delete_workers(self):
-        del self.workers        
+    
     def get_workers_ids(self):
         return self.ids
     def get_workers_ips(self):

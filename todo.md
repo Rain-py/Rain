@@ -28,7 +28,7 @@ Local Mode
 - [ ] Remove data sending to/from the coordinator.
 - [ ] Hard coding info in the divider.
 - [ ] Circuit breaking.
-- [ ] Finish the Docker image of the worker and the algo.
+- [x] Finish the Docker image of the worker and the algo.
 - [ ] Add divider interface.
 - [ ] Publish package to pypi.
 
