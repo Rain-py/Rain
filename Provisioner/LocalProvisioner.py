@@ -27,6 +27,7 @@ class LocalProvisioner(ProvisionerInterface):
     
     def __del__(self):
         self.delete_workers()
+
     def delete_workers(self):
         del self.workers        
     
@@ -51,6 +52,7 @@ class LocalProvisioner(ProvisionerInterface):
         except Exception as e:
             self.logger.log('error', f"Error creating the workers: {e}")
             return
+    
     def get_workers_ids(self):
         return self.ids
     def get_workers_ips(self):
