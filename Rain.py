@@ -26,10 +26,8 @@ class Rain:
         # create workers
         self.logger.log('debug', f"Creating workers")
         self.provisioner.serve()
-        # send data
         self.divider.serve()
-        self.logger.log('debug', f"Sending data to workers")
-        self.divider.send_data_to_workers()
+        # send data
         # train
         self.logger.log('debug', f"Training")
         model = self.divider.train_centralized_sync() 
@@ -43,8 +41,8 @@ class Rain:
         self.provisioner.serve()
         # send data
         self.divider.serve()
-        self.logger.log('debug', f"Sending data to workers")
-        self.divider.send_data_to_workers()
+        # self.logger.log('debug', f"Sending data to workers")
+        # self.divider.send_data_to_workers()
         # train
         self.logger.log('debug', f"Training")
         model = self.divider.train_centralized_async() 
