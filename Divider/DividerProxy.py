@@ -6,7 +6,7 @@ sys.path.pop()
 
 class DividerProxy():
     def __init__(self, config, model):
-        self.divider = Divider(config, model)
+        self.divider = Divider(model, config)
         self.logger = LogService("DividerProxy")
 
     def __del__(self):
