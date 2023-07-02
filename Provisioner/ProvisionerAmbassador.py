@@ -6,7 +6,7 @@ from protos import provisioner_pb2, provisioner_pb2_grpc
 sys.path.pop()
 
 
-class GlueProvisioner(provisioner_pb2_grpc.provisionerServicer):
+class ProvisionerAmbassador(provisioner_pb2_grpc.provisionerServicer):
     def __init__(self):
         self.ips = [] 
         self.statuses = []

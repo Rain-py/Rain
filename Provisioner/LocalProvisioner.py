@@ -1,6 +1,6 @@
 import sys
 sys.path.append('../')
-from Worker.worker import worker
+from Worker.Worker import Worker
 from protos import provisioner_pb2
 sys.path.pop()
 
@@ -33,9 +33,9 @@ class LocalProvisioner():
         
         try:
             for i in range(self.num_workers):
-                worker_instance = worker(self.ports[i])
-                worker_instance.serve()
-                self.workers.append(worker_instance)
+                worker = Worker(self.ports[i])
+                worker.serve()
+                self.workers.append(worker)
             return self.workers
         except Exception as e:
             print("Error creating the workers: ", e)

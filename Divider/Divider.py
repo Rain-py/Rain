@@ -3,7 +3,7 @@ import socket
 import dill
 import torch
 
-from Divider.Transceiver import Transceiver
+from Divider.DividerAmbassador import DividerAmbassador
 
 HOST = 'localhost'
 PORT = 5000
@@ -23,7 +23,7 @@ class Divider:
         self.coordinator_IP = '127.0.0.1'
         # define the provisioner ip
         self.provisioner_IP = '127.0.0.1'
-        self.transceiver = Transceiver()
+        self.transceiver = DividerAmbassador()
         self.data_base_path = "../../../data/"
         self.model_base_path = "../../../Divider/divider/data/"
 

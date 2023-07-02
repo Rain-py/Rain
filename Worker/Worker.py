@@ -1,5 +1,4 @@
 from concurrent import futures  # indicates the num of workers (threads)
-import logging
 import os
 import grpc
 import sys
@@ -7,7 +6,7 @@ sys.path.append("../")
 from protos import worker_pb2, worker_pb2_grpc
 sys.path.pop()
 
-class worker(worker_pb2_grpc.workerServicer):
+class Worker(worker_pb2_grpc.workerServicer):
     def __init__(self, port):
         self.base_path = '../../../Worker/'
         self.worker_path = self.base_path + 'worker/'

@@ -1,4 +1,4 @@
-from Provisioner.GlueProvisioner import GlueProvisioner
+from Provisioner.ProvisionerAmbassador import ProvisionerAmbassador
 from Provisioner.LocalProvisioner import LocalProvisioner
 from Provisioner.CloudProvisioner import CloudProvisioner
 
@@ -6,9 +6,8 @@ import sys
 sys.path.append('../Coordinator')
 from Coordinator.Coordinator import Coordinator
 sys.path.pop()
-import multiprocessing as mp
 
-class Provisioner(GlueProvisioner):
+class Provisioner(ProvisionerAmbassador):
     def __init__(self, mode):
         super().__init__()
         self.mode = mode

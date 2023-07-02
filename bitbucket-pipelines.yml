@@ -1,52 +1,28 @@
 # Prerequisites: $DOCKERHUB_USERNAME, $DOCKERHUB_PASSWORD setup as deployment variables
+options:
+  max-time: 25
+  docker: true
 
 image: atlassian/default-image:3
 
 pipelines:
-  default:
-    - parallel:
-        - step:
-            name: Lint the Dockerfile
-            image: hadolint/hadolint:latest-debian
-            script:
-              - cd ./Docker
-              - hadolint Dockerfile
-        - step:
-            name: Build and Test
-            script:
-              - IMAGE_NAME=rain_worker
-              - cd ./Docker
-              - docker build . --file Dockerfile --tag ${IMAGE_NAME}
-            services:
-              - docker
-            caches:
-              - docker
-  branches:
-    master:
+  tags:
+    "v*.*.*":
       - step:
-          name: Build and Test
+          name: Build and Deploy to Alpha
+          deployment: Staging
+          size: 2x
           script:
             - IMAGE_NAME=rain_worker
-            - cd ./Docker
+            - IMAGE=${DOCKERHUB_NAMESPACE}/${IMAGE_NAME}
+            - cd ./Worker
             - docker build . --file Dockerfile --tag ${IMAGE_NAME}
-            - docker save ${IMAGE_NAME} --output "${IMAGE_NAME}.tar"
+            - echo ${DOCKERHUB_PASSWORD} | docker login --username "$DOCKERHUB_USERNAME" --password-stdin
+            - docker tag "${IMAGE_NAME}" "${IMAGE}:${BITBUCKET_TAG}"
+            - docker push "${IMAGE}:${BITBUCKET_TAG}"
+            - docker tag "${IMAGE_NAME}" "${IMAGE}:latest"
+            - docker push "${IMAGE}:latest"
           services:
             - docker
           caches:
-            - docker
-          artifacts:
-            - "*.tar"
-      - step:
-          name: Deploy to Alpha
-          deployment: Staging
-          script:
-            - IMAGE_NAME=rain_worker
-            - echo ${DOCKERHUB_PASSWORD} | docker login --username "$DOCKERHUB_USERNAME" --password-stdin
-            - docker load --input "${IMAGE_NAME}.tar"
-            - VERSION="alpha-1.0.${BITBUCKET_BUILD_NUMBER}"
-            - IMAGE=${DOCKERHUB_NAMESPACE}/${IMAGE_NAME}
-            - docker tag "${IMAGE_NAME}" "${IMAGE}:${VERSION}"
-            - docker push "${IMAGE}:${VERSION}"
-            - docker push "${IMAGE}:latest"
-          services:
             - docker

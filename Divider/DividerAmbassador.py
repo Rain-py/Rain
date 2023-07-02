@@ -1,15 +1,11 @@
 from __future__ import print_function
 from concurrent import futures  # indicates the num of (threads)
-import logging
-import os
 import grpc
 from protos import (
     divider_pb2,
     divider_pb2_grpc,
     coord_pb2,
     coord_pb2_grpc,
-    provisioner_pb2,
-    provisioner_pb2_grpc,
 )
 
 
@@ -29,7 +25,7 @@ def read_file(filepath, chunk_size=1024):
             else:  # The chunk was empty, which means we're at the end of the file
                 return
 
-class Transceiver(divider_pb2_grpc.dividerServicer):
+class DividerAmbassador(divider_pb2_grpc.dividerServicer):
     def __init__(self):
         self.base_path = "../../../Divider/divider/"
         self.data_base_path = self.base_path +'data/'
