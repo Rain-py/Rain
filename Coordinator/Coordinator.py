@@ -214,28 +214,7 @@ class Coordinator(coord_pb2_grpc.coordinatorServicer):
 
         return coord_pb2.LoopResponse(message="one loop is done")
 
-    # asynchronous function
-    def start_loop_async(self, request, context):
-        """
-        function: to start sending data to workers and receive models.
-        return: it return model to divider.
-        """
-        self.logger.log('info', f"start loop")
-
-        # then send the data to the workers
-        self.send("worker", request.worker_id , self.workers_IPs[request.worker_id - 1], self.ports[request.worker_id - 1], request.iteration_num)
-
-        # execute the data from the workers
-        self.execute(request.worker_id, self.workers_IPs[request.worker_id - 1], self.ports[request.worker_id - 1], request.iteration_num)
-
-        self.logger.log('info', f"worker  {request.worker_id } is done")
-        self.receive(request.worker_id,self.workers_IPs[request.worker_id - 1], self.ports[request.worker_id - 1], request.iteration_num)
-
-
-        self.send("divider", request.worker_id , self.divider_IP, self.ports[request.worker_id - 1], request.iteration_num)
-
-        return coord_pb2.LoopResponse(message="one loop is done")
-    
+ 
     def serve(self):
         try:
             self.server = grpc.server(futures.ThreadPoolExecutor(1))

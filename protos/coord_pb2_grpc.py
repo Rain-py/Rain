@@ -29,11 +29,6 @@ class coordinatorStub(object):
                 request_serializer=protos_dot_coord__pb2.StartLoopMessage.SerializeToString,
                 response_deserializer=protos_dot_coord__pb2.LoopResponse.FromString,
                 )
-        self.start_loop_async = channel.unary_unary(
-                '/coord.coordinator/start_loop_async',
-                request_serializer=protos_dot_coord__pb2.StartLoopMessageAsync.SerializeToString,
-                response_deserializer=protos_dot_coord__pb2.LoopResponse.FromString,
-                )
 
 
 class coordinatorServicer(object):
@@ -60,13 +55,6 @@ class coordinatorServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def start_loop_async(self, request, context):
-        """coordinator stop its loop which sending the data and receiving the model asynchronusly 
-        """
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
 
 def add_coordinatorServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -83,11 +71,6 @@ def add_coordinatorServicer_to_server(servicer, server):
             'start_loop': grpc.unary_unary_rpc_method_handler(
                     servicer.start_loop,
                     request_deserializer=protos_dot_coord__pb2.StartLoopMessage.FromString,
-                    response_serializer=protos_dot_coord__pb2.LoopResponse.SerializeToString,
-            ),
-            'start_loop_async': grpc.unary_unary_rpc_method_handler(
-                    servicer.start_loop_async,
-                    request_deserializer=protos_dot_coord__pb2.StartLoopMessageAsync.FromString,
                     response_serializer=protos_dot_coord__pb2.LoopResponse.SerializeToString,
             ),
     }
@@ -147,23 +130,6 @@ class coordinator(object):
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/coord.coordinator/start_loop',
             protos_dot_coord__pb2.StartLoopMessage.SerializeToString,
-            protos_dot_coord__pb2.LoopResponse.FromString,
-            options, channel_credentials,
-            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
-
-    @staticmethod
-    def start_loop_async(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/coord.coordinator/start_loop_async',
-            protos_dot_coord__pb2.StartLoopMessageAsync.SerializeToString,
             protos_dot_coord__pb2.LoopResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

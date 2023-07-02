@@ -2,6 +2,7 @@ import numpy as np
 import socket
 import dill
 import torch
+import threading
 
 from Divider.DividerAmbassador import DividerAmbassador
 import os
@@ -24,6 +25,13 @@ class Divider:
         self.num_of_workers = self.config["partitions"]
         self.model = model
         self.logger = LogService("Divider")
+
+        # define workers info 
+        self.worker_IPs = ['127.0.0.1', '127.0.0.1', '127.0.0.1'] 
+        self.worker_ports =[50151, 50152, 50153]
+        self.worker_ids =  [1, 2, 3]
+        self.data_status = [0] * len(self.worker_IPs) # 0 means no data sent yet, 1 means data is already sent to the workers
+
         # define the coord ip
         self.coordinator_IP = '127.0.0.1'
         # define the provisioner ip
@@ -130,58 +138,56 @@ class Divider:
 
 
     # Asynchronous Training  
-    def receive_gradients_async(self, connections):
-        gradient = None
-        connection = None
-        while True:
-            if gradient:
-                break
-            for j in range(len(connections)):
-                data = connections[j].recv(10 * (2 ** 20))
-                if data:
-                    connection = connections[j]
-                    gradient = dill.load(data)
-                    break
-        return gradient, connection
+    def receive_gradients_async(self, worker_id, iteration_num):
+        gradients = None
+        try:
+            msg = dill.load(open(f"{self.model_base_path}{worker_id}_{iteration_num}_trained.pkl", "rb"))
+            gradients = msg
+        except Exception as e:
+            print("Error in receiving the gradients from the workers: ", e)
+            return
+        return gradients
     
-    def reduce_gradients_async(self, gradient):
+    def reduce_gradients_async(self, worker_id, gradient):
         if self.lib == "tensorflow":
             weights = self.model.get_weights() 
-            try:
-                # Weight(new) = Weight(old) — LR * gradient loss
-                weights = [weights[i] - self.lr * gradient[i] for i in range(len(weights))]
-                self.model.set_weights(weights)
-                self.model.compile(loss=self.loss, optimizer=self.optimizer, metrics=['accuracy'])
-            except Exception as e:
-                self.logger.log('debug', f"Error in calculating the new weights: {e}")
-                return
-                
-    def train_centralized_async(self):
-        connections = []
+            weights = [weights[i] - (self.lr / self.partitions) * gradient[i] for i in range(len(weights))]
+            self.model.set_weights(weights)
+            self.model.compile(loss=self.loss, optimizer=self.optimizer, metrics=['accuracy'])
+            self.logger.log('debug', f"update is done by worker {worker_id}")
+
+    def worker_process_async(self, worker_id):
         for i in range(self.iterations):
-            weights = self.model.get_weights()
+            self.logger.log('debug', f"Starting iteration {i + 1}/{self.iterations}")   
+            self.divider_ambassador.iteration_async(self.worker_ids[worker_id], self.worker_IPs[worker_id], self.worker_ports[worker_id], self.data_status[worker_id], i+1)
+            if i == 1: # sending data (x_train , y_train) to workers only once
+                self.data_status[worker_id] = 1
+
+            gradient = self.receive_gradients_async(worker_id + 1,worker_id + 1) # worker_id, worker_id
+            self.reduce_gradients_async(worker_id + 1, gradient)
+            self.send_info_to_workers(worker_id + 1) 
+            self.logger.log('debug', f"Iteration {i + 1}/{self.iterations} complete for worker {worker_id + 1}.")
+        
+    def train_centralized_async(self):
+        try:
+            for id in range(self.num_of_workers):
+                self.send_info_to_workers(id + 1)
+
+            threads = list()
+            for id in range(self.num_of_workers):
+                thread = threading.Thread(target=self.worker_process_async, args=(id,))
+                threads.append(thread)
+                thread.start()
             
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
-                server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-                server_socket.bind((HOST, PORT))
-                server_socket.listen(5)
+            # wait for all threads to finish then return the model
+            for thread in threads:
+                thread.join()
+            
+            return self.model
 
-                if connections == []:
-                    self.logger.log('debug', f"Starting iteration {i + 1}/{self.iterations}")
-                    for j in range(self.partitions):
-                        conn, addr = server_socket.accept()
-                        connections.append(conn)
-                        self.logger.log('debug', f"Connected by", addr)
-
-                    self.logger.log('debug', f"All workers have connected.")
-                    self.send_info_to_workers(connections)
-
-            gradient, connection = self.receive_gradients_async(connections)
-            self.send_info_to_workers([connection])
-
-            self.reduce_gradients_async(weights, gradient)
-            self.logger.log('debug', f"Iteration {i + 1}/{self.iterations} complete.")
-        return self.model
+        except Exception as e:
+            self.logger.log('debug', f"Error in training the model: {e}")
+            return
     
     # destructor 
     def __del__(self):

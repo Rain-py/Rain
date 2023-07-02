@@ -39,8 +39,17 @@ class Rain:
 
 
     def train_centralized_async(self):
+        self.logger.log('debug', f"Creating workers")
+        self.provisioner.serve()
+        # send data
+        self.divider.serve()
+        self.logger.log('debug', f"Sending data to workers")
         self.divider.send_data_to_workers()
-        model = self.divider.train_centralized_async()
+        # train
+        self.logger.log('debug', f"Training")
+        model = self.divider.train_centralized_async() 
+        self.provisioner.stop_serving()  
+        self.divider.stop_serving()     
         return model
     
 

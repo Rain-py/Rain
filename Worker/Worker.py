@@ -17,7 +17,7 @@ class Worker(worker_pb2_grpc.workerServicer):
         self.data_base_path = self.worker_path + 'data/'
         self.port = port
         self.server = None
-        self.logger = LogService("Worker")
+        self.logger = LogService(f"Worker_{self.port}")
         if not os.path.exists(self.data_base_path):
             os.makedirs(self.data_base_path) 
 
@@ -38,6 +38,8 @@ class Worker(worker_pb2_grpc.workerServicer):
                     # the request is a file data, collect it
                     data.extend(request.chunk_data)
             # save file data
+            if './' in filepath:
+                filepath = filepath[2:]
             with open(self.data_base_path + filepath, 'wb') as f:
                 f.write(data)
             # return success message
@@ -67,7 +69,7 @@ class Worker(worker_pb2_grpc.workerServicer):
     def Execute(self, request, context):
         try:
             filepath = self.base_path + request.filename +  request.extension
-            command = 'python3 '  + filepath +  " " + request.worker_id + " " + self.data_base_path + " " + request.iteration_num
+            command = 'python '  + filepath +  " " + request.worker_id + " " + self.data_base_path + " " + request.iteration_num
             self.logger.log('info', f"Executing command: {command}")
             # execute the command and return the output
             os.system(command)
