@@ -2,27 +2,35 @@
 options:
   max-time: 25
   docker: true
+  size: 2x
 
 image: atlassian/default-image:3
 
+definitions:
+  services:
+    docker:
+      memory: 7168 # This is the used memory by the Docker daemon(7GB)
+  steps:
+    - step: &build-deploy
+        name: Build and Deploy
+        deployment: Staging
+        size: 2x # This doubles the amount of resources allocated to the step(8GB)
+        caches:
+          - docker
+        services:
+          - docker
+        script:
+          - IMAGE_NAME=rain_worker
+          - IMAGE=${DOCKERHUB_USERNAME}/${IMAGE_NAME}
+          - cd ./Worker
+          - docker build -t "${IMAGE_NAME}" .
+          - echo ${DOCKERHUB_PASSWORD} | docker login --username "$DOCKERHUB_USERNAME" --password-stdin
+          - docker tag "${IMAGE_NAME}" "${IMAGE}:${BITBUCKET_TAG}"
+          - docker tag "${IMAGE_NAME}" "${IMAGE}:latest"
+          - docker push "${IMAGE}:${BITBUCKET_TAG}"
+          - docker push "${IMAGE}:latest"
 pipelines:
   tags:
     "v*.*.*":
-      - step:
-          name: Build and Deploy to Alpha
-          deployment: Staging
-          size: 2x
-          script:
-            - IMAGE_NAME=rain_worker
-            - IMAGE=${DOCKERHUB_NAMESPACE}/${IMAGE_NAME}
-            - cd ./Worker
-            - docker build . --file Dockerfile --tag ${IMAGE_NAME}
-            - echo ${DOCKERHUB_PASSWORD} | docker login --username "$DOCKERHUB_USERNAME" --password-stdin
-            - docker tag "${IMAGE_NAME}" "${IMAGE}:${BITBUCKET_TAG}"
-            - docker push "${IMAGE}:${BITBUCKET_TAG}"
-            - docker tag "${IMAGE_NAME}" "${IMAGE}:latest"
-            - docker push "${IMAGE}:latest"
-          services:
-            - docker
-          caches:
-            - docker
+      - step: *build-deploy
+       
