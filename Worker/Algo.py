@@ -102,14 +102,19 @@ class TrainingWorker:
         try:
             # Configure the parameters
             self.config = data["config"]
-            self.epochs = data["config"]["epochs"]
-            self.optimizer = data["config"]["optimizer"]
-            self.loss = data["config"]["loss"]
-            self.lib = data["config"]["lib"]
-            self.batch_size = data["config"]["batch_size"]
-            self.lr = data["config"]["lr"]
-            self.loss = data["config"]["loss"]
-            model = data["model"]
+            
+            if self.config["learning_type"] == "DL":
+                self.epochs = self.config["epochs"]
+                self.optimizer = self.config["optimizer"]
+                self.loss = self.config["loss"]
+                self.lib = self.config["lib"]
+                self.batch_size = self.config["batch_size"]
+                self.lr = self.config["lr"]
+                self.loss = self.config["loss"]
+                model = data["model"]
+            elif self.config["learning_type"] == "ML":
+                pass
+
         except Exception as e:
             print("Error in configuring the parameters: ", e)
             return
