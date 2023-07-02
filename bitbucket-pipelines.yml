@@ -38,7 +38,7 @@ pipelines:
             - "*.tar"
       - step:
           name: Deploy to Alpha
-          deployment: Alpha
+          deployment: Staging
           script:
             - IMAGE_NAME=rain_worker
             - echo ${DOCKERHUB_PASSWORD} | docker login --username "$DOCKERHUB_USERNAME" --password-stdin
