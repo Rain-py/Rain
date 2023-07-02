@@ -3,7 +3,7 @@ name: Build and Deploy
 on:
   push:
     tags:
-      - 'v*.*.*'
+      - 'v[0-9]+.[0-9]+.[0-9]+'
 
 env:
   IMAGE_NAME: rain_worker
@@ -18,7 +18,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Build the Docker image
-        run: docker build -t ${{ env.IMAGE_NAME }} .
+        run: docker build -t ${{ env.IMAGE_NAME }} ./Worker/
 
       - name: Test the Docker image
         run: |
@@ -26,12 +26,15 @@ jobs:
           docker run ${{ env.IMAGE_NAME }} -c 'import torch; print(torch.__version__)'
 
       - name: Log in to Docker Hub
-        run: echo $DOCKERHUB_PASSWORD | docker login --username $DOCKERHUB_USERNAME --password-stdin
-
+        uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+          
       - name: Tag and Push the Docker image
         run: |
-          IMAGE=$DOCKERHUB_USERNAME/${{ env.IMAGE_NAME }}
-          docker tag ${{ env.IMAGE_NAME }} $IMAGE:${{ github.ref }}
+          IMAGE=${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}
+          docker tag ${{ env.IMAGE_NAME }} $IMAGE:${{ github.ref_name }}
           docker tag ${{ env.IMAGE_NAME }} $IMAGE:latest
-          docker push $IMAGE:${{ github.ref }}
+          docker push $IMAGE:${{ github.ref_name }}
           docker push $IMAGE:latest

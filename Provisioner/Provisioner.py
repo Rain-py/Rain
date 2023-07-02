@@ -1,6 +1,6 @@
 from Provisioner.ProvisionerAmbassador import ProvisionerAmbassador
-from Provisioner.LocalProvisioner import LocalProvisioner
-from Provisioner.CloudProvisioner import CloudProvisioner
+from Provisioner.ProvisionerFactory import ProvisionerFactory
+
 
 import sys
 sys.path.append('../Coordinator')
@@ -20,16 +20,11 @@ class Provisioner(ProvisionerAmbassador):
         # create coordinator
         self.logger.log('debug', "Creating coordinator")
         self.coordinator = Coordinator(divider_IP='127.0.0.1', provisioner_IP= '127.0.0.1')
-        if mode == 'cloud':
-            self.provisioner = CloudProvisioner(subscription_id= '82305756-d4a0-442d-8e73-625e1ced2113', # Nada's ID
-                                       # Mostafa's ID 'a7ef3688-af58-4835-953c-e51f219fbd0f',
-                                resource_group_name='Rain_resourcegroup',
-                                location='eastus')
-        elif mode == 'local':
-            self.provisioner = LocalProvisioner()
-        else:
-            self.logger.log('error', "Invalid provisioner type")
-            raise Exception("Invalid provisioner type")
+        try:
+            self.provisioner = ProvisionerFactory.create_provisioner(mode)
+        except Exception as e:
+            self.logger.log('error', f"Error creating provisioner: {e}")
+            
         
     def __del__(self):
         del self.coordinator
