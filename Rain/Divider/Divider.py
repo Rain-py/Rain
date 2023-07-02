@@ -1,9 +1,8 @@
 import os
-import sys
 import numpy as np
 from Rain.Divider.DividerAmbassador import DividerAmbassador
 from Rain.Divider.DeepLearning.DeepLearningFactory import DeepLearningFactory
-
+from Rain.TemporaryFilesManager.TemporaryFilesManager import TemporaryFilesManager
 from Rain.LogService.LogService import LogService
 
 

@@ -3,7 +3,8 @@ from concurrent import futures  # indicates the num of (threads)
 import os
 import grpc
 import threading
-
+from Rain.TemporaryFilesManager.TemporaryFilesManager import TemporaryFilesManager
+from Rain.LogService.LogService import LogService
 from Rain.Protos import (
     coord_pb2,
     coord_pb2_grpc,
@@ -13,7 +14,6 @@ from Rain.Protos import (
     provisioner_pb2_grpc,
     divider_pb2_grpc,
 )
-from Rain.LogService.LogService import LogService
 
 def read_file(filepath, logger, chunk_size=1024):
     """

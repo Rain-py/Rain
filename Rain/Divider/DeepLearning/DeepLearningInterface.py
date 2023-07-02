@@ -3,7 +3,7 @@ import dill
 import threading
 import os
 from abc import abstractmethod
-
+from Rain.TemporaryFilesManager.TemporaryFilesManager import TemporaryFilesManager
 from Rain.LogService.LogService import LogService
 
 class DeepLearningInterface:

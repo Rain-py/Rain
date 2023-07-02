@@ -3,6 +3,7 @@ import os
 import grpc
 from Rain.Protos import worker_pb2, worker_pb2_grpc
 from Rain.LogService.LogService import LogService
+from Rain.TemporaryFilesManager.TemporaryFilesManager import TemporaryFilesManager
 
 class Worker(worker_pb2_grpc.workerServicer):
     def __init__(self, port):

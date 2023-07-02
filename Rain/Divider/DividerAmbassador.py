@@ -1,6 +1,9 @@
 from __future__ import print_function
 from concurrent import futures  # indicates the num of (threads)
 import grpc
+import numpy as np
+from Rain.TemporaryFilesManager.TemporaryFilesManager import TemporaryFilesManager
+from Rain.LogService.LogService import LogService
 from Rain.Protos import (
     divider_pb2,
     divider_pb2_grpc,
@@ -9,9 +12,6 @@ from Rain.Protos import (
     worker_pb2_grpc,
     worker_pb2
 )
-import numpy as np
-
-from Rain.LogService.LogService import LogService
 
 def read_file(filepath, chunk_size=1024):
     split_data = filepath.split("/")

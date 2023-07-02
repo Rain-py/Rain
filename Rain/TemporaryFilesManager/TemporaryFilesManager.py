@@ -1,0 +1,49 @@
+import os
+import shutil
+
+class TemporaryFilesManager:
+    __instance = None
+
+    @staticmethod
+    def get_instance():
+        if TemporaryFilesManager.__instance is None:
+            TemporaryFilesManager()
+        return TemporaryFilesManager.__instance
+
+    def __init__(self):
+        if TemporaryFilesManager.__instance is not None:
+            raise Exception("TemporaryFileManager is a singleton class. Use get_instance() to retrieve the instance.")
+        else:
+            TemporaryFilesManager.__instance = self
+            self.temp_dir = os.getenv('TEMP') if os.name == 'nt' else '/tmp'
+            self.temp_dirs = []
+
+    def create_temp_dir(self, dir_name):
+        temp_dir_path = os.path.join(self.temp_dir, dir_name)
+        os.makedirs(temp_dir_path, exist_ok=True)
+
+        self.temp_dirs.append(temp_dir_path)
+        return temp_dir_path
+
+    def cleanup_temp_dirs(self):
+        for temp_dir in self.temp_dirs:
+            shutil.rmtree(temp_dir)
+
+        self.temp_dirs.clear()
+
+
+# Usage example
+# if __name__ == "__main__":
+#     temp_manager = TemporaryFilesManager.get_instance()
+
+#     temp_dir_path = temp_manager.create_temp_dir('mydir')
+#     temp_file_path = os.path.join(temp_dir_path, 'temp_file.txt')
+#     with open(temp_file_path, 'w') as temp_file:
+#         temp_file.write('This is a temporary file.')
+
+#     # Use the temporary file
+#     with open(temp_file_path, 'r') as temp_file:
+#         content = temp_file.read()
+#         print(content)
+
+#     temp_manager.cleanup_temp_dirs()
