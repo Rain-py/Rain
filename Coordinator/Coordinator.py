@@ -23,7 +23,8 @@ sys.path.pop()
 ## Coordinator class
 class Coordinator(coord_pb2_grpc.coordinatorServicer):
     def __init__(self, divider_IP, provisioner_IP):
-        LogService.get_instance().log('debug', f"Coordinator is initialized")
+        self.logger = LogService("Coordinator")
+        self.logger.log('debug', f"Coordinator is initialized")
         self.divider_IP = divider_IP  
         self.provisioner_IP = provisioner_IP
         self.server  = None
@@ -36,7 +37,7 @@ class Coordinator(coord_pb2_grpc.coordinatorServicer):
 
     def set_num_of_workers(self, num_of_workers):
         try:
-            LogService.get_instance().log('debug', f"sending the num of workers to the provisioner")
+            self.logger.log('debug', f"sending the num of workers to the provisioner")
             # instantiate a channel to the provisioner
             with grpc.insecure_channel(self.provisioner_IP + ":50054") as channel:
                 # create an interface for the grpc client (provisioner)
@@ -46,9 +47,9 @@ class Coordinator(coord_pb2_grpc.coordinatorServicer):
                 response = provisioner_stub.DefineNWorkers(
                     provisioner_pb2.NumOfWorkers(NumOfWorkers=num_of_workers)
                 )
-                LogService.get_instance().log('debug', f"sent {response.message} to the provisioner")
+                self.logger.log('debug', f"sent {response.message} to the provisioner")
         except Exception as e:
-            LogService.get_instance().log('error', f"Error sending the num of workers to the provisioner: {e}")
+            self.logger.log('error', f"Error sending the num of workers to the provisioner: {e}")
             return
     def get_IPs_from_provisioner(self):
         """
@@ -72,7 +73,7 @@ class Coordinator(coord_pb2_grpc.coordinatorServicer):
                 self.data_status = [0] * len(self.workers_IPs) # 0 means no data sent yet, 1 means data is already sent to the workers
                 return response.IPs, response.statuses, response.ports, response.ids
         except Exception as e:
-            LogService.get_instance().log('error', f"Error getting IPs from provisioner: {e}")
+            self.logger.log('error', f"Error getting IPs from provisioner: {e}")
             return [], []
 
     def upload(self, request, context):
@@ -89,7 +90,7 @@ class Coordinator(coord_pb2_grpc.coordinatorServicer):
                     else:  # The chunk was empty, which means we're at the end of the file
                         return
         except Exception as e:
-            LogService.get_instance().log('error', f"Error uploading the file: {e}")
+            self.logger.log('error', f"Error uploading the file: {e}")
             return worker_pb2.UploadFileResponse(chunk_data=b'') # No file to upload, upload an empty chunk
 
     def download(self, request_iterator, context):
@@ -111,7 +112,7 @@ class Coordinator(coord_pb2_grpc.coordinatorServicer):
             # return success message
             return worker_pb2.DownloadFileResponse(message='File received successfully')
         except Exception as e:
-            LogService.get_instance().log('error', f"Error downloading the file: {e}")
+            self.logger.log('error', f"Error downloading the file: {e}")
             # return error message
             return worker_pb2.DownloadFileResponse(message='Error downloading the file')
 
@@ -122,9 +123,9 @@ class Coordinator(coord_pb2_grpc.coordinatorServicer):
 
                 filename, extension = 'Algo', '.py'  
                 response =  worker_stub.Execute(worker_pb2.executeData(filename=filename,extension=extension,worker_id=str(worker_id), iteration_num=str(iteration_num)))
-                LogService.get_instance().log('debug', f"coordinator received: {response.message} from worker")
+                self.logger.log('debug', f"coordinator received: {response.message} from worker")
         except Exception as e:
-            LogService.get_instance().log('error', f"Error executing the file: {e}")
+            self.logger.log('error', f"Error executing the file: {e}")
             return worker_pb2.executeData(message='Error executing the file')
 
     def send(self, target, worker_id, ip, port, iteration_num = 0):
@@ -144,21 +145,21 @@ class Coordinator(coord_pb2_grpc.coordinatorServicer):
                 worker_stub = worker_pb2_grpc.workerStub(channel) 
                 # send files
                 if not self.data_status[worker_id - 1]:
-                    response = worker_stub.download(read_file(f'{self.data_base_path}X_train_{worker_id}.npy'))
-                    LogService.get_instance().log('debug', f"coordinator received: {response.message} from worker")
-                    response = worker_stub.download(read_file(f'{self.data_base_path}y_train_{worker_id}.npy'))
-                    LogService.get_instance().log('debug', f"coordinator received: {response.message} from worker")
+                    response = worker_stub.download(read_file(f'{self.data_base_path}X_train_{worker_id}.npy', self.logger))
+                    self.logger.log('debug', f"coordinator received: {response.message} from worker")
+                    response = worker_stub.download(read_file(f'{self.data_base_path}y_train_{worker_id}.npy', self.logger))
+                    self.logger.log('debug', f"coordinator received: {response.message} from worker")
                     self.data_status[worker_id - 1] = 1
 
-                response = worker_stub.download(read_file(f'{self.data_base_path}{iteration_num}.pkl'))
-                LogService.get_instance().log('debug', f"coordinator received: {response.message} from worker")
+                response = worker_stub.download(read_file(f'{self.data_base_path}{iteration_num}.pkl', self.logger))
+                self.logger.log('debug', f"coordinator received: {response.message} from worker")
         elif target == 'divider':
             # Establish a connection with the divider on port 50052
             with grpc.insecure_channel(ip + ":50053") as channel:
                 # create an interface for the grpc client (divider)
                 divider_stub = divider_pb2_grpc.dividerStub(channel)  
-                response = divider_stub.download(read_file(f'{self.data_base_path}{worker_id}_{iteration_num}_trained.pkl'))
-                LogService.get_instance().log('debug', f"coordinator received: {response.message} from divider")
+                response = divider_stub.download(read_file(f'{self.data_base_path}{worker_id}_{iteration_num}_trained.pkl', self.logger))
+                self.logger.log('debug', f"coordinator received: {response.message} from divider")
 
     def receive(self, worker_id, ip, port, iteration_num):
         try:
@@ -176,9 +177,9 @@ class Coordinator(coord_pb2_grpc.coordinatorServicer):
 
                 with open(filepath, mode="wb") as f:
                     f.write(data)
-                LogService.get_instance().log('debug', f"Downloaded {filepath} in coordinator")
+                self.logger.log('debug', f"Downloaded {filepath} in coordinator")
         except Exception as e:
-            LogService.get_instance().log('error', f"Error receiving the file: {e}")
+            self.logger.log('error', f"Error receiving the file: {e}")
             return worker_pb2.UploadFileResponse(chunk_data=b'')
 
     # synchronous function
@@ -187,7 +188,7 @@ class Coordinator(coord_pb2_grpc.coordinatorServicer):
         function: to start sending data to workers and receive models.
         return: it return model to divider.
         """
-        LogService.get_instance().log('info', f"start loop")
+        self.logger.log('info', f"start loop")
         self.get_IPs_from_provisioner()
         # then send the data to the workers
         for i in range(len(self.workers_IPs)):
@@ -204,7 +205,7 @@ class Coordinator(coord_pb2_grpc.coordinatorServicer):
         # receive the data from the workers
         for i in range(len(self.workers_IPs)):
             threads[self.ids[i] - 1].join()
-            LogService.get_instance().log('info', f"thread {self.ids[i]} is done")
+            self.logger.log('info', f"thread {self.ids[i]} is done")
             self.receive(self.ids[i],self.workers_IPs[self.ids[i] - 1], self.ports[self.ids[i] - 1], request.iteration_num)
 
         # send the data to the divider
@@ -219,7 +220,7 @@ class Coordinator(coord_pb2_grpc.coordinatorServicer):
         function: to start sending data to workers and receive models.
         return: it return model to divider.
         """
-        LogService.get_instance().log('info', f"start loop")
+        self.logger.log('info', f"start loop")
 
         # then send the data to the workers
         self.send("worker", request.worker_id , self.workers_IPs[request.worker_id - 1], self.ports[request.worker_id - 1], request.iteration_num)
@@ -227,7 +228,7 @@ class Coordinator(coord_pb2_grpc.coordinatorServicer):
         # execute the data from the workers
         self.execute(request.worker_id, self.workers_IPs[request.worker_id - 1], self.ports[request.worker_id - 1], request.iteration_num)
 
-        LogService.get_instance().log('info', f"worker  {request.worker_id } is done")
+        self.logger.log('info', f"worker  {request.worker_id } is done")
         self.receive(request.worker_id,self.workers_IPs[request.worker_id - 1], self.ports[request.worker_id - 1], request.iteration_num)
 
 
@@ -244,20 +245,20 @@ class Coordinator(coord_pb2_grpc.coordinatorServicer):
             self.server.add_insecure_port('[::]:50052') # open port for communication with the coordinator
 
             self.server.start()
-            LogService.get_instance().log('info', f"coordinator is serving")
+            self.logger.log('info', f"coordinator is serving")
             self.set_num_of_workers(3)
             
         except Exception as e:
-            LogService.get_instance().log('error', f"Error in the coordinator server: {e}")
+            self.logger.log('error', f"Error in the coordinator server: {e}")
             return coord_pb2.LoopResponse(message = 'Error in the coordinator server')
 
     def stop_serving(self):
         if self.server:
             self.server.stop(0)
-            LogService.get_instance().log('info', f"coordinator stopped serving")
+            self.logger.log('info', f"coordinator stopped serving")
 ## Helper functions
 
-def read_file(filepath, chunk_size=1024):
+def read_file(filepath, logger, chunk_size=1024):
     """
     function :
         divide the file into chunks and send it as stream of small chunks using yield.
@@ -279,7 +280,7 @@ def read_file(filepath, chunk_size=1024):
                 else:  # The chunk was empty, which means we're at the end of the file
                     return
     except Exception as e:
-        logger = LogService.get_instance()
+        logger = logger
         logger.log("error", f"Error reading the file: {e}")
         return coord_pb2.File(chunk_data=b'')
 

@@ -3,37 +3,18 @@ from logging.handlers import RotatingFileHandler
 
 
 class LogService:
-    """
-    The LogService class follows the Singleton pattern,
-    by ensuring that only one instance of LogService is created and shared.
-    """
-    __instance = None
 
-    @staticmethod
-    def get_instance():
-        """
-        Static method to retrieve the instance of the LogService.
-        If an instance doesn't exist, it creates one.
-        """
-        if LogService.__instance is None:
-            LogService()
-        return LogService.__instance
-
-    def __init__(self):
+    def __init__(self, name='RainLog'):
         """Private constructor to create the LogService instance."""
-        if LogService.__instance is not None: # To prevent multiple instances of LogService from being created
-            raise Exception("LogService is a Singleton class. Use get_instance() to retrieve the instance.")
-        else:
-            LogService.__instance = self
-            self.logger = logging.getLogger("RainLogger")
-            self.logger.setLevel(logging.DEBUG)
-            formatter = logging.Formatter('%(asctime)s [%(levelname)s] [%(module)s] %(message)s')
-            console_handler = logging.StreamHandler()  # Output logs to the console
-            console_handler.setFormatter(formatter)
-            file_handler = RotatingFileHandler("Rain.log", maxBytes=1024, backupCount=3)  # Output logs to a rotating file
-            file_handler.setFormatter(formatter)
-            self.logger.addHandler(console_handler)
-            self.logger.addHandler(file_handler)
+        self.logger = logging.getLogger(name)
+        self.logger.setLevel(logging.DEBUG)
+        formatter = logging.Formatter('%(asctime)s [%(levelname)s] [%(name)s] %(message)s')
+        console_handler = logging.StreamHandler()  # Output logs to the console
+        console_handler.setFormatter(formatter)
+        file_handler = RotatingFileHandler("Rain.log", maxBytes=1024, backupCount=3)  # Output logs to a rotating file
+        file_handler.setFormatter(formatter)
+        self.logger.addHandler(console_handler)
+        self.logger.addHandler(file_handler)
 
     def log(self, level, message):
         """Log a message with the specified log level."""
@@ -50,12 +31,12 @@ class LogService:
         else:
             raise ValueError("Invalid log level specified.")
 
-# Usage example
-if __name__ == "__main__":
-    log_service = LogService.get_instance()
-    log_service2 = LogService.get_instance()
-    log_service2 = LogService.get_instance()
-    id = 1
-    log_service.log('info', f'This is an informational message {id}')
-    log_service.log('error', 'An error occurred.')
-    LogService.get_instance().log('warning', 'This is a warning message.')
+# # Usage example
+# if __name__ == "__main__":
+#     log_service = LogService()
+#     log_service2 = LogService()
+#     log_service2 = LogService()
+#     id = 1
+#     log_service.log('info', f'This is an informational message {id}')
+#     log_service.log('error', 'An error occurred.')
+#     log_service2.log('warning', 'This is a warning message.')

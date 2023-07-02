@@ -17,6 +17,7 @@ class Worker(worker_pb2_grpc.workerServicer):
         self.data_base_path = self.worker_path + 'data/'
         self.port = port
         self.server = None
+        self.logger = LogService("Worker")
         if not os.path.exists(self.data_base_path):
             os.makedirs(self.data_base_path) 
 
@@ -42,7 +43,7 @@ class Worker(worker_pb2_grpc.workerServicer):
             # return success message
             return worker_pb2.DownloadFileResponse(message='File downloaded successfully')
         except Exception as e:
-            LogService.get_instance().log('error', f"Error downloading the file: {e}")
+            self.logger.log('error', f"Error downloading the file: {e}")
             # return error message
             return worker_pb2.DownloadFileResponse(message='Error downloading the file')
 
@@ -60,20 +61,20 @@ class Worker(worker_pb2_grpc.workerServicer):
                     else:  # The chunk was empty, which means we're at the end of the file
                         return
         except Exception as e:
-            LogService.get_instance().log('error', f"Error uploading the file: {e}")
+            self.logger.log('error', f"Error uploading the file: {e}")
             return worker_pb2.UploadFileResponse(chunk_data=b'') # No file to upload, upload an empty chunk
 
     def Execute(self, request, context):
         try:
             filepath = self.base_path + request.filename +  request.extension
             command = 'python3 '  + filepath +  " " + request.worker_id + " " + self.data_base_path + " " + request.iteration_num
-            LogService.get_instance().log('info', f"Executing command: {command}")
+            self.logger.log('info', f"Executing command: {command}")
             # execute the command and return the output
             os.system(command)
             
             return worker_pb2.ExecuteFileResponse(message='Executed!')
         except Exception as e:
-            LogService.get_instance().log('error', f"Error executing the file: {e}")
+            self.logger.log('error', f"Error executing the file: {e}")
             return worker_pb2.ExecuteFileResponse(message='Error executing the file')
         
     def serve(self):
@@ -86,12 +87,12 @@ class Worker(worker_pb2_grpc.workerServicer):
             self.server.add_insecure_port(f'[::]:{self.port}')
             # start the server
             self.server.start()
-            LogService.get_instance().log('info', f"Worker is running on port: {self.port}")
+            self.logger.log('info', f"Worker is running on port: {self.port}")
         except Exception as e:
-            LogService.get_instance().log('error', f"Error in the worker server: {e}")
+            self.logger.log('error', f"Error in the worker server: {e}")
             return
     def stop_serving(self):
         if self.server:
             self.server.stop(0)
-            LogService.get_instance().log('info', f"Worker stopped serving on port: {self.port}")
+            self.logger.log('info', f"Worker stopped serving on port: {self.port}")
     

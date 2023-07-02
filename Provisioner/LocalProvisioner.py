@@ -19,12 +19,13 @@ class LocalProvisioner():
         self.ids = []
         self.workers = []
         self.num_workers = 0
-        LogService.get_instance().log('debug', f"LocalProvisioner is initialized")
+        self.logger = LogService("LocalProvisioner")
+        self.logger.log('debug', f"LocalProvisioner is initialized")
     def __del__(self):
         self.delete_workers()
     
     def create_workers(self, num_workers):
-        LogService.get_instance().log('debug', f"Creating {num_workers} workers")
+        self.logger.log('debug', f"Creating {num_workers} workers")
         self.num_workers = num_workers
         try:
             self.ips = ['127.0.0.1'] * self.num_workers
@@ -32,7 +33,7 @@ class LocalProvisioner():
             self.ports = [i+BASE_PORT for i in range(self.num_workers)]
             self.ids = [i+1 for i in range(self.num_workers)]
         except Exception as e:
-            LogService.get_instance().log('error', f"Error configuring the workers: {e}")
+            self.logger.log('error', f"Error configuring the workers: {e}")
             return
         
         try:
@@ -42,7 +43,7 @@ class LocalProvisioner():
                 self.workers.append(worker)
             return self.workers
         except Exception as e:
-            LogService.get_instance().log('error', f"Error creating the workers: {e}")
+            self.logger.log('error', f"Error creating the workers: {e}")
             return
     def delete_workers(self):
         del self.workers        
