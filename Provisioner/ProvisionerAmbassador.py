@@ -19,28 +19,27 @@ class ProvisionerAmbassador(provisioner_pb2_grpc.provisionerServicer):
         self.workers = []
         self.num_workers = 0
         self.server = None
-        self.logger = LogService.get_instance()
 
     def __del__(self):
         self.stop_serving()
      # sendStatus() returns (WorkerStatus) {}
     def SendStatus(self, request, context):
         try:
-            self.logger.log('debug', f"Received '{request}' from the coordinator to send status")
-            self.logger.log('debug', f"Workers\nIPs : {self.ips}, ports: {self.ports}, statuses: {self.statuses}, IDs : {self.ids}")
+            LogService.get_instance().log('debug', f"Received '{request}' from the coordinator to send status")
+            LogService.get_instance().log('debug', f"Workers\nIPs : {self.ips}, ports: {self.ports}, statuses: {self.statuses}, IDs : {self.ids}")
             return provisioner_pb2.WorkerStatus(IPs = self.ips, statuses = self.statuses, ports = self.ports, ids = self.ids)
         except Exception as e:
-            self.logger.log('error', f"Error sending status: {e}")
+            LogService.get_instance().log('error', f"Error sending status: {e}")
             return provisioner_pb2.WorkerStatus(IPs = [], statuses = [], ports = [], ids = [])
 
     # DefineNWorkers(NumOfWorkers) returns () {}
     def DefineNWorkers(self, request, context):
         try:
             self.num_workers = request.NumOfWorkers
-            self.logger.log('debug', f"Received '{request}' from the coordinator to define the number of workers")
+            LogService.get_instance().log('debug', f"Received '{request}' from the coordinator to define the number of workers")
             return provisioner_pb2.response(message = "Success receiving the number of workers")
         except Exception as e:
-            self.logger.log('error', f"Error receiving the number of workers: {e}")
+            LogService.get_instance().log('error', f"Error receiving the number of workers: {e}")
             return provisioner_pb2.response(message = "Error receiving the number of workers")
     
     def create_workers(self):
@@ -55,6 +54,7 @@ class ProvisionerAmbassador(provisioner_pb2_grpc.provisionerServicer):
     def stop_serving(self):
         if self.server:
             self.server.stop(0)
+            LogService.get_instance().log('info', "provisioner stopped serving")
 
     def serve(self):
         try:
@@ -66,7 +66,7 @@ class ProvisionerAmbassador(provisioner_pb2_grpc.provisionerServicer):
             self.server.add_insecure_port('[::]:50054')
             # start the server
             self.server.start()
-            self.logger.log('info', "provisioner is serving")
+            LogService.get_instance().log('info', "provisioner is serving")
             
             self.start_coordinator()
 
@@ -77,7 +77,7 @@ class ProvisionerAmbassador(provisioner_pb2_grpc.provisionerServicer):
             return
 
         except Exception as e:
-            self.logger.log('error', f"Error in the provisioner server: {e}")
+            LogService.get_instance().log('error', f"Error in the provisioner server: {e}")
             return
 
         

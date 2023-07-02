@@ -5,6 +5,10 @@ import torch
 
 from Divider.DividerAmbassador import DividerAmbassador
 import os
+import sys
+sys.path.append('../LogService')
+from LogService.LogService import LogService
+sys.path.pop()
 HOST = 'localhost'
 PORT = 5000
 
@@ -33,12 +37,13 @@ class Divider:
         self.divider_ambassador.serve()
     def stop_serving(self):
         self.divider_ambassador.stop_serving()
+        LogService.get_instance().log('debug', f"Divider stopped serving")
     
     def send_data_to_workers(self):
         try:
             self.divider_ambassador.send_data(self.coordinator_IP, self.provisioner_IP, self.num_of_workers, self.data_base_path)
         except Exception as e:
-            print("Error in sending data to workers: ", e)
+            LogService.get_instance().log('debug', f"Error in sending data to workers: {e}")
             return
         
     def send_info_to_workers(self, iteration_num):
@@ -49,14 +54,14 @@ class Divider:
             with open(file_path, "wb") as f:
                 dill.dump(data, f)
         except Exception as e:
-            print("Error in saving the info to the file: ", e)
+            LogService.get_instance().log('debug', f"Error in saving the info to the file: {e}")
             return
 
         try:
-            print ("sending file: ", file_path)
+            LogService.get_instance().log('debug', f"Sending file: {file_path}")
             self.divider_ambassador.send_file(self.coordinator_IP, file_path)
         except Exception as e:
-            print("Error in sending the info to the workers: ", e)
+            LogService.get_instance().log('debug', f"Error in sending the info to the workers: {e}")
             return
 
     # Synchronous Training    
@@ -67,30 +72,28 @@ class Divider:
                 msg = dill.load(open(f"{self.model_base_path}{j + 1}_{iteration_num}_trained.pkl", "rb"))
                 gradients.append(msg)
         except Exception as e:
-            print("Error in receiving the gradients from the workers: ", e)
+            LogService.get_instance().log('debug', f"Error in receiving the gradients from the workers: {e}")
             return
         return gradients
     
     def reduce_gradients_sync(self, gradients):
         if self.lib == "tensorflow":
             weights = self.model.get_weights() 
-            # print("gradients: ", gradients)
             try:
                 # Average the gradients
                 gradient_avg = []
                 for gradient_list_tuple in zip(*gradients):
                     gradient_avg.append(np.array([np.array(g).mean(axis=0) for g in zip(*gradient_list_tuple)]))
             except Exception as e:
-                print("Error in reducing the gradients: ", e)
+                LogService.get_instance().log('debug', f"Error in reducing the gradients: {e}")
                 return
             try:
                 # Weight(new) = Weight(old) — LR * gradient loss
                 weights = [weights[i] - self.lr * gradient_avg[i] for i in range(len(weights))]
                 self.model.set_weights(weights)
                 self.model.compile(loss=self.loss, optimizer=self.optimizer, metrics=['accuracy'])
-                # print("Model summary: ", self.model.summary())
             except Exception as e:
-                print("Error in calculating the new weights: ", e)
+                LogService.get_instance().log('debug', f"Error in calculating the new weights: {e}")
                 return
         
         elif self.lib == "pytorch":  
@@ -112,16 +115,16 @@ class Divider:
     def train_centralized_sync(self):
         try:  
             for i in range(self.iterations):   
-                print (f"Starting iteration {i + 1}/{self.iterations}")
+                LogService.get_instance().log('debug', f"Starting iteration {i + 1}/{self.iterations}")
                 # Notice, the algo.py is stateless
                 self.send_info_to_workers(i+1) #self.partitions,
                 self.divider_ambassador.iteration(self.coordinator_IP, i+1) # start loop
                 gradients = self.receive_gradients_sync(self.partitions, i+1)
                 self.reduce_gradients_sync(gradients)
-                print(f"Iteration {i + 1}/{self.iterations} complete.")
+                LogService.get_instance().log('debug', f"Iteration {i + 1}/{self.iterations} complete.")
             return self.model
         except Exception as e:
-            print("Error in training the model: ", e)
+            LogService.get_instance().log('debug', f"Error in training the model: {e}")
             return
 
 
@@ -149,7 +152,7 @@ class Divider:
                 self.model.set_weights(weights)
                 self.model.compile(loss=self.loss, optimizer=self.optimizer, metrics=['accuracy'])
             except Exception as e:
-                print("Error in calculating the new weights: ", e)
+                LogService.get_instance().log('debug', f"Error in calculating the new weights: {e}")
                 return
                 
     def train_centralized_async(self):
@@ -163,20 +166,20 @@ class Divider:
                 server_socket.listen(5)
 
                 if connections == []:
-                    print("Server listening on port", PORT)
+                    LogService.get_instance().log('debug', f"Starting iteration {i + 1}/{self.iterations}")
                     for j in range(self.partitions):
                         conn, addr = server_socket.accept()
                         connections.append(conn)
-                        print("Connected by", addr)
+                        LogService.get_instance().log('debug', f"Connected by", addr)
 
-                    print("All workers have connected.")
+                    LogService.get_instance().log('debug', f"All workers have connected.")
                     self.send_info_to_workers(connections)
 
             gradient, connection = self.receive_gradients_async(connections)
             self.send_info_to_workers([connection])
 
             self.reduce_gradients_async(weights, gradient)
-            print(f"Iteration {i + 1}/{self.iterations} complete.")
+            LogService.get_instance().log('debug', f"Iteration {i + 1}/{self.iterations} complete.")
         return self.model
     
     # destructor 

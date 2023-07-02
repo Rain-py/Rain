@@ -4,13 +4,15 @@ from Provisioner.Provisioner import Provisioner
 
 from Divider.Divider import Divider
 
-
-import multiprocessing as mp
-
+import sys
+sys.path.append('../LogService')
+from LogService.LogService import LogService
+sys.path.pop()
 
 class Rain:
     def __init__(self, config, model, X_train, y_train):
-        print("Rain is initialized")
+        self.logger = LogService.get_instance()
+        LogService.get_instance().log('debug', f"Rain is initialized")
         self.config = config
         self.provisioner = Provisioner(self.config['mode'])
         self.divider = Divider(config, model)
@@ -22,14 +24,14 @@ class Rain:
         
     def train_centralized_sync(self):
         # create workers
-        print("Rain: Creating workers")
+        LogService.get_instance().log('debug', f"Creating workers")
         self.provisioner.serve()
         # send data
         self.divider.serve()
-        print("Rain: Sending data to workers")
+        LogService.get_instance().log('debug', f"Sending data to workers")
         self.divider.send_data_to_workers()
         # train
-        print("Rain: Training")
+        LogService.get_instance().log('debug', f"Training")
         model = self.divider.train_centralized_sync() 
         self.provisioner.stop_serving()  
         self.divider.stop_serving()     

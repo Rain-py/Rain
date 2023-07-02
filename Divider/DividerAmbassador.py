@@ -7,7 +7,10 @@ from protos import (
     coord_pb2,
     coord_pb2_grpc,
 )
-
+import sys
+sys.path.append('../LogService')
+from LogService.LogService import LogService
+sys.path.pop()
 
 def read_file(filepath, chunk_size=1024):
     split_data = filepath.split("/")
@@ -43,7 +46,7 @@ class DividerAmbassador(divider_pb2_grpc.dividerServicer):
         try:
             # instantiate a channel to the coord
             with grpc.insecure_channel(coordinator_IP + ":50052") as channel:
-                print("divider is sending data to the coordinator")
+                LogService.get_instance().log('debug', "divider is sending data to the coordinator")
                 # create an interface for the grpc client (coord)
                 coord_stub = coord_pb2_grpc.coordinatorStub(channel)
 
@@ -51,34 +54,34 @@ class DividerAmbassador(divider_pb2_grpc.dividerServicer):
                     response = coord_stub.download(
                         read_file(path + f"X_train_{i+1}.npy")
                     )
-                    print(" divider received: " + response.message + " from coordinator")
+                    LogService.get_instance().log('debug', "divider is sending data to the provisioner")
                     response = coord_stub.download(
                         read_file(path + f"y_train_{i+1}.npy")
                     )
-                    print(" divider received: " + response.message + " from coordinator")
+                    LogService.get_instance().log('debug', "divider received: " + response.message + " from coordinator")
         except Exception as e:
-            print("Error sending the data to the coordinator: ", e)
+            LogService.get_instance().log('debug', "Error sending the data to the coordinator: " + str(e))
             return
 
     def send_file(self, coordinator_IP, file_path):
         with grpc.insecure_channel(coordinator_IP + ":50052") as channel:
-            print("divider is sending information file to the coordinator")
+            LogService.get_instance().log('debug', "divider is sending information file to the coordinator")
             # create an interface for the grpc client (coord)
             coord_stub = coord_pb2_grpc.coordinatorStub(channel)
             # divider will send (upload) the data to the coordinator, so it will call function recieve_from_divider from coord_stub
 
             response = coord_stub.download(read_file(file_path))
-            print("divider received: " + response.message  + " from coordinator")
+            LogService.get_instance().log('debug', "divider received: " + response.message  + " from coordinator")
 
     def iteration(self, coordinator_IP, iteration_num):
         with grpc.insecure_channel(coordinator_IP + ":50052") as channel:
-            print("divider begins the iteration")
+            LogService.get_instance().log('debug', "divider begins the iteration")
             # create an interface for the grpc client (coord)
             coord_stub = coord_pb2_grpc.coordinatorStub(channel)
             response = coord_stub.start_loop(
                 coord_pb2.StartLoopMessage(message="start the loop", iteration_num=iteration_num)
             )
-            print("divider received: " + response.message + " from coordinator")
+            LogService.get_instance().log('debug', "divider received: " + response.message + " from coordinator")
             return response.message
 
     def download(self, request_iterator, context):
@@ -91,7 +94,6 @@ class DividerAmbassador(divider_pb2_grpc.dividerServicer):
                 filepath = request.metadata.filename + request.metadata.extension
             else:
                 data.extend(request.chunk_data)
-        # print current path
         with open(self.data_base_path + filepath, "wb") as f:
             f.write(data)
         return divider_pb2.DownloadFileResponse(message="Success!")
@@ -103,10 +105,10 @@ class DividerAmbassador(divider_pb2_grpc.dividerServicer):
             "[::]:50053"
         )  # for other nodes to connect with divider
         self.server.start()
-        print("Transceiver is serving")
+        LogService.get_instance().log('debug', "divider ambassador is serving")
 
     def stop_serving(self):
         if self.server:
             self.server.stop(0)
-            print("Transceiver stopped")
+            LogService.get_instance().log('debug', "divider ambassador stopped serving")
 

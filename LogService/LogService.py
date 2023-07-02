@@ -53,4 +53,5 @@ if __name__ == "__main__":
     id = 1
     log_service.log('info', f'This is an informational message {id}')
     log_service.log('error', 'An error occurred.')
+    LogService.get_instance().log('warning', 'This is a warning message.')
 
