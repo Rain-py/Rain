@@ -28,12 +28,12 @@ jobs:
       - name: Log in to Docker Hub
         uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
           
       - name: Tag and Push the Docker image
         run: |
-          IMAGE=${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}
+          IMAGE=${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}
           docker tag ${{ env.IMAGE_NAME }} $IMAGE:${{ github.ref_name }}
           docker tag ${{ env.IMAGE_NAME }} $IMAGE:latest
           docker push $IMAGE:${{ github.ref_name }}
