@@ -1,0 +1,37 @@
+name: Build and Deploy
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+env:
+  IMAGE_NAME: rain_worker
+
+jobs:
+  build-and-deploy:
+    name: Build and Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Build the Docker image
+        run: docker build -t ${{ env.IMAGE_NAME }} .
+
+      - name: Test the Docker image
+        run: |
+          docker run ${{ env.IMAGE_NAME }} -c 'import tensorflow as tf; print(tf.__version__)'
+          docker run ${{ env.IMAGE_NAME }} -c 'import torch; print(torch.__version__)'
+
+      - name: Log in to Docker Hub
+        run: echo $DOCKERHUB_PASSWORD | docker login --username $DOCKERHUB_USERNAME --password-stdin
+
+      - name: Tag and Push the Docker image
+        run: |
+          IMAGE=$DOCKERHUB_USERNAME/${{ env.IMAGE_NAME }}
+          docker tag ${{ env.IMAGE_NAME }} $IMAGE:${{ github.ref }}
+          docker tag ${{ env.IMAGE_NAME }} $IMAGE:latest
+          docker push $IMAGE:${{ github.ref }}
+          docker push $IMAGE:latest
