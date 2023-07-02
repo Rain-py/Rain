@@ -1,6 +1,5 @@
 from Divider.Divider import Divider
 import sys
-import numpy as np
 sys.path.append('../LogService')
 from LogService.LogService import LogService
 sys.path.pop()
@@ -19,31 +18,14 @@ class DividerProxy():
         self.logger.log('debug', f"Sending data to workers")
         self.divider.send_data_to_workers(X_train, y_train)
         # train
-        self.logger.log('debug', f"Training")
+        self.logger.log('debug', f"Training Started")
         if strategy == 'sync':
-            return self.train_centralized_sync()
+            model = self.divider.train_centralized_sync()
+            self.divider.stop_serving()      
+            return model 
         elif strategy == 'async':
-            return self.train_centralized_async()
+            model = self.divider.train_centralized_async() 
+            self.divider.stop_serving()     
+            return model 
         else:
             raise Exception("Invalid strategy")
-
-    def train_centralized_sync(self):
-        model = self.divider.train_centralized_sync()
-        self.divider.stop_serving()      
-        return model
-
-
-    def train_centralized_async(self, X_train, y_train):
-        # send data
-        self.divider.serve()
-        self.logger.log('debug', f"Sending data to workers")
-        X_train, y_train = self.divider.partition_train_data(X_train, y_train)
-        for i in range(len(X_train)):
-            np.save(f"../../../data/X_train_{i + 1}.npy", X_train[i])
-            np.save(f"../../../data/y_train_{i + 1}.npy", y_train[i])
-        self.divider.send_data_to_workers()
-        # train
-        self.logger.log('debug', f"Training")
-        model = self.divider.train_centralized_async() 
-        self.divider.stop_serving()     
-        return model
