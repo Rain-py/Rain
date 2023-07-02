@@ -1,4 +1,4 @@
-from Divider.MachineLearning.KNN_classifier import KNN
+from Rain.Divider.MachineLearning.KNN import KNN
 
 
 class DeepLearningFactory:

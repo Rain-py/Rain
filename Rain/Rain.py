@@ -1,13 +1,8 @@
 
 
-from Provisioner.Provisioner import Provisioner
-
-from Divider.DividerProxy import DividerProxy
-
-import sys
-sys.path.append('../LogService')
-from LogService.LogService import LogService
-sys.path.pop()
+from Rain.Provisioner.Provisioner import Provisioner
+from Rain.Divider.DividerProxy import DividerProxy
+from Rain.LogService.LogService import LogService
 
 class Rain:
     def __init__(self, config, model):

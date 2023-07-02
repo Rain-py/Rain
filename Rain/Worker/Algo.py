@@ -1,11 +1,8 @@
-import socket
-import signal
+
 import sys
 import numpy as np
 import dill
-import multiprocessing as mp
 import torch
-import torch.optim as optim
 from torch.utils.data import TensorDataset, DataLoader
 
 class TrainingWorker:
@@ -59,8 +56,6 @@ class TrainingWorker:
                 # Create a DataLoader for the training dataset with the defined batch size
                 train_loader = DataLoader(train_dataset, batch_size=self.batch_size, shuffle=False)
                 
-                # TODO: Remove hardcoding
-                # self.optimizer = optim.Adam(model.parameters(), lr=0.001)
                 old_weights = [param.clone() for param in model.parameters()]
                 for epoch in range(self.epochs):
                     total_correct, total_samples, total_loss = 0, 0, 0

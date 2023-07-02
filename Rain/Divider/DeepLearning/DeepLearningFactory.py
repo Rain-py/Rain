@@ -1,5 +1,5 @@
-from Divider.DeepLearning.Tensorflow import Tensorflow
-from Divider.DeepLearning.Pytorch import Pytorch
+from Rain.Divider.DeepLearning.Tensorflow import Tensorflow
+from Rain.Divider.DeepLearning.Pytorch import Pytorch
 
 class DeepLearningFactory:
     @staticmethod

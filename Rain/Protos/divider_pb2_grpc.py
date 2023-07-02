@@ -2,7 +2,7 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 
-from protos import divider_pb2 as protos_dot_divider__pb2
+from Rain.Protos import divider_pb2 as protos_dot_divider__pb2
 
 
 class dividerStub(object):

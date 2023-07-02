@@ -1,5 +1,5 @@
-from Provisioner.LocalProvisioner import LocalProvisioner
-from Provisioner.CloudProvisioner import CloudProvisioner
+from Rain.Provisioner.LocalProvisioner import LocalProvisioner
+from Rain.Provisioner.CloudProvisioner import CloudProvisioner
 
 class ProvisionerFactory:
     @staticmethod

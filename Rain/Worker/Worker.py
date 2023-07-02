@@ -1,18 +1,12 @@
 from concurrent import futures  # indicates the num of workers (threads)
 import os
 import grpc
-import sys
-sys.path.append("../")
-from protos import worker_pb2, worker_pb2_grpc
-sys.path.pop()
-
-sys.path.append('../LogService')
-from LogService.LogService import LogService
-sys.path.pop()
+from Rain.Protos import worker_pb2, worker_pb2_grpc
+from Rain.LogService.LogService import LogService
 
 class Worker(worker_pb2_grpc.workerServicer):
     def __init__(self, port):
-        self.base_path = '../../../Worker/'
+        self.base_path = '../../../Rain/Worker/'
         self.worker_path = self.base_path + 'worker/'
         self.data_base_path = self.worker_path + 'data/'
         self.port = port

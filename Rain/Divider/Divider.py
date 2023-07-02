@@ -1,12 +1,10 @@
 import os
 import sys
 import numpy as np
-from Divider.DividerAmbassador import DividerAmbassador
-from Divider.DeepLearning.DeepLearningFactory import DeepLearningFactory
+from Rain.Divider.DividerAmbassador import DividerAmbassador
+from Rain.Divider.DeepLearning.DeepLearningFactory import DeepLearningFactory
 
-sys.path.append('../LogService')
-from LogService.LogService import LogService
-sys.path.pop()
+from Rain.LogService.LogService import LogService
 
 
 class Divider:
@@ -20,8 +18,7 @@ class Divider:
         self.coordinator_IP = '127.0.0.1'
         self.provisioner_IP = '127.0.0.1'
         
-        self.data_base_path = "../../../data/"
-        self.model_base_path = "../../../Divider/divider/data/"
+        self.model_base_path = "../../../../Rain/Divider/divider/data/"
         if not os.path.exists(self.model_base_path):
             os.makedirs(self.model_base_path)
 

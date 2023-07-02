@@ -1,7 +1,7 @@
 import os
 
 def clean():
-    folder_paths = ["Coordinator/coord/data/", "Worker/worker/data/", "Divider/divider/data", "data"]  # Replace with the folder path you want to delete files from
+    folder_paths = ["Rain/Coordinator/coord/data/", "Rain/Worker/worker/data/", "Rain/Divider/divider/data", "data"]  # Replace with the folder path you want to delete files from
     file_extensions = [".npy", ".pkl"]  # Replace with the file extension you want to delete
     for folder_path in folder_paths:
         if os.path.exists('../../../' + folder_path):

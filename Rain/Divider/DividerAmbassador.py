@@ -1,7 +1,7 @@
 from __future__ import print_function
 from concurrent import futures  # indicates the num of (threads)
 import grpc
-from protos import (
+from Rain.Protos import (
     divider_pb2,
     divider_pb2_grpc,
     coord_pb2,
@@ -10,10 +10,8 @@ from protos import (
     worker_pb2
 )
 import numpy as np
-import sys
-sys.path.append('../LogService')
-from LogService.LogService import LogService
-sys.path.pop()
+
+from Rain.LogService.LogService import LogService
 
 def read_file(filepath, chunk_size=1024):
     split_data = filepath.split("/")
@@ -49,7 +47,7 @@ def read_partitioned_data(data, filename, extension, chunk_size = 1024):
 
 class DividerAmbassador(divider_pb2_grpc.dividerServicer):
     def __init__(self):
-        self.base_path = "../../../Divider/divider/"
+        self.base_path = "../../../../Rain/Divider/divider/"
         self.data_base_path = self.base_path +'data/'
         self.server = None
         self.logger = LogService("DividerAmbassador")
@@ -63,7 +61,6 @@ class DividerAmbassador(divider_pb2_grpc.dividerServicer):
         send the data to coordinator to distribute it among workers.
         """ 
         # TODO: Remove writing and reading the file
-        data_base_path = "../../../data/"
         try:
             # instantiate a channel to the coord
             with grpc.insecure_channel(coordinator_IP + ":50052") as channel:
@@ -72,15 +69,15 @@ class DividerAmbassador(divider_pb2_grpc.dividerServicer):
                 coord_stub = coord_pb2_grpc.coordinatorStub(channel)
 
                 for i in range(num_workers):
-                    np.save(f"{data_base_path}X_train_{i + 1}.npy", X_train_partitions[i])
+                    np.save(f"{self.data_base_path}X_train_{i + 1}.npy", X_train_partitions[i])
                     response = coord_stub.download(
-                        read_file(data_base_path + f"X_train_{i+1}.npy")
+                        read_file(self.data_base_path + f"X_train_{i+1}.npy")
                         # read_partitioned_data(X_train_partitions[i], f"X_train_{i+1}", ".npy")
                     )
                     self.logger.log('debug', "divider is sending data to the provisioner")
-                    np.save(f"{data_base_path}y_train_{i + 1}.npy", y_train_partitions[i])
+                    np.save(f"{self.data_base_path}y_train_{i + 1}.npy", y_train_partitions[i])
                     response = coord_stub.download(
-                        read_file(data_base_path + f"y_train_{i+1}.npy")
+                        read_file(self.data_base_path + f"y_train_{i+1}.npy")
                         # read_partitioned_data(y_train_partitions[i], f"X_train_{i+1}", ".npy")
                     )
                     self.logger.log('debug', "divider received: " + response.message + " from coordinator")
@@ -107,7 +104,7 @@ class DividerAmbassador(divider_pb2_grpc.dividerServicer):
                 # send data to the worker
                 try:
                     if not data_status:
-                        path = "../../../data/"
+                        path = self.data_base_path
                         response = worker_stub.download(read_file(f'{path}X_train_{worker_id}.npy'))
                         self.logger.log('debug', "divider received: " + response.message + " for worker" + str(worker_id))
 

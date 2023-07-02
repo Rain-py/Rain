@@ -1,15 +1,7 @@
-from Provisioner.ProvisionerAmbassador import ProvisionerAmbassador
-from Provisioner.ProvisionerFactory import ProvisionerFactory
-
-
-import sys
-sys.path.append('../Coordinator')
-from Coordinator.Coordinator import Coordinator
-sys.path.pop()
-
-sys.path.append('../LogService')
-from LogService.LogService import LogService
-sys.path.pop()
+from Rain.Provisioner.ProvisionerAmbassador import ProvisionerAmbassador
+from Rain.Provisioner.ProvisionerFactory import ProvisionerFactory
+from Rain.Coordinator.Coordinator import Coordinator
+from Rain.LogService.LogService import LogService
 
 
 class Provisioner(ProvisionerAmbassador):

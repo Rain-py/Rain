@@ -2,11 +2,9 @@ from __future__ import print_function
 from concurrent import futures  # indicates the num of (threads)
 import os
 import grpc
-import sys
 import threading
 
-sys.path.append("../")
-from protos import (
+from Rain.Protos import (
     coord_pb2,
     coord_pb2_grpc,
     worker_pb2,
@@ -15,10 +13,7 @@ from protos import (
     provisioner_pb2_grpc,
     divider_pb2_grpc,
 )
-sys.path.pop()
-sys.path.append('../LogService')
-from LogService.LogService import LogService
-sys.path.pop()
+from Rain.LogService.LogService import LogService
 
 def read_file(filepath, logger, chunk_size=1024):
     """
@@ -50,7 +45,7 @@ def read_file(filepath, logger, chunk_size=1024):
 class CoordinatorAmbassador(coord_pb2_grpc.coordinatorServicer):
     def __init__(self):
 
-        self.base_path = '../../../Coordinator/coord/'
+        self.base_path = '../../../../Rain/Coordinator/coord/'
         self.data_base_path = self.base_path + 'data/'
         if not os.path.exists(self.data_base_path):
             os.makedirs(self.data_base_path) 

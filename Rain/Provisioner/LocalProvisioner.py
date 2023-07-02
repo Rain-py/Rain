@@ -1,14 +1,8 @@
-import sys
-sys.path.append('../')
-from Worker.Worker import Worker
-from protos import provisioner_pb2
-sys.path.pop()
 
-sys.path.append('../LogService')
-from LogService.LogService import LogService
-sys.path.pop()
-
-from Provisioner.ProvisionerInterface import ProvisionerInterface
+from Rain.Worker.Worker import Worker
+from Rain.Protos import provisioner_pb2
+from Rain.LogService.LogService import LogService
+from Rain.Provisioner.ProvisionerInterface import ProvisionerInterface
 
 
 BASE_PORT = 50151

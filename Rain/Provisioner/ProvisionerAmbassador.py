@@ -1,13 +1,7 @@
 from concurrent import futures # indicates the num of workers (threads)
 import grpc
-import sys
-sys.path.append('../')
-from protos import provisioner_pb2, provisioner_pb2_grpc
-sys.path.pop()
-
-sys.path.append('../LogService')
-from LogService.LogService import LogService
-sys.path.pop()
+from Rain.Protos import provisioner_pb2, provisioner_pb2_grpc
+from Rain.LogService.LogService import LogService
 
 
 class ProvisionerAmbassador(provisioner_pb2_grpc.provisionerServicer):

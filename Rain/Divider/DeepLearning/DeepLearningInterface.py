@@ -4,9 +4,7 @@ import threading
 import os
 from abc import abstractmethod
 
-sys.path.append('../LogService')
-from LogService.LogService import LogService
-sys.path.pop()
+from Rain.LogService.LogService import LogService
 
 class DeepLearningInterface:
     def __init__(self, model, config, divider_ambassador):
@@ -28,8 +26,7 @@ class DeepLearningInterface:
         # define the provisioner ip
         self.provisioner_IP = '127.0.0.1'
         
-        self.data_base_path = "../../../data/"
-        self.model_base_path = "../../../Divider/divider/data/"
+        self.model_base_path = "../../../../Rain/Divider/divider/data/"
         if not os.path.exists(self.model_base_path):
             os.makedirs(self.model_base_path) 
             

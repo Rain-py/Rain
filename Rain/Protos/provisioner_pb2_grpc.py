@@ -2,7 +2,7 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 
-from protos import provisioner_pb2 as protos_dot_provisioner__pb2
+from Rain.Protos import provisioner_pb2 as protos_dot_provisioner__pb2
 
 
 class provisionerStub(object):
