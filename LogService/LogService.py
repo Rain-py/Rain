@@ -11,10 +11,10 @@ class LogService:
         formatter = logging.Formatter('%(asctime)s [%(levelname)s] [%(name)s] %(message)s')
         console_handler = logging.StreamHandler()  # Output logs to the console
         console_handler.setFormatter(formatter)
-        log_file_path = f"./logs/{name}.log"
+        log_file_path = f"./logs/"
         if not os.path.exists(log_file_path):
             os.makedirs(log_file_path) 
-        file_handler = RotatingFileHandler(log_file_path, maxBytes=1024*20, backupCount=0)  # Output logs to a rotating file
+        file_handler = RotatingFileHandler(f"{log_file_path}{name}.log", maxBytes=1024*20, backupCount=0)  # Output logs to a rotating file
         file_handler.setFormatter(formatter)
         self.logger.addHandler(console_handler)
         self.logger.addHandler(file_handler)

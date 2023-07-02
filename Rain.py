@@ -10,7 +10,7 @@ from LogService.LogService import LogService
 sys.path.pop()
 
 class Rain:
-    def __init__(self, config, model, X_train, y_train):
+    def __init__(self, config, model):
         self.logger = LogService("Rain")
         self.logger.log('debug', f"Rain is initialized")
         self.config = config
@@ -22,19 +22,19 @@ class Rain:
         del self.provisioner
         del self.divider_proxy
         
-    def train_centralized_sync(self):
+    def train_centralized_sync(self, X_train, y_train):
         # create workers
         self.logger.log('debug', f"Creating workers")
         self.provisioner.serve()
-        model = self.divider_proxy.train_centralized_sync()    
+        model = self.divider_proxy.train_centralized_sync(X_train, y_train)    
         self.provisioner.stop_serving()  
         return model
 
 
-    def train_centralized_async(self):
+    def train_centralized_async(self, X_train, y_train):
         self.logger.log('debug', f"Creating workers")
         self.provisioner.serve()
-        model = self.divider_proxy.train_centralized_async() 
+        model = self.divider_proxy.train_centralized_async(X_train, y_train) 
         self.provisioner.stop_serving()        
         return model
     
