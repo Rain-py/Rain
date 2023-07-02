@@ -20,7 +20,7 @@ An ambassador, also referred to as an API gateway or reverse proxy, acts as an i
     Provides a centralized component to handle common network-related functionalities.
     Enables flexibility in managing network communication, such as handling retries, routing, circuit breaking, etc.
     Supports decoupling of the client and service, allowing them to evolve independently.
-    
+
 ### Circuit Breaker
 
 The Circuit Breaker pattern is used to handle and prevent cascading failures in distributed systems. It acts as a safety mechanism between services, monitoring requests and automatically "breaking" the circuit if a service fails or becomes unresponsive. This helps to isolate faults, prevent overloading, and provide graceful degradation. Popular implementations of this pattern include Hystrix and resilience4j.
@@ -35,7 +35,7 @@ Decomposition patterns are used to break down a monolithic application into smal
 
 ## Design Patterns
 
-### Factory design pattern
+### Factory Design Pattern
 
 The Factory design pattern is a creational design pattern that provides an interface for creating objects, but allows subclasses or derived classes to decide which class to instantiate. It encapsulates the object creation logic and promotes loose coupling by allowing the client code to interact with the factory interface rather than directly creating objects.
 
@@ -77,24 +77,18 @@ print(cat.sound())  # Output: Meow
 
 ```
 
-### Singleton design pattern
+### Singleton Design Pattern
 
 The Singleton design pattern is a creational design pattern that ensures that only one instance of a class is created and provides a global point of access to that instance. It is useful when you need to have a single instance of a class that provides access to shared resources, such as a database connection or a logger. The Singleton pattern is implemented by defining a static method that returns the same instance of the class every time it is called.
 
 When creating a log service to be used by other services, the best pattern to consider is the Singleton design pattern. The Singleton pattern ensures that only one instance of the log service is created and shared among multiple components, providing a centralized and consistent logging mechanism.
 
-### Proxy Pattern
+### Proxy Design Pattern
 
-- Purpose:
-    The Proxy pattern provides a surrogate or placeholder object to control access to the real object and add additional functionalities.
-- Characteristics:
-    The proxy object exposes the same interface as the real object, allowing it to be used as a direct substitute.
-    The proxy object manages the communication and coordination with the real object.
-    The client may not be aware of the existence of the real object and interacts only with the proxy.
-- Benefits:
-    Allows for additional functionalities such as caching, logging, security, or performance optimizations.
-    Provides a level of indirection and separation between the client and the real object.
+The Proxy pattern provides a surrogate or placeholder for another object to control its access. It allows you to add an additional layer of indirection to control the interactions with the original object. The proxy object acts as an intermediary between the client and the real object, providing a convenient way to control or enhance the behavior of the underlying object without the client's knowledge.
 
+Example:
+Suppose you have a Video class that represents a video file. The Video class has a method called play() to play the video. However, you want to add some additional functionality, such as checking if the user has permission to play the video or logging the play duration. In this case, you can create a VideoProxy class that acts as a proxy for the Video object. The VideoProxy class can handle the additional functionality before delegating the play() method to the actual Video object.
 
 ### Proxy design pattern VS Ambassador design pattern
 
@@ -104,4 +98,9 @@ Use the Proxy pattern if you need to add additional functionalities or control a
 
 Use the Ambassador pattern if you require a centralized component to handle network-related concerns and facilitate communication between the client and the service. This is useful for managing the network aspects of the system, such as load balancing, protocol translation, or implementing service discovery.
 
+### Adapter Design Pattern
 
+The Adapter pattern converts the interface of one class into another interface that the client expects. It allows incompatible classes to work together by providing a common interface. The adapter wraps one class with another class to make their interfaces compatible, without modifying the existing code of the adapted class.
+
+Example:
+Suppose you have an existing LegacyRectangle class that represents a rectangle with methods calculateArea() and calculatePerimeter(). However, you have a client code that expects a Shape interface with methods getArea() and getPerimeter(). To make the LegacyRectangle compatible with the client code, you can create an Adapter class that implements the Shape interface and internally uses the LegacyRectangle object. The Adapter class maps the getArea() and getPerimeter() methods to the corresponding methods of the LegacyRectangle class.

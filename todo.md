@@ -26,10 +26,10 @@ Local Mode
 - [ ] Start working on the documentation.
 - [ ] Add the ML algorithms to the local mode.
 - [ ] Remove data sending to/from the coordinator.
-- [ ] Hard coding info in the divider.
 - [ ] Circuit breaking.
+- [x] Hard coding info in the divider.
 - [x] Finish the Docker image of the worker and the algo.
-- [ ] Add divider interface.
+- [x] Add divider proxy.
 - [ ] Publish package to pypi.
 
 ## Monday 3/7
