@@ -23,8 +23,13 @@ definitions:
           - IMAGE_NAME=rain_worker
           - IMAGE=${DOCKERHUB_USERNAME}/${IMAGE_NAME}
           - cd ./Worker
+          - echo 'Building the image'
           - docker build -t "${IMAGE_NAME}" .
+          - echo 'Testing the image'
+          - docker run "${IMAGE_NAME}" -c 'import tensorflow as tf; print(tf.__version__)'
+          - docker run "${IMAGE_NAME}" -c 'import torch; print(torch.__version__)'
           - echo ${DOCKERHUB_PASSWORD} | docker login --username "$DOCKERHUB_USERNAME" --password-stdin
+          - echo 'Pushing the image'
           - docker tag "${IMAGE_NAME}" "${IMAGE}:${BITBUCKET_TAG}"
           - docker tag "${IMAGE_NAME}" "${IMAGE}:latest"
           - docker push "${IMAGE}:${BITBUCKET_TAG}"

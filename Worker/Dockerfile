@@ -37,10 +37,14 @@ RUN apt-get remove -y --purge \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* /tmp/* ~/*
 
-# Set the entrypoint to accept the script path as an argument
+# Copy the script to the image
+COPY Algo.py /app/Algo.py
+
+# Create a Directory for the data
+RUN mkdir /app/data
+
+# Set the entrypoint to the script
 ENTRYPOINT ["python"]
 
 # Default command to print usage information
-CMD ["-c", "print('You can run your script with: docker run -v /path/to/algo.py:/app/algo.py mostafaw/rain_worker:1.0.0 /app/algo.py')"]
-
-
+CMD ["-c", "print('You can run your script with: docker run -v /data:/app/data mostafaw/rain_worker /app/algo.py arg1 arg2')"]
