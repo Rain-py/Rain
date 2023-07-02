@@ -1,4 +1,6 @@
 import logging
+from logging.handlers import RotatingFileHandler
+
 
 class LogService:
     """
@@ -26,9 +28,12 @@ class LogService:
             self.logger = logging.getLogger("RainLogger")
             self.logger.setLevel(logging.DEBUG)
             formatter = logging.Formatter('%(asctime)s [%(levelname)s] [%(module)s] %(message)s')
-            handler = logging.StreamHandler()  # Output logs to the console
-            handler.setFormatter(formatter)
-            self.logger.addHandler(handler)
+            console_handler = logging.StreamHandler()  # Output logs to the console
+            console_handler.setFormatter(formatter)
+            file_handler = RotatingFileHandler("Rain.log", maxBytes=1024, backupCount=3)  # Output logs to a rotating file
+            file_handler.setFormatter(formatter)
+            self.logger.addHandler(console_handler)
+            self.logger.addHandler(file_handler)
 
     def log(self, level, message):
         """Log a message with the specified log level."""
@@ -54,4 +59,3 @@ if __name__ == "__main__":
     log_service.log('info', f'This is an informational message {id}')
     log_service.log('error', 'An error occurred.')
     LogService.get_instance().log('warning', 'This is a warning message.')
-

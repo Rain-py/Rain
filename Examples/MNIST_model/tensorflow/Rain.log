@@ -1,0 +1,9 @@
+2023-07-02 07:58:30,740 [DEBUG] [LogService] Downloaded ../../../Coordinator/coord/data/3_3_trained.pkl in coordinator
+2023-07-02 07:58:30,804 [DEBUG] [LogService] coordinator received: Success! from divider
+2023-07-02 07:58:31,039 [DEBUG] [LogService] coordinator received: Success! from divider
+2023-07-02 07:58:31,105 [DEBUG] [LogService] coordinator received: Success! from divider
+2023-07-02 07:58:31,106 [DEBUG] [LogService] divider received: one loop is done from coordinator
+2023-07-02 07:58:31,125 [DEBUG] [LogService] Iteration 3/3 complete.
+2023-07-02 07:58:31,126 [INFO] [LogService] provisioner stopped serving
+2023-07-02 07:58:31,127 [DEBUG] [LogService] divider ambassador stopped serving
+2023-07-02 07:58:31,127 [DEBUG] [LogService] Divider stopped serving
