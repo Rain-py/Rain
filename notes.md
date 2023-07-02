@@ -65,3 +65,9 @@ print(dog.sound())  # Output: Woof
 print(cat.sound())  # Output: Meow
 
 ```
+
+### Singleton design pattern
+
+The Singleton design pattern is a creational design pattern that ensures that only one instance of a class is created and provides a global point of access to that instance. It is useful when you need to have a single instance of a class that provides access to shared resources, such as a database connection or a logger. The Singleton pattern is implemented by defining a static method that returns the same instance of the class every time it is called.
+
+When creating a log service to be used by other services, the best pattern to consider is the Singleton design pattern. The Singleton pattern ensures that only one instance of the log service is created and shared among multiple components, providing a centralized and consistent logging mechanism.
