@@ -31,23 +31,12 @@ class Divider:
         elif config["learning_type"] == "ML":
             self.algorithm = None
 
-
     def serve(self):
         self.divider_ambassador.serve()
-
 
     def stop_serving(self):
         self.divider_ambassador.stop_serving()
         self.logger.log('debug', f"Divider stopped serving")
-
-
-    def send_data_to_workers(self):
-        try:
-            self.divider_ambassador.send_data(self.coordinator_IP, self.provisioner_IP, self.num_of_workers, self.data_base_path)
-        except Exception as e:
-            self.logger.log('debug', f"Error in sending data to workers: {e}")
-            return
-
 
     def partition_train_data(self, X_train, y_train):
         num_samples = X_train.shape[0]

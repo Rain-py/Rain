@@ -77,7 +77,7 @@ class DividerAmbassador(divider_pb2_grpc.dividerServicer):
             self.logger.log('debug', "divider received: " + response.message  + " from coordinator")
 
    
-    def iteration(self, worker_id , worker_ip, worker_port, data_status, iteration_num, mode, model_name):
+    def iteration(self, worker_id , worker_ip, worker_port, data_status, iteration_num, model_name):
 
             self.logger.log('debug', f'{worker_ip}:{worker_port}')
             with grpc.insecure_channel(f'{worker_ip}:{worker_port}') as channel:

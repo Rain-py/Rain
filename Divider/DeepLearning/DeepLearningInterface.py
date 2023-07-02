@@ -34,7 +34,7 @@ class DeepLearningInterface:
             os.makedirs(self.model_base_path) 
             
 
-    def send_info_to_workers(self, iteration_num):
+    def save_model(self, iteration_num):
         data = [{"config": self.config, "model": self.model}]
         file_path = f"{self.model_base_path}{iteration_num}.pkl"
         try:
@@ -45,13 +45,6 @@ class DeepLearningInterface:
             self.logger.log('debug', f"Error in saving the info to the file: {e}")
             return
 
-        try:
-            self.logger.log('debug', f"Sending file: {file_path}")
-            self.divider_ambassador.send_file(self.coordinator_IP, file_path)
-        except Exception as e:
-            self.logger.log('debug', f"Error in sending the info to the workers: {e}")
-            return
-        
     # ________________________ Synchronous Training ________________________
 
     def receive_gradients_sync(self, partitions, iteration_num):
@@ -70,14 +63,27 @@ class DeepLearningInterface:
     def reduce_gradients_sync(self, gradients):
         pass
 
-
+    
     def train_centralized_sync(self):
         try:  
+            # get the workers info from coordinator
+            self.workers_IPs, self.workers_ports, self.workers_ids = self.divider_ambassador.get_workers_info(self.coordinator_IP)
+            self.data_status = [0] * len(self.workers_IPs) # 0 means no data sent yet, 1 means data is already sent to the workers
+        
             for i in range(self.iterations):   
                 self.logger.log('debug', f"Starting iteration {i + 1}/{self.iterations}")
                 # Notice, the algo.py is stateless
-                self.send_info_to_workers(i+1) #self.partitions,
-                self.divider_ambassador.iteration(self.coordinator_IP, i+1) # start loop
+                self.save_model(i+1) #self.partitions,
+                threads = list()
+                for j in range(self.partitions): # note to be considered number of workers != number of partitions
+                    thread = threading.Thread(target=self.divider_ambassador.iteration, args=(self.workers_ids[j], self.workers_IPs[j], self.workers_ports[j], self.data_status[j], i+1, i+1))
+                    if i == 0:
+                        self.data_status[j] = 1
+                    threads.append(thread)
+                    thread.start()
+                for thread in threads:
+                    thread.join()
+                # self.divider_ambassador.iteration(self.coordinator_IP, i+1) # start loop
                 gradients = self.receive_gradients_sync(self.partitions, i+1)
                 self.reduce_gradients_sync(gradients)
                 self.logger.log('debug', f"Iteration {i + 1}/{self.iterations} complete.")
@@ -85,6 +91,7 @@ class DeepLearningInterface:
         except Exception as e:
             self.logger.log('debug', f"Error in training the model: {e}")
             return
+
     # ________________________________________________________________________ 
 
 
@@ -107,27 +114,26 @@ class DeepLearningInterface:
 
 
     def worker_process_async(self, worker_id):
+        # get the workers info from coordinator
+        self.workers_IPs, self.workers_ports, self.workers_ids = self.divider_ambassador.get_workers_info(self.coordinator_IP)
+        self.data_status = [0] * len(self.workers_IPs) # 0 means no data sent yet, 1 means data is already sent to the workers
+        
         for i in range(self.iterations):
             self.logger.log('debug', f"Starting iteration {i + 1}/{self.iterations}")  
-            self.workers_IPs, self.worker_ports, self.worker_ids = self.divider_ambassador.get_workers_info(self.coordinator_IP)
-            # 0 means no data sent yet, 1 means data is already sent to the workers
-            self.data_status = [0] * len(self.workers_IPs)
-            
-            self.divider_ambassador.iteration_async(self.worker_ids[worker_id], self.workers_IPs[worker_id], self.worker_ports[worker_id], self.data_status[worker_id], i+1)
-            # sending data (x_train , y_train) to workers only once
-            if i == 1:
+            self.divider_ambassador.iteration(self.workers_ids[worker_id], self.workers_IPs[worker_id], self.workers_ports[worker_id], self.data_status[worker_id], i+1, self.workers_ids[worker_id])
+            if i == 0: # sending data (x_train , y_train) to workers only once
                 self.data_status[worker_id] = 1
 
             gradient = self.receive_gradients_async(worker_id + 1,worker_id + 1) # worker_id, worker_id
             self.reduce_gradients_async(gradient, worker_id + 1)
-            self.send_info_to_workers(worker_id + 1) 
+            self.save_model(worker_id + 1) 
             self.logger.log('debug', f"Iteration {i + 1}/{self.iterations} complete for worker {worker_id + 1}.")
         
-
+    
     def train_centralized_async(self):
         try:
             for id in range(self.num_of_workers):
-                self.send_info_to_workers(id + 1)
+                self.save_model(id + 1)
 
             threads = list()
             for id in range(self.num_of_workers):

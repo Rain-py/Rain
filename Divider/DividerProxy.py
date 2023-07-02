@@ -21,7 +21,7 @@ class DividerProxy():
         for i in range(len(X_train)):
             np.save(f"../../../data/X_train_{i + 1}.npy", X_train[i])
             np.save(f"../../../data/y_train_{i + 1}.npy", y_train[i])
-        self.divider.send_data_to_workers()
+        # self.divider.send_data_to_workers()
         # train
         self.logger.log('debug', f"Training")
         model = self.divider.train_centralized_sync()
@@ -37,7 +37,7 @@ class DividerProxy():
         for i in range(len(X_train)):
             np.save(f"../../../data/X_train_{i + 1}.npy", X_train[i])
             np.save(f"../../../data/y_train_{i + 1}.npy", y_train[i])
-        self.divider.send_data_to_workers()
+        # self.divider.send_data_to_workers()
         # train
         self.logger.log('debug', f"Training")
         model = self.divider.train_centralized_async() 
