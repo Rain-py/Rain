@@ -27,10 +27,9 @@ class Divider:
         self.logger = LogService("Divider")
 
         # define workers info 
-        self.worker_IPs = ['127.0.0.1', '127.0.0.1', '127.0.0.1'] 
-        self.worker_ports =[50151, 50152, 50153]
-        self.worker_ids =  [1, 2, 3]
-        self.data_status = [0] * len(self.worker_IPs) # 0 means no data sent yet, 1 means data is already sent to the workers
+        # self.worker_IPs = ['127.0.0.1', '127.0.0.1', '127.0.0.1'] 
+        # self.worker_ports =[50151, 50152, 50153]
+        # self.worker_ids =  [1, 2, 3]
 
         # define the coord ip
         self.coordinator_IP = '127.0.0.1'
@@ -158,8 +157,11 @@ class Divider:
 
     def worker_process_async(self, worker_id):
         for i in range(self.iterations):
-            self.logger.log('debug', f"Starting iteration {i + 1}/{self.iterations}")   
-            self.divider_ambassador.iteration_async(self.worker_ids[worker_id], self.worker_IPs[worker_id], self.worker_ports[worker_id], self.data_status[worker_id], i+1)
+            self.logger.log('debug', f"Starting iteration {i + 1}/{self.iterations}")  
+            self.workers_IPs, self.worker_ports, self.worker_ids = self.divider_ambassador.get_workers_info(self.coordinator_IP)
+            self.data_status = [0] * len(self.workers_IPs) # 0 means no data sent yet, 1 means data is already sent to the workers
+            
+            self.divider_ambassador.iteration_async(self.worker_ids[worker_id], self.workers_IPs[worker_id], self.worker_ports[worker_id], self.data_status[worker_id], i+1)
             if i == 1: # sending data (x_train , y_train) to workers only once
                 self.data_status[worker_id] = 1
 

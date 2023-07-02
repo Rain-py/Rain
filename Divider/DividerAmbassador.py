@@ -146,6 +146,15 @@ class DividerAmbassador(divider_pb2_grpc.dividerServicer):
             f.write(data)
         return divider_pb2.DownloadFileResponse(message="Success!")
 
+    def get_workers_info(self, coordinator_IP):
+        with grpc.insecure_channel(coordinator_IP + ":50052") as channel:
+            # create an interface for the grpc client (coord)
+            coord_stub = coord_pb2_grpc.coordinatorStub(channel)
+            response = coord_stub.get_workers_info(
+                coord_pb2.WorkersInfoRequest(message="get workers info")
+            )
+            self.logger.log('debug', "divider received: information from coordinator")
+            return response.workers_ips, response.workers_ports, response.workers_ids
     def serve(self):
         self.server = grpc.server(futures.ThreadPoolExecutor(1))
         divider_pb2_grpc.add_dividerServicer_to_server(self, self.server)
@@ -155,6 +164,16 @@ class DividerAmbassador(divider_pb2_grpc.dividerServicer):
         self.server.start()
         self.logger.log('debug', "divider ambassador is serving")
 
+    def get_worker_IPs(self, coordinator_IP, num_of_workers):
+        with grpc.insecure_channel(coordinator_IP + ":50052") as channel:
+            # create an interface for the grpc client (coord)
+            coord_stub = coord_pb2_grpc.coordinatorStub(channel)
+            response = coord_stub.get_worker_IPs(
+                coord_pb2.NumOfWorkers(num_of_workers=num_of_workers)
+            )
+            self.logger.log('debug', "divider received: " + response.message + " from coordinator")
+            return response.worker_IPs
+        
     def stop_serving(self):
         if self.server:
             self.server.stop(0)

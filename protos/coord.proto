@@ -8,6 +8,8 @@ service coordinator {
     rpc upload(MetaData) returns (stream UploadFileResponse) {}
     // coordinator start its loop which sending the data and receiving the model
     rpc start_loop(StartLoopMessage) returns (LoopResponse) {}
+    // to get workers information 
+    rpc get_workers_info(WorkersInfoRequest) returns (WorkersInfoResponse) {}
   }
 
   // Define the file metadata message
@@ -43,6 +45,20 @@ service coordinator {
   }
   message LoopResponse {
     string message = 1;
+  }
+
+  // -------------------
+
+  // for workers info
+
+  message WorkersInfoRequest {
+    string message = 1;
+  }
+
+  message WorkersInfoResponse{
+    repeated string workers_ips = 1;
+    repeated int32 workers_ports = 2;
+    repeated int32 workers_ids = 3;
   }
 
   

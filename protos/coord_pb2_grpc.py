@@ -29,6 +29,11 @@ class coordinatorStub(object):
                 request_serializer=protos_dot_coord__pb2.StartLoopMessage.SerializeToString,
                 response_deserializer=protos_dot_coord__pb2.LoopResponse.FromString,
                 )
+        self.get_workers_info = channel.unary_unary(
+                '/coord.coordinator/get_workers_info',
+                request_serializer=protos_dot_coord__pb2.WorkersInfoRequest.SerializeToString,
+                response_deserializer=protos_dot_coord__pb2.WorkersInfoResponse.FromString,
+                )
 
 
 class coordinatorServicer(object):
@@ -55,6 +60,13 @@ class coordinatorServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def get_workers_info(self, request, context):
+        """to get workers information 
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_coordinatorServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -72,6 +84,11 @@ def add_coordinatorServicer_to_server(servicer, server):
                     servicer.start_loop,
                     request_deserializer=protos_dot_coord__pb2.StartLoopMessage.FromString,
                     response_serializer=protos_dot_coord__pb2.LoopResponse.SerializeToString,
+            ),
+            'get_workers_info': grpc.unary_unary_rpc_method_handler(
+                    servicer.get_workers_info,
+                    request_deserializer=protos_dot_coord__pb2.WorkersInfoRequest.FromString,
+                    response_serializer=protos_dot_coord__pb2.WorkersInfoResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -131,5 +148,22 @@ class coordinator(object):
         return grpc.experimental.unary_unary(request, target, '/coord.coordinator/start_loop',
             protos_dot_coord__pb2.StartLoopMessage.SerializeToString,
             protos_dot_coord__pb2.LoopResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def get_workers_info(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/coord.coordinator/get_workers_info',
+            protos_dot_coord__pb2.WorkersInfoRequest.SerializeToString,
+            protos_dot_coord__pb2.WorkersInfoResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

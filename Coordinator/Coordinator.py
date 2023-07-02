@@ -51,6 +51,7 @@ class Coordinator(coord_pb2_grpc.coordinatorServicer):
         except Exception as e:
             self.logger.log('error', f"Error sending the num of workers to the provisioner: {e}")
             return
+        
     def get_IPs_from_provisioner(self):
         """
         function :
@@ -75,7 +76,24 @@ class Coordinator(coord_pb2_grpc.coordinatorServicer):
         except Exception as e:
             self.logger.log('error', f"Error getting IPs from provisioner: {e}")
             return [], []
-
+    def get_workers_info(self, request, context):
+        """
+        function
+            Define intarface to return Up workers information. 
+        """
+        self.logger.log('debug', f"coordinator is sending workers info to divider")
+        # get IPs and statuses from provisioner
+        self.get_IPs_from_provisioner()
+        # send working IPs to the divider
+        working_IPs = []
+        working_ports = []
+        working_ids = []
+        for i in range(len(self.workers_IPs)):
+            if self.statuses[i] == 1:
+                working_IPs.append(self.workers_IPs[i])
+                working_ports.append(self.ports[i])
+                working_ids.append(self.ids[i])
+        return coord_pb2.WorkersInfoResponse(workers_ips=working_IPs, workers_ports=working_ports, workers_ids=working_ids)
     def upload(self, request, context):
         chunk_size = 1024
 
