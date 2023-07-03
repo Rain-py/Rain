@@ -97,48 +97,56 @@ class DividerAmbassador(divider_pb2_grpc.dividerServicer):
 
    
     def iteration(self, worker_id , worker_ip, worker_port, data_status, iteration_num, model_name):
-
-            self.logger.log('debug', f'{worker_ip}:{worker_port}')
-            with grpc.insecure_channel(f'{worker_ip}:{worker_port}') as channel:
-                worker_stub = worker_pb2_grpc.workerStub(channel) 
+        self.logger.log('debug', f'{worker_ip}:{worker_port}')
+        with grpc.insecure_channel(f'{worker_ip}:{worker_port}') as channel:
+            worker_stub = worker_pb2_grpc.workerStub(channel) 
+            try:
                 # send data to the worker
-                try:
-                    if not data_status:
-                        path = self.data_base_path
-                        response = worker_stub.download(read_file(f'{path}X_train_{worker_id}.npy'))
-                        self.logger.log('debug', "divider received: " + response.message + " for worker" + str(worker_id))
+                if not data_status:
+                    path = self.data_base_path
+                    response = worker_stub.download(read_file(f'{path}X_train_{worker_id}.npy'))
+                    self.logger.log('debug', "divider received: " + response.message + " after sending the data to worker " + str(worker_id))
 
-                        response = worker_stub.download(read_file(f'{path}y_train_{worker_id}.npy'))
-                        self.logger.log('debug', "divider received: " + response.message + " for worker" + str(worker_id))
+                    response = worker_stub.download(read_file(f'{path}y_train_{worker_id}.npy'))
+                    self.logger.log('debug', "divider received: " + response.message + " after sending the data to worker " + str(worker_id))
+            except Exception as e:
+                self.logger.log('error', "Error sending the data to the worker: " + str(e))
+                return
+            try:
+                # send the model to the worker
+                self.logger.log('debug', f"Sending {self.data_base_path}{worker_id}.pkl to worker{worker_id}")
+                response = worker_stub.download(read_file(f'{self.data_base_path}{model_name}.pkl'))
+                self.logger.log('debug',"divider received: " + response.message +  " after sending the model to worker " + str(worker_id))
+            except Exception as e:
+                self.logger.log('error', "Error sending the model to the worker: " + str(e))
+                return
+            try:
+                # execute the model
+                self.logger.log('debug', f"divider begins executing iteration{iteration_num} for worker{worker_id}")
+                filename, extension = 'Algo', '.py' 
+                response =  worker_stub.Execute(worker_pb2.executeData(filename=filename,extension=extension,worker_id=str(worker_id), iteration_num=str(model_name)))
+                self.logger.log('debug',"divider received: " + response.message + " after executing the model on worker " + str(worker_id))
+            except Exception as e:
+                self.logger.log('error', "Error executing the model: " + str(e))
+                return
+            try:
+                # receive the model from the worker
+                filename, extension = f'{worker_id}_{model_name}_trained', '.pkl'
+                filepath = self.data_base_path + filename + extension
+                self.logger.log('debug', f"divider begins downloading {filepath} from worker{worker_id}")
+                data = bytearray()
+                for request in worker_stub.upload(
+                    worker_pb2.MetaData(filename=filename, extension=extension)
+                ):
+                    data.extend(request.chunk_data)
 
-                    # send the model to the worker
-                    self.logger.log('debug', f"divider begins executing iteration{iteration_num} for worker{worker_id}")
-                    self.logger.log('debug', f"./{self.data_base_path}{worker_id}.pkl")
-                    response = worker_stub.download(read_file(f'./{self.data_base_path}{model_name}.pkl'))
-                    self.logger.log('debug',"divider received: " + response.message + " for worker" + str(worker_id))
-
-                    # execute the model
-                    filename, extension = 'Algo', '.py' 
-                    response =  worker_stub.Execute(worker_pb2.executeData(filename=filename,extension=extension,worker_id=str(worker_id), iteration_num=str(model_name)))
-                    self.logger.log('debug',"divider received: " + response.message + " for worker" + str(worker_id))
-
-                    # receive the model from the worker
-                    filename, extension = f'{worker_id}_{model_name}_trained', '.pkl'
-                    filepath = self.data_base_path + filename + extension
-                    self.logger.log('debug', f"divider begins downloading {filepath} from worker{worker_id}")
-                    data = bytearray()
-                    for request in worker_stub.upload(
-                        worker_pb2.MetaData(filename=filename, extension=extension)
-                    ):
-                        data.extend(request.chunk_data)
-
-                    with open(filepath, mode="wb") as f:
-                        f.write(data)
-                    self.logger.log('debug', f"Downloaded {filepath} in divider")
-
-                except Exception as e:
-                    self.logger.log('debug', "Error sending the data to the worker: " + str(e))
-            
+                with open(filepath, mode="wb") as f:
+                    f.write(data)
+                self.logger.log('debug', f"Downloaded {filepath} from worker{worker_id} successfully")
+            except Exception as e:
+                self.logger.log('error', "Error downloading the model: " + str(e))
+                return
+    
 
     def download(self, request_iterator, context):
         """

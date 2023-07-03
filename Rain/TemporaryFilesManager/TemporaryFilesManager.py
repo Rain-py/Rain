@@ -1,5 +1,6 @@
 import os
 import shutil
+# from Rain.LogService.LogService import LogService
 
 class TemporaryFilesManager:
     __instance = None
@@ -16,34 +17,42 @@ class TemporaryFilesManager:
         else:
             TemporaryFilesManager.__instance = self
             self.temp_dir = os.getenv('TEMP') if os.name == 'nt' else '/tmp'
+            self.temp_dir = '../../../../Rain/data'
             self.temp_dirs = []
+            # self.logger = LogService(f"TemporaryFilesManager")
+    def __del__(self):
+        print("TemporaryFilesManager is destroyed")
+        self.cleanup_temp_dirs()
 
     def create_temp_dir(self, dir_name):
         temp_dir_path = os.path.join(self.temp_dir, dir_name)
         os.makedirs(temp_dir_path, exist_ok=True)
-
+        print("Creating temporary directory " + temp_dir_path)
+        # self.logger.log('debug', f"Creating temporary directory {temp_dir_path}")
         self.temp_dirs.append(temp_dir_path)
         return temp_dir_path
 
     def cleanup_temp_dirs(self):
         for temp_dir in self.temp_dirs:
             shutil.rmtree(temp_dir)
-
         self.temp_dirs.clear()
+        print("Temporary directories are cleaned up")
 
 
 # Usage example
-# if __name__ == "__main__":
-#     temp_manager = TemporaryFilesManager.get_instance()
+if __name__ == "__main__":
+    temp_manager = TemporaryFilesManager.get_instance()
 
-#     temp_dir_path = temp_manager.create_temp_dir('mydir')
-#     temp_file_path = os.path.join(temp_dir_path, 'temp_file.txt')
-#     with open(temp_file_path, 'w') as temp_file:
-#         temp_file.write('This is a temporary file.')
+    temp_dir_path = temp_manager.create_temp_dir('mydir/data/')
 
-#     # Use the temporary file
-#     with open(temp_file_path, 'r') as temp_file:
-#         content = temp_file.read()
-#         print(content)
+    temp_file_path = os.path.join(temp_dir_path, 'temp_file.txt')
+    print ('Creating temporary file at: ' + temp_file_path)
+    with open(temp_file_path, 'w') as temp_file:
+        temp_file.write('This is a temporary file.')
 
-#     temp_manager.cleanup_temp_dirs()
+    # Use the temporary file
+    with open(temp_file_path, 'r') as temp_file:
+        content = temp_file.read()
+        print(content)
+
+    temp_manager.cleanup_temp_dirs()
