@@ -5,15 +5,15 @@ from Rain.LogService.LogService import LogService
 
 
 class Provisioner(ProvisionerAmbassador):
-    def __init__(self, mode):
+    def __init__(self, config):
         super().__init__()
-        self.mode = mode
+        self.config = config
         self.logger = LogService("Provisioner")
         # create coordinator
         self.logger.log('debug', "Creating coordinator")
         self.coordinator = Coordinator(divider_IP='127.0.0.1', provisioner_IP= '127.0.0.1')
         try:
-            self.provisioner = ProvisionerFactory.create_provisioner(mode)
+            self.provisioner = ProvisionerFactory.create_provisioner(self.config)
         except Exception as e:
             self.logger.log('error', f"Error creating provisioner: {e}")
             

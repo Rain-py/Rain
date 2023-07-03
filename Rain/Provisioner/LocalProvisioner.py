@@ -17,13 +17,14 @@ class LocalProvisioner(ProvisionerInterface):
         self.workers = []
         self.num_workers = 0
         self.logger = LogService("LocalProvisioner")
-        self.logger.log('debug', f"LocalProvisioner is initialized")
+        self.logger.log('debug', f"Provisioner is initialized")
     
     def __del__(self):
         self.delete_workers()
 
     def delete_workers(self):
-        del self.workers        
+        del self.workers  
+        self.logger.debug('info', f"Workers are deleted")      
     
     def create_workers(self, num_workers):
         self.logger.log('debug', f"Creating {num_workers} workers")

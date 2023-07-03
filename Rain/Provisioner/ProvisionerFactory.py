@@ -3,13 +3,18 @@ from Rain.Provisioner.CloudProvisioner import CloudProvisioner
 
 class ProvisionerFactory:
     @staticmethod
-    def create_provisioner(mode):    
-        if mode == 'cloud':
-            return CloudProvisioner(subscription_id= '82305756-d4a0-442d-8e73-625e1ced2113', # Nada's ID
-                                        # Mostafa's ID 'a7ef3688-af58-4835-953c-e51f219fbd0f',
-                                    resource_group_name='Rain_resourcegroup',
-                                    location='eastus')
-        elif mode == 'local':
+    def create_provisioner(config):    
+        if config["mode"]["type"] == 'cloud':
+            try:
+                subscription_id = config["mode"]["params"]["subscription_id"]
+                resource_group_name = config["mode"]["params"]["resource_group_name"]
+                location = config["mode"]["params"]["location"]
+            except Exception as e:
+                raise Exception("Invalid provisioner config")
+            return CloudProvisioner(subscription_id= subscription_id,
+                                    resource_group_name=resource_group_name,
+                                    location=location)
+        elif config["mode"]["type"] == 'local':
             return LocalProvisioner()
         else:
             raise Exception("Invalid provisioner type")
