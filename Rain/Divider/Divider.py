@@ -1,7 +1,7 @@
-import os
 import numpy as np
 from Rain.Divider.DividerAmbassador import DividerAmbassador
 from Rain.Divider.DeepLearning.DeepLearningFactory import DeepLearningFactory
+from Rain.Divider.MachineLearning.MachineLearningFactory import MachineLearningFactory
 from Rain.TemporaryFilesManager.TemporaryFilesManager import TemporaryFilesManager
 from Rain.LogService.LogService import LogService
 
@@ -18,7 +18,7 @@ class Divider:
         if config["learning_type"] == "DL":
             self.algorithm = DeepLearningFactory.create_DL_interface(model, config, self.divider_ambassador)
         elif config["learning_type"] == "ML":
-            self.algorithm = None
+            self.algorithm = MachineLearningFactory.create_ML_interface(config, self.divider_ambassador)
         else: 
             raise Exception("Unknown learning type")
 

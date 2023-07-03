@@ -40,8 +40,8 @@ class Pytorch(DeepLearningInterface):
         weights = [param.clone().detach().numpy() for param in self.model.parameters()]  
 
         try:
-            # weight(new) = weight(old) — (LR / partitions) * gradient
-            weights = [weights[i] - (self.lr / self.partitions) * gradient[i] for i in range(len(weights))]
+            # weight(new) = weight(old) — (LR / number_of_workers) * gradient
+            weights = [weights[i] - (self.lr / self.num_of_workers) * gradient[i] for i in range(len(weights))]
             
             # set the new weights
             state_dict = self.model.state_dict()

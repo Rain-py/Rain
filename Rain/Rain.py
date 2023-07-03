@@ -5,7 +5,7 @@ from Rain.Divider.DividerProxy import DividerProxy
 from Rain.LogService.LogService import LogService
 from Rain.TemporaryFilesManager.TemporaryFilesManager import TemporaryFilesManager
 class Rain:
-    def __init__(self, config, model):
+    def __init__(self, config, model=None):
         self.logger = LogService("Rain")
         self.temp_manager = TemporaryFilesManager.get_instance()
         self.logger.log('debug', f"Rain is initialized")

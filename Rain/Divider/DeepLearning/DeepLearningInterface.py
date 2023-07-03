@@ -1,7 +1,5 @@
-import sys
 import dill
 import threading
-import os
 from abc import abstractmethod
 from Rain.TemporaryFilesManager.TemporaryFilesManager import TemporaryFilesManager
 from Rain.LogService.LogService import LogService
@@ -22,9 +20,6 @@ class DeepLearningInterface:
 
         # define the coord ip
         self.coordinator_IP = '127.0.0.1'
-
-        # define the provisioner ip
-        self.provisioner_IP = '127.0.0.1'
         
         self.model_base_path = TemporaryFilesManager.get_instance().create_temp_dir('divider/')
             

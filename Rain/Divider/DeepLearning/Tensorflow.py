@@ -34,9 +34,8 @@ class Tensorflow(DeepLearningInterface):
         # find the old weights
         weights = self.model.get_weights()
         try:
-            # self.logger.log('debug', f"Gradients: {gradient}")
-            # weight(new) = weight(old) — (LR / partitions) * gradient
-            weights = [weights[i] - (self.lr / self.partitions) * gradient[i] for i in range(len(weights))]
+            # weight(new) = weight(old) — (LR / number_of_workers) * gradient
+            weights = [weights[i] - (self.lr / self.num_of_workers) * gradient[i] for i in range(len(weights))]
 
             # set the new weights
             self.model.set_weights(weights)

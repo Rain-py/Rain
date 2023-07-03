@@ -86,6 +86,39 @@ class TrainingWorker:
                 print("Error in calculating the gradient: ", e)
                 return
     
+    def calculate_cluster_means(self, model, X_train):
+        if model.cluster_centers is None:
+            n_samples = X_train.shape[0]
+            random_indices = np.random.choice(n_samples, size=model.n_clusters, replace=False)
+            cluster_centers = X_train[random_indices]
+        else:
+            cluster_centers = model.cluster_centers
+
+        # Assign samples to nearest cluster
+        distances = self._calculate_distances(X_train, cluster_centers)
+        labels = np.argmin(distances, axis=1)
+
+        result = np.empty((model.n_clusters, cluster_centers.shape[1] + 1))
+        # Update cluster centers
+        for cluster in range(model.n_clusters):
+            mask = labels == cluster
+            if np.any(mask):
+                cluster_centers[cluster] = np.mean(X_train[mask], axis=0)
+            result[cluster][:-1] = cluster_centers[cluster]
+            result[cluster][-1] = len(X_train[mask])
+        
+        return result
+
+    def _calculate_distances(self, X, cluster_centers):
+        n_clusters = cluster_centers.shape[0]
+        n_samples = X.shape[0]
+        distances = np.zeros((n_samples, n_clusters))
+
+        for cluster in range(n_clusters):
+            distances[:, cluster] = np.linalg.norm(X - cluster_centers[cluster], axis=1)
+
+        return distances
+
 
     def run(self):
         try:
@@ -97,19 +130,19 @@ class TrainingWorker:
         try:
             # Configure the parameters
             self.config = data["config"]
+            model = data["model"]
             
             if self.config["learning_type"] == "DL":
-                self.config = self.config["DL"]
-                self.lib = self.config["lib"]["type"]
-                self.optimizer = self.config["lib"]["params"]["optimizer"]
-                self.loss = self.config["lib"]["params"]["loss"]
-                self.epochs = self.config["epochs"]
-                self.batch_size = self.config["batch_size"]
-                self.lr = self.config["lr"]
-                model = data["model"]
+                config = self.config["DL"]
+                self.lib = config["lib"]["type"]
+                self.optimizer = config["lib"]["params"]["optimizer"]
+                self.loss = config["lib"]["params"]["loss"]
+                self.epochs = config["epochs"]
+                self.batch_size = config["batch_size"]
+                self.lr = config["lr"]
             elif self.config["learning_type"] == "ML":
-                self.config = self.config["ML"]
-                pass
+                config = self.config["ML"]
+                self.algo = config["algorithm"]["type"]
 
         except Exception as e:
             print("Error in configuring the parameters: ", e)
@@ -117,13 +150,20 @@ class TrainingWorker:
 
         # load the training data
         X_train = np.load(f"{self.base_path}/X_train_{self.id}.npy")
-        y_train = np.load(f"{self.base_path}/y_train_{self.id}.npy")
 
-        # train the model and calculate the gradient
-        gradient = self.calculate_gradient(model, X_train, y_train)
-        
-        # Send gradient to the server
-        self.send_data(gradient, self.id)
+        if self.config["learning_type"] == "DL":
+            y_train = np.load(f"{self.base_path}/y_train_{self.id}.npy")
+            # train the model and calculate the gradient
+            gradient = self.calculate_gradient(model, X_train, y_train)
+            # Send gradient to the server
+            self.send_data(gradient, self.id)
+
+        elif self.config["learning_type"] == "ML":
+            if self.algo == "KMeans":
+                # find the cluster means
+                result = self.calculate_cluster_means(model, X_train)
+                # Send result to the server
+                self.send_data(result, self.id)
 
 
 if __name__ == '__main__':
