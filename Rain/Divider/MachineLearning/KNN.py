@@ -11,14 +11,14 @@ class KNN():
         elif self.metric == 'manhattan':
             return np.sum(np.abs(x1 - x2))
 
-    def fit(self, X_train, y_train):
-        self.X_train = X_train
-        self.y_train = y_train
+    def fit(self, X, y):
+        self.X_train = np.asarray(X)
+        self.y_train = np.asarray(y)
 
-    def predict(self, X_test):
+    def predict(self, X):
+        X = np.asarray(X)
         labels = []
-        for x in X_test:
+        for x in X:
             distances = np.asarray([self.__calculate_distance(x1, x) for x1 in self.X_train])
             labels.append(np.argmax(np.bincount(np.asarray([self.y_train[x] for x in np.argsort(distances)[:self.K]]))))
-            
         return np.asarray(labels)
