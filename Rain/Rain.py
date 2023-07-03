@@ -10,7 +10,7 @@ class Rain:
         self.temp_manager = TemporaryFilesManager.get_instance()
         self.logger.log('debug', f"Rain is initialized")
         self.config = config
-        self.provisioner = Provisioner(self.config['mode'])
+        self.provisioner = Provisioner(self.config)
         self.divider_proxy = DividerProxy(config, model)
         self.ip_addresses = []
 
@@ -24,14 +24,18 @@ class Rain:
         # create workers
         self.logger.log('debug', f"Creating workers")
         self.provisioner.serve()
-        model =  self.divider_proxy.train(X_train, y_train, strategy) 
+        model = self.divider_proxy.train(X_train, y_train, strategy) 
         self.provisioner.stop_serving()
         return model
         
 # Config example:
 '''
 config = {
-  "mode": "local",
+  "mode": {
+      "type": "local",
+      "params": {}
+      
+  },
   "partitions": 3,
   "num_of_workers": 3,
   "iterations": 3,

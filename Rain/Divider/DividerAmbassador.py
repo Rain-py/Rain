@@ -28,15 +28,16 @@ def read_file(filepath, chunk_size=1024):
                 yield entry_request
             else:  # The chunk was empty, which means we're at the end of the file
                 return
+            
 def read_partitioned_data(data, filename, extension, chunk_size = 1024):
     # The data is a list of numpy arrays
     metadata = divider_pb2.MetaData(
         filename= filename, extension=extension
     )
-    yield divider_pb2.File(metadata=metadata)
     # We need to yield the data in chunks
+    yield divider_pb2.File(metadata=metadata)
     # convert data to byte array
-    dataBytes = data.tobytes()
+    dataBytes = bytearray(data)
     # split the data into chunks
     data = [dataBytes[i:i+chunk_size] for i in range(0, len(dataBytes), chunk_size)]
     for i in range(len(data)):
@@ -54,51 +55,39 @@ class DividerAmbassador(divider_pb2_grpc.dividerServicer):
     def __del__(self):
         self.stop_serving()
     
-    def send_data(self, num_workers, X_train_partitions, y_train_partitions):
+    def send_data(self, worker_id, X_train_partition, y_train_partition, worker_stub):
         """
-        This function will send the data to the coordinator and the provisioner.
+        This function will send the data to the workers.
         send the num of workers to the provisioner to create the workers.
         send the data to coordinator to distribute it among workers.
         """ 
         # TODO: Remove writing and reading the file
         try:
-            # instantiate a channel to the coord
-            with grpc.insecure_channel(self.coordinator_IP + ":50052") as channel:
-                self.logger.log('debug', "divider is sending data to the coordinator")
-                # create an interface for the grpc client (coord)
-                coord_stub = coord_pb2_grpc.coordinatorStub(channel)
-
-                for i in range(num_workers):
-                    np.save(f"{self.data_base_path}X_train_{i + 1}.npy", X_train_partitions[i])
-                    response = coord_stub.download(
-                        read_file(self.data_base_path + f"X_train_{i+1}.npy")
-                        # read_partitioned_data(X_train_partitions[i], f"X_train_{i+1}", ".npy")
-                    )
-                    self.logger.log('debug', "divider is sending data to the provisioner")
-                    np.save(f"{self.data_base_path}y_train_{i + 1}.npy", y_train_partitions[i])
-                    response = coord_stub.download(
-                        read_file(self.data_base_path + f"y_train_{i+1}.npy")
-                        # read_partitioned_data(y_train_partitions[i], f"X_train_{i+1}", ".npy")
-                    )
-                    self.logger.log('debug', "divider received: " + response.message + " from coordinator")
+                np.save(f"{self.data_base_path}X_train_{worker_id}.npy", X_train_partition)
+                response = worker_stub.download(
+                    read_file(self.data_base_path + f"X_train_{worker_id}.npy")
+                    # read_partitioned_data(X_train_partition, f"X_train_{worker_id}", ".npy")
+                )
+                self.logger.log('debug', "divider is sending x train to the worker")
+                np.save(f"{self.data_base_path}y_train_{worker_id}.npy", y_train_partition)
+                response = worker_stub.download(
+                    read_file(self.data_base_path + f"y_train_{worker_id}.npy")
+                    # read_partitioned_data(y_train_partition, f"y_train_{worker_id}", ".npy")
+                )
+                self.logger.log('debug', "divider is sending y train to the worker")
         except Exception as e:
             self.logger.log('debug', "Error sending the data to the coordinator: " + str(e))
             return
 
-   
-    def iteration(self, worker_id , worker_ip, worker_port, data_status, iteration_num, model_name):
+    def iteration(self, worker_id , worker_ip, worker_port, data_status, iteration_num, model_name,  X_train_partition, y_train_partition):
         self.logger.log('debug', f'{worker_ip}:{worker_port}')
         with grpc.insecure_channel(f'{worker_ip}:{worker_port}') as channel:
             worker_stub = worker_pb2_grpc.workerStub(channel) 
             try:
                 # send data to the worker
                 if not data_status:
-                    path = self.data_base_path
-                    response = worker_stub.download(read_file(f'{path}X_train_{worker_id}.npy'))
-                    self.logger.log('debug', "divider received: " + response.message + " after sending the data to worker " + str(worker_id))
+                    self.send_data(worker_id, X_train_partition, y_train_partition, worker_stub)
 
-                    response = worker_stub.download(read_file(f'{path}y_train_{worker_id}.npy'))
-                    self.logger.log('debug', "divider received: " + response.message + " after sending the data to worker " + str(worker_id))
             except Exception as e:
                 self.logger.log('error', "Error sending the data to the worker: " + str(e))
                 return

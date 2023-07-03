@@ -14,10 +14,9 @@ class DividerProxy():
             # send data
             self.divider.serve()
             self.logger.log('debug', f"Sending data to workers")
-            self.divider.send_data_to_workers(X_train, y_train)
             # train
             self.logger.log('debug', f"Training Started")
-            model = self.divider.train(strategy)
+            model = self.divider.train(strategy, X_train, y_train)
             self.divider.stop_serving()
             return model 
         except Exception as e:

@@ -17,7 +17,7 @@ class TemporaryFilesManager:
         else:
             TemporaryFilesManager.__instance = self
             self.temp_dir = os.getenv('TEMP') if os.name == 'nt' else '/tmp'
-            self.temp_dir = '../../../../Rain/data'
+            self.temp_dir = '../../../../Rain_data'
             self.temp_dirs = []
             self.logger = LogService(f"TemporaryFilesManager")
     
