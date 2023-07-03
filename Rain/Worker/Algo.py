@@ -99,6 +99,7 @@ class TrainingWorker:
             self.config = data["config"]
             
             if self.config["learning_type"] == "DL":
+                self.config = self.config["DL"]
                 self.epochs = self.config["epochs"]
                 self.optimizer = self.config["optimizer"]
                 self.loss = self.config["loss"]
@@ -108,6 +109,7 @@ class TrainingWorker:
                 self.loss = self.config["loss"]
                 model = data["model"]
             elif self.config["learning_type"] == "ML":
+                self.config = self.config["ML"]
                 pass
 
         except Exception as e:

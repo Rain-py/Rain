@@ -9,12 +9,12 @@ from Rain.LogService.LogService import LogService
 class DeepLearningInterface:
     def __init__(self, model, config, divider_ambassador):
         self.config = config
-        self.lr = config["lr"]
-        self.optimizer = config["optimizer"]
-        self.loss = config["loss"]
+        self.lr = config["DL"]["lr"]
+        self.optimizer = config["DL"]["optimizer"]
+        self.loss = config["DL"]["loss"]
         self.iterations = config["iterations"]
         self.partitions = config["partitions"]
-        self.num_of_workers = config["partitions"]
+        self.num_of_workers = config["num_of_workers"]
         self.model = model
 
         self.logger = LogService("DeepLearning")
