@@ -18,7 +18,7 @@ BASE_PORT = 50151
 class CloudProvisioner(ProvisionerInterface):
 
     ############## Constructors ##############
-    def __init__(self, subscription_id, resource_group_name, location):
+    def __init__(self, subscription_id, location):
         try:
             credentials = DefaultAzureCredential()
         except Exception as e:
@@ -46,11 +46,11 @@ class CloudProvisioner(ProvisionerInterface):
         self.data_base_path = TemporaryFilesManager.get_instance().create_temp_dir('prov/')
 
         # For the internal use only
-        self.resource_group_name = resource_group_name
         self.location = location
         self.subnet = None
         self.nsg = None
         self.nic = None
+        self.resource_group_name = 'Rain-resourcegroup'
         self.vnet_name = 'Rain-vnet'
         self.nic_name = 'Rain-nic'
         self.vm_name = 'Rain-vm'

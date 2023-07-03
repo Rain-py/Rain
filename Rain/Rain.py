@@ -24,7 +24,7 @@ class Rain:
         # create workers
         self.logger.log('debug', f"Creating workers")
         self.provisioner.serve()
-        model =  self.divider_proxy.train(X_train, y_train, strategy) 
+        model = self.divider_proxy.train(X_train, y_train, strategy) 
         self.provisioner.stop_serving()
         return model
         
