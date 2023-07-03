@@ -23,9 +23,15 @@ class Rain:
     def train(self, X_train, y_train, strategy='sync'):
         # create workers
         self.logger.log('debug', f"Creating workers")
-        self.provisioner.serve()
-        model = self.divider_proxy.train(X_train, y_train, strategy) 
-        self.provisioner.stop_serving()
+        try:
+          self.provisioner.serve()
+          model = self.divider_proxy.train(X_train, y_train, strategy) 
+          self.provisioner.stop_serving()
+        except Exception as e:
+          self.logger.log('error', f"Error training the model: {e}")
+          self.provisioner.stop_serving()
+          return
+
         return model
         
 # Config example:
