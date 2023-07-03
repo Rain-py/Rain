@@ -26,7 +26,6 @@ class Rain:
         self.provisioner.serve()
         model =  self.divider_proxy.train(X_train, y_train, strategy) 
         self.provisioner.stop_serving()
-        # self.temp_manager.cleanup_temp_dirs()    
         return model
         
     

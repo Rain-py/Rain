@@ -23,7 +23,6 @@ Local Mode
 
 Local Mode
 
-- [ ] Start working on the documentation.
 - [ ] Add the ML algorithms to the local mode.
 - [x] Remove data sending to/from the coordinator.
 - [x] Hard coding info in the divider.
@@ -35,8 +34,8 @@ Local Mode
 
 Cloud Mode
 
+- [ ] Start working on the documentation.
 - [ ] Circuit breaking.
-- [ ] Continue working on the documentation.
 - [ ] Test the code using provisioned instances.
 - [ ] Add unit tests to the local mode.
 

@@ -2,9 +2,10 @@
 *.npy
 *.pkl
 *.log
-*.log.*
 __pycache__
-Divider/divider/data/.fuse_hidden0000050200000003
 
 # vscode settings
 .vscode
+
+*.fuse_*
+logs/*
