@@ -74,11 +74,13 @@ class Divider:
     def send_info_to_workers(self, iteration_num):
         self.algorithm.send_info_to_workers(iteration_num)
 
-    def train(self, strategy):
+    def train(self, strategy, X, y):
+        # partition the data
+        X_train_partitions, y_train_partitions = self.__partition_data(X, y)
         if strategy == 'sync':
-            model = self.algorithm.train_centralized_sync()
+            model = self.algorithm.train_centralized_sync(X_train_partitions, y_train_partitions)
         elif strategy == 'async':
-            model = self.algorithm.train_centralized_async() 
+            model = self.algorithm.train_centralized_async(X_train_partitions, y_train_partitions) 
         else:
             raise Exception("Invalid strategy")
         self.stop_serving()     

@@ -59,7 +59,7 @@ class DeepLearningInterface:
         pass
 
     
-    def train_centralized_sync(self):
+    def train_centralized_sync(self, X_train_partitions, y_train_partitions):
         try:  
             # get the workers info from coordinator
             self.workers_IPs, self.workers_ports, self.workers_ids = self.divider_ambassador.get_workers_info(self.coordinator_IP)
@@ -71,7 +71,7 @@ class DeepLearningInterface:
                 self.save_model(i+1) #self.partitions,
                 threads = list()
                 for j in range(self.partitions): # note to be considered number of workers != number of partitions
-                    thread = threading.Thread(target=self.divider_ambassador.iteration, args=(self.workers_ids[j], self.workers_IPs[j], self.workers_ports[j], self.data_status[j], i+1, i+1))
+                    thread = threading.Thread(target=self.divider_ambassador.iteration, args=(self.workers_ids[j], self.workers_IPs[j], self.workers_ports[j], self.data_status[j], i+1, i+1, X_train_partitions[j], y_train_partitions[j]))
                     if i == 0:
                         self.data_status[j] = 1
                     threads.append(thread)
@@ -108,14 +108,14 @@ class DeepLearningInterface:
         pass
 
 
-    def worker_process_async(self, worker_id):
+    def worker_process_async(self, worker_id, X_train_partition, y_train_partition):
         # get the workers info from coordinator
         self.workers_IPs, self.workers_ports, self.workers_ids = self.divider_ambassador.get_workers_info(self.coordinator_IP)
         self.data_status = [0] * len(self.workers_IPs) # 0 means no data sent yet, 1 means data is already sent to the workers
         
         for i in range(self.iterations):
             self.logger.log('debug', f"Starting iteration {i + 1}/{self.iterations}")  
-            self.divider_ambassador.iteration(self.workers_ids[worker_id], self.workers_IPs[worker_id], self.workers_ports[worker_id], self.data_status[worker_id], i+1, self.workers_ids[worker_id])
+            self.divider_ambassador.iteration(self.workers_ids[worker_id], self.workers_IPs[worker_id], self.workers_ports[worker_id], self.data_status[worker_id], i+1, self.workers_ids[worker_id], X_train_partition, y_train_partition)
             if i == 0: # sending data (x_train , y_train) to workers only once
                 self.data_status[worker_id] = 1
 
@@ -125,14 +125,16 @@ class DeepLearningInterface:
             self.logger.log('debug', f"Iteration {i + 1}/{self.iterations} complete for worker {worker_id + 1}.")
         
     
-    def train_centralized_async(self):
+    def train_centralized_async(self, X_train_partitions, y_train_partitions):
         try:
+            # partition the data in number = number of workers
+
             for id in range(self.num_of_workers):
                 self.save_model(id + 1)
 
             threads = list()
             for id in range(self.num_of_workers):
-                thread = threading.Thread(target=self.worker_process_async, args=(id,))
+                thread = threading.Thread(target=self.worker_process_async, args=(id, X_train_partitions[id-1], y_train_partitions[id-1]))
                 threads.append(thread)
                 thread.start()
             
