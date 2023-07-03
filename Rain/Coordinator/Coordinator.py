@@ -15,7 +15,7 @@ class Coordinator(CoordinatorAmbassador):
         self.divider_IP = divider_IP  
         self.provisioner_IP = provisioner_IP
         self.server  = None
-        self.data_base_path = TemporaryFilesManager.get_instance().create_temp_dir('coord/data/')
+        self.data_base_path = TemporaryFilesManager.get_instance().create_temp_dir('coord/')
 
     def __del__(self):
         pass

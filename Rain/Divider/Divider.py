@@ -12,7 +12,7 @@ class Divider:
         self.partitions = config["partitions"]
         self.logger = LogService("Divider")
         self.divider_ambassador = DividerAmbassador()        
-        self.model_base_path = TemporaryFilesManager.get_instance().create_temp_dir('divider/data/')
+        self.model_base_path = TemporaryFilesManager.get_instance().create_temp_dir('divider/')
 
         # define the interface
         if config["learning_type"] == "DL":

@@ -47,7 +47,7 @@ def read_partitioned_data(data, filename, extension, chunk_size = 1024):
 
 class DividerAmbassador(divider_pb2_grpc.dividerServicer):
     def __init__(self):
-        self.data_base_path = TemporaryFilesManager.get_instance().create_temp_dir('divider/data/')
+        self.data_base_path = TemporaryFilesManager.get_instance().create_temp_dir('divider/')
         self.server = None
         self.logger = LogService("DividerAmbassador")
         self.coordinator_IP = '127.0.0.1'

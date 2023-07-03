@@ -8,7 +8,7 @@ from Rain.TemporaryFilesManager.TemporaryFilesManager import TemporaryFilesManag
 class Worker(worker_pb2_grpc.workerServicer):
     def __init__(self, port):
         self.algo_path = '../../../Rain/Worker/'
-        self.data_base_path = TemporaryFilesManager.get_instance().create_temp_dir('worker/data/') 
+        self.data_base_path = TemporaryFilesManager.get_instance().create_temp_dir('worker/') 
         self.port = port
         self.server = None
         self.logger = LogService(f"Worker_{self.port}")
