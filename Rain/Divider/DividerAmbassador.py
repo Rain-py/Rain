@@ -51,8 +51,29 @@ class DividerAmbassador(divider_pb2_grpc.dividerServicer):
         self.server = None
         self.logger = LogService("DividerAmbassador")
         self.coordinator_IP = '127.0.0.1'
+        self.divider_proxy_IP = '127.0.0.1'
+
     def __del__(self):
         self.stop_serving()
+
+    def send_model(self):
+        """
+        This function will send the final model to the divider.
+        """
+        try:
+            with grpc.insecure_channel(self.divider_proxy_IP + ":50050") as channel:
+                # create an interface for the grpc client (coord)
+                self.logger.log('debug', "divider sending the model to divider proxy")
+                divider_stub = divider_pb2_grpc.dividerStub(channel)
+                response = divider_stub.download(
+                        read_file(self.data_base_path + f"model.pkl")
+                    )
+                return response
+        except Exception as e:
+            self.logger.log('debug', "Error sending the model to the divider proxy: " + str(e))
+            return None
+
+
     
     def send_data(self, num_workers, X_train_partitions, y_train_partitions):
         """
@@ -140,7 +161,7 @@ class DividerAmbassador(divider_pb2_grpc.dividerServicer):
 
     def download(self, request_iterator, context):
         """
-        This function will receive the data from and the coordinator.
+        This function will receive the data from and the coordinator or workers.
         """
         data = bytearray()
         for request in request_iterator:
@@ -161,6 +182,7 @@ class DividerAmbassador(divider_pb2_grpc.dividerServicer):
             )
             self.logger.log('debug', "divider received: information from coordinator")
             return response.workers_ips, response.workers_ports, response.workers_ids
+
     def serve(self):
         self.server = grpc.server(futures.ThreadPoolExecutor(1))
         divider_pb2_grpc.add_dividerServicer_to_server(self, self.server)
