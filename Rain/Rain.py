@@ -21,26 +21,14 @@ class Rain:
         del self.temp_manager
 
     def train(self, X_train, y_train, strategy='sync'):
-        if strategy == 'sync':
-            return self.train_centralized_sync(X_train, y_train)
-        elif strategy == 'async':
-            return self.train_centralized_async(X_train, y_train)
-        
-    def train_centralized_sync(self, X_train, y_train):
         # create workers
         self.logger.log('debug', f"Creating workers")
         self.provisioner.serve()
-        model = self.divider_proxy.train(X_train, y_train, strategy='sync')    
-        self.provisioner.stop_serving()  
+        model =  self.divider_proxy.train(X_train, y_train, strategy) 
+        self.provisioner.stop_serving()
+        # self.temp_manager.cleanup_temp_dirs()    
         return model
-
-
-    def train_centralized_async(self, X_train, y_train):
-        self.logger.log('debug', f"Creating workers")
-        self.provisioner.serve()
-        model = self.divider_proxy.train(X_train, y_train, strategy='sync') 
-        self.provisioner.stop_serving()        
-        return model
+        
     
 
 

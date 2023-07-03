@@ -45,11 +45,7 @@ def read_file(filepath, logger, chunk_size=1024):
 class CoordinatorAmbassador(coord_pb2_grpc.coordinatorServicer):
     def __init__(self):
 
-        self.base_path = '../../../../Rain/Coordinator/coord/'
-        self.data_base_path = self.base_path + 'data/'
-        if not os.path.exists(self.data_base_path):
-            os.makedirs(self.data_base_path) 
-
+        self.data_base_path = TemporaryFilesManager.get_instance().create_temp_dir('coord/data/')
         self.server  = None
         self.logger = LogService("Coordinator Ambassador")
         self.logger.log('debug', f"Coordinator Ambassador is initialized")

@@ -34,7 +34,9 @@ class TemporaryFilesManager:
 
     def cleanup_temp_dirs(self):
         for temp_dir in self.temp_dirs:
-            shutil.rmtree(temp_dir)
+            # if dir exists
+            if os.path.exists(temp_dir):
+                shutil.rmtree(temp_dir)
         self.temp_dirs.clear()
         print("Temporary directories are cleaned up")
 

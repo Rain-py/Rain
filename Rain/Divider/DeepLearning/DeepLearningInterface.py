@@ -26,9 +26,7 @@ class DeepLearningInterface:
         # define the provisioner ip
         self.provisioner_IP = '127.0.0.1'
         
-        self.model_base_path = "../../../../Rain/Divider/divider/data/"
-        if not os.path.exists(self.model_base_path):
-            os.makedirs(self.model_base_path) 
+        self.model_base_path = TemporaryFilesManager.get_instance().create_temp_dir('divider/data/')
             
 
     def save_model(self, iteration_num):

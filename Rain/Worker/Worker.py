@@ -7,9 +7,8 @@ from Rain.TemporaryFilesManager.TemporaryFilesManager import TemporaryFilesManag
 
 class Worker(worker_pb2_grpc.workerServicer):
     def __init__(self, port):
-        self.base_path = '../../../Rain/Worker/'
-        self.worker_path = self.base_path + 'worker/'
-        self.data_base_path = self.worker_path + 'data/'
+        self.algo_path = '../../../Rain/Worker/'
+        self.data_base_path = TemporaryFilesManager.get_instance().create_temp_dir('worker/data/') 
         self.port = port
         self.server = None
         self.logger = LogService(f"Worker_{self.port}")
@@ -19,6 +18,11 @@ class Worker(worker_pb2_grpc.workerServicer):
     def __del__(self):
         self.stop_serving()
 
+    def stop_serving(self):
+        if self.server:
+            self.server.stop(0)
+            self.logger.log('info', f"Worker stopped serving on port: {self.port}")
+    
     def download(self, request_iterator, context):
         """
         function to receive data files from the coordinator.
@@ -63,7 +67,7 @@ class Worker(worker_pb2_grpc.workerServicer):
 
     def Execute(self, request, context):
         try:
-            filepath = self.base_path + request.filename +  request.extension
+            filepath = self.algo_path + request.filename +  request.extension
             command = 'python3 '  + filepath +  " " + request.worker_id + " " + self.data_base_path + " " + request.iteration_num
             self.logger.log('info', f"Executing command: {command}")
             # execute the command and return the output
@@ -88,8 +92,4 @@ class Worker(worker_pb2_grpc.workerServicer):
         except Exception as e:
             self.logger.log('error', f"Error in the worker server: {e}")
             return
-    def stop_serving(self):
-        if self.server:
-            self.server.stop(0)
-            self.logger.log('info', f"Worker stopped serving on port: {self.port}")
     

@@ -47,8 +47,7 @@ def read_partitioned_data(data, filename, extension, chunk_size = 1024):
 
 class DividerAmbassador(divider_pb2_grpc.dividerServicer):
     def __init__(self):
-        self.base_path = "../../../../Rain/Divider/divider/"
-        self.data_base_path = self.base_path +'data/'
+        self.data_base_path = TemporaryFilesManager.get_instance().create_temp_dir('divider/data/')
         self.server = None
         self.logger = LogService("DividerAmbassador")
     def __del__(self):

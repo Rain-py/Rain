@@ -15,10 +15,7 @@ class Coordinator(CoordinatorAmbassador):
         self.divider_IP = divider_IP  
         self.provisioner_IP = provisioner_IP
         self.server  = None
-        self.base_path = '../../../../Rain/Coordinator/coord/'
-        self.data_base_path = self.base_path + 'data/'
-        if not os.path.exists(self.data_base_path):
-            os.makedirs(self.data_base_path) 
+        self.data_base_path = TemporaryFilesManager.get_instance().create_temp_dir('coord/data/')
 
     def __del__(self):
         pass
