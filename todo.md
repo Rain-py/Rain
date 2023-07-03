@@ -23,7 +23,7 @@ Local Mode
 
 Local Mode
 
-- [ ] Add the ML algorithms to the local mode.
+- [x] Add the ML algorithms to the local mode.
 - [x] Remove data sending to/from the coordinator.
 - [x] Hard coding info in the divider.
 - [x] Finish the Docker image of the worker and the algo.
@@ -34,17 +34,15 @@ Local Mode
 
 Cloud Mode
 
-- [ ] Start working on the documentation.
+- [x] Start working on the documentation.
 - [ ] Circuit breaking.
-- [ ] Test the code using provisioned instances.
-- [ ] Add unit tests to the local mode.
 
 ## Tuesday 4/7
 
 Cloud Mode
 
 - [ ] Continue working on the documentation.
-- [ ] Add unit tests to the cloud mode.
+- [ ] Test the code using provisioned instances.
 
 ## Wednesday 5/7
 
