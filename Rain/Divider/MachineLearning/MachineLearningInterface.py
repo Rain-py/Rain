@@ -41,7 +41,7 @@ class MachineLearningInterface:
         pass
 
 
-    def train_centralized_sync(self):
+    def train_centralized_sync(self, X_train_partitions, y_train_partitions):
         try:  
             # get the workers info from coordinator
             self.workers_IPs, self.workers_ports, self.workers_ids = self.divider_ambassador.get_workers_info(self.coordinator_IP)
@@ -53,7 +53,7 @@ class MachineLearningInterface:
                 self.save_model(i + 1)
                 threads = list()
                 for j in range(self.partitions): # note to be considered number of workers != number of partitions
-                    thread = threading.Thread(target=self.divider_ambassador.iteration, args=(self.workers_ids[j], self.workers_IPs[j], self.workers_ports[j], self.data_status[j], i + 1, i + 1))
+                    thread = threading.Thread(target=self.divider_ambassador.iteration, args=(self.workers_ids[j], self.workers_IPs[j], self.workers_ports[j], self.data_status[j], i+1, i+1, X_train_partitions[j], y_train_partitions[j]))
                     if i == 0:
                         self.data_status[j] = 1
                     threads.append(thread)

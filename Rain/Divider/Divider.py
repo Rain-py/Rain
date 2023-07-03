@@ -57,24 +57,13 @@ class Divider:
                 y_train_partitions.append(y[i * partition_size : (i + 1) * partition_size])
 
         return X_train_partitions, y_train_partitions
-    
-    def send_data_to_workers(self, X, y):
-        try: 
-            X_partitions, y_partitions = self.__partition_data(X, y)
-            self.logger.log('debug', f"Data partitioned")
-        except Exception as e:
-            self.logger.log('debug', f"Error in partitioning data: {e}")
-            return
-        try:
-            self.divider_ambassador.send_data(self.num_of_workers, X_partitions, y_partitions)
-        except Exception as e:
-            self.logger.log('debug', f"Error in sending data to workers: {e}")
-            return
 
     def send_info_to_workers(self, iteration_num):
         self.algorithm.send_info_to_workers(iteration_num)
 
     def train(self, strategy, X, y):
+        if y is None:
+            y = np.zeros(X.shape[0])
         # partition the data
         X_train_partitions, y_train_partitions = self.__partition_data(X, y)
         if strategy == 'sync':
