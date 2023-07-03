@@ -28,8 +28,38 @@ class Rain:
         self.provisioner.stop_serving()
         return model
         
-    
+# Config example:
+'''
+config = {
+  "mode": "local",
+  "partitions": 3,
+  "num_of_workers": 3,
+  "iterations": 3,
+  "learning_type": "DL",
+  "DL": {
+    "lib": {
+      "type": "tensorflow",
+      "params": {
+        "loss": tf.keras.losses.CategoricalCrossentropy(),
+        "optimizer": tf.keras.optimizers.Adam(learning_rate=0.001),
 
+      }
+    },
+    "lr": 0.001,
+    "epochs": 2,
+    "batch_size": 128,
+  },
+  "ML": {
+      "algorithm": {
+      "type": "KNN",
+      "params": {
+        "K": 5,
+        "metric": "euclidean"
+      }
+    }    
+  }
+}
+'''
 
     
 

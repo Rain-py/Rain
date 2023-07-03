@@ -50,10 +50,11 @@ class DividerAmbassador(divider_pb2_grpc.dividerServicer):
         self.data_base_path = TemporaryFilesManager.get_instance().create_temp_dir('divider/data/')
         self.server = None
         self.logger = LogService("DividerAmbassador")
+        self.coordinator_IP = '127.0.0.1'
     def __del__(self):
         self.stop_serving()
     
-    def send_data(self, coordinator_IP, num_workers, X_train_partitions, y_train_partitions):
+    def send_data(self, num_workers, X_train_partitions, y_train_partitions):
         """
         This function will send the data to the coordinator and the provisioner.
         send the num of workers to the provisioner to create the workers.
@@ -62,7 +63,7 @@ class DividerAmbassador(divider_pb2_grpc.dividerServicer):
         # TODO: Remove writing and reading the file
         try:
             # instantiate a channel to the coord
-            with grpc.insecure_channel(coordinator_IP + ":50052") as channel:
+            with grpc.insecure_channel(self.coordinator_IP + ":50052") as channel:
                 self.logger.log('debug', "divider is sending data to the coordinator")
                 # create an interface for the grpc client (coord)
                 coord_stub = coord_pb2_grpc.coordinatorStub(channel)
@@ -83,16 +84,6 @@ class DividerAmbassador(divider_pb2_grpc.dividerServicer):
         except Exception as e:
             self.logger.log('debug', "Error sending the data to the coordinator: " + str(e))
             return
-
-    def send_file(self, coordinator_IP, file_path):
-        with grpc.insecure_channel(coordinator_IP + ":50052") as channel:
-            self.logger.log('debug', "divider is sending information file to the coordinator")
-            # create an interface for the grpc client (coord)
-            coord_stub = coord_pb2_grpc.coordinatorStub(channel)
-            # divider will send (upload) the data to the coordinator, so it will call function recieve_from_divider from coord_stub
-
-            response = coord_stub.download(read_file(file_path))
-            self.logger.log('debug', "divider received: " + response.message  + " from coordinator")
 
    
     def iteration(self, worker_id , worker_ip, worker_port, data_status, iteration_num, model_name):

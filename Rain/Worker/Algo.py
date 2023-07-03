@@ -100,13 +100,12 @@ class TrainingWorker:
             
             if self.config["learning_type"] == "DL":
                 self.config = self.config["DL"]
+                self.lib = self.config["lib"]["type"]
+                self.optimizer = self.config["lib"]["params"]["optimizer"]
+                self.loss = self.config["lib"]["params"]["loss"]
                 self.epochs = self.config["epochs"]
-                self.optimizer = self.config["optimizer"]
-                self.loss = self.config["loss"]
-                self.lib = self.config["lib"]
                 self.batch_size = self.config["batch_size"]
                 self.lr = self.config["lr"]
-                self.loss = self.config["loss"]
                 model = data["model"]
             elif self.config["learning_type"] == "ML":
                 self.config = self.config["ML"]

@@ -10,19 +10,17 @@ class DividerProxy():
         del self.divider
     
     def train(self, X_train, y_train, strategy='sync'):
-        # send data
-        self.divider.serve()
-        self.logger.log('debug', f"Sending data to workers")
-        self.divider.send_data_to_workers(X_train, y_train)
-        # train
-        self.logger.log('debug', f"Training Started")
-        if strategy == 'sync':
-            model = self.divider.train_centralized_sync()
-            self.divider.stop_serving()      
+        try:
+            # send data
+            self.divider.serve()
+            self.logger.log('debug', f"Sending data to workers")
+            self.divider.send_data_to_workers(X_train, y_train)
+            # train
+            self.logger.log('debug', f"Training Started")
+            model = self.divider.train(strategy)
+            self.divider.stop_serving()
             return model 
-        elif strategy == 'async':
-            model = self.divider.train_centralized_async() 
-            self.divider.stop_serving()     
-            return model 
-        else:
-            raise Exception("Invalid strategy")
+        except Exception as e:
+            self.logger.log('error', f"Error in training: {e}")
+            return None
+
