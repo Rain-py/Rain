@@ -68,18 +68,17 @@ class DividerAmbassador(divider_pb2_grpc.dividerServicer):
                     read_file(self.data_base_path + f"X_train_{worker_id}.npy")
                     # read_partitioned_data(X_train_partition, f"X_train_{worker_id}", ".npy")
                 )
-                self.logger.log('debug', "divider is sending data to the provisioner")
+                self.logger.log('debug', "divider is sending x train to the worker")
                 np.save(f"{self.data_base_path}y_train_{worker_id}.npy", y_train_partition)
                 response = worker_stub.download(
                     read_file(self.data_base_path + f"y_train_{worker_id}.npy")
                     # read_partitioned_data(y_train_partition, f"y_train_{worker_id}", ".npy")
                 )
-                self.logger.log('debug', "divider received: " + response.message + " from coordinator")
+                self.logger.log('debug', "divider is sending y train to the worker")
         except Exception as e:
             self.logger.log('debug', "Error sending the data to the coordinator: " + str(e))
             return
 
-   
     def iteration(self, worker_id , worker_ip, worker_port, data_status, iteration_num, model_name,  X_train_partition, y_train_partition):
         self.logger.log('debug', f'{worker_ip}:{worker_port}')
         with grpc.insecure_channel(f'{worker_ip}:{worker_port}') as channel:
@@ -88,7 +87,7 @@ class DividerAmbassador(divider_pb2_grpc.dividerServicer):
                 # send data to the worker
                 if not data_status:
                     self.send_data(worker_id, X_train_partition, y_train_partition, worker_stub)
-                    
+
             except Exception as e:
                 self.logger.log('error', "Error sending the data to the worker: " + str(e))
                 return
