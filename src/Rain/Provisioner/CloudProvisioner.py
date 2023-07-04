@@ -67,7 +67,7 @@ class CloudProvisioner(ProvisionerInterface):
         try:
             self.delete_workers()
         except Exception as e:
-            self.logger.log('error', f"Error deleting workers:{e}")
+            self.logger.log('error', f"Error deleting:{e}")
             return
     ############## Resources Creation ##############
     def create_resource_group(self):

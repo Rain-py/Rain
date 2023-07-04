@@ -20,7 +20,11 @@ class LocalProvisioner(ProvisionerInterface):
         self.logger.log('debug', f"Provisioner is initialized")
     
     def __del__(self):
-        self.delete_workers()
+        try:
+            self.delete_workers()
+        except Exception as e:
+            self.logger.log('error', f"Error deleting:{e}")
+            return
 
     def delete_workers(self):
         del self.workers  

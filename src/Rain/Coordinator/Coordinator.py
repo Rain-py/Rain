@@ -68,7 +68,11 @@ class Coordinator(coord_pb2_grpc.coordinatorServicer):
         self.provisioner_IP = provisioner_IP
         
     def __del__(self):
-        self.stop_serving()
+        try:
+            self.stop_serving()
+        except Exception as e:
+            self.logger.log('error', f"Error deleting the coordinator: {e}")
+            return
 
     def set_num_of_workers(self, num_of_workers: int) -> None:
         """
@@ -331,9 +335,13 @@ class Coordinator(coord_pb2_grpc.coordinatorServicer):
         Returns:
             None
         """
-        if self.server:
-            self.server.stop(0)
-            self.logger.log('info', f"coordinator stopped serving")
+        try:
+            if self.server:
+                self.server.stop(0)
+                self.logger.log('info', f"coordinator stopped serving")
+        except Exception as e:
+            self.logger.log('error', "Error stopping serving: " + str(e))
+            return
 
 
 

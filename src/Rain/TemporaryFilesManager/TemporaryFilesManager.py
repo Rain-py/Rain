@@ -23,8 +23,12 @@ class TemporaryFilesManager:
             self.logger = LogService(f"TemporaryFilesManager")
     
     def __del__(self):
-        self.logger.info("TemporaryFilesManager is destroyed")
-        self.cleanup_temp_dirs()
+        try:
+            self.logger.info("TemporaryFilesManager is destroyed")
+            self.cleanup_temp_dirs()
+        except Exception as e:
+            self.logger.log('error', f"Error deleting:{e}")
+            return
 
     def create_temp_dir(self, dir_name):
         temp_dir_path = os.path.join(self.temp_dir, dir_name)

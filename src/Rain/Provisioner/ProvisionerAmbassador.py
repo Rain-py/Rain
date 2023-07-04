@@ -16,7 +16,11 @@ class ProvisionerAmbassador(provisioner_pb2_grpc.provisionerServicer):
         self.logger = LogService("ProvisionerAmbassador")
 
     def __del__(self):
-        self.stop_serving()
+        try:
+            self.stop_serving()
+        except Exception as e:
+            self.logger.log('error', f"Error deleting:{e}")
+            return
 
     # sendStatus() returns (WorkerStatus) {}
     def SendStatus(self, request: provisioner_pb2.emptyMessage, context: grpc.ServicerContext) -> provisioner_pb2.WorkerStatus:
@@ -74,9 +78,13 @@ class ProvisionerAmbassador(provisioner_pb2_grpc.provisionerServicer):
         Returns:
             None
         """
-        if self.server:
-            self.server.stop(0)
-            self.logger.log('info', "provisioner stopped serving")
+        try:
+            if self.server:
+                self.server.stop(0)
+                self.logger.log('info', "provisioner stopped serving")
+        except Exception as e:
+            self.logger.log('error', "Error stopping serving: " + str(e))
+            return
 
     def serve(self) -> None:
         """

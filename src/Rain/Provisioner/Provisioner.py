@@ -19,8 +19,12 @@ class Provisioner(ProvisionerAmbassador):
             
         
     def __del__(self):
-        del self.coordinator
-        del self.provisioner
+        try:
+            del self.coordinator
+            del self.provisioner
+        except Exception as e:
+            self.logger.log('error', f"Error deleting:{e}")
+            return
     
     def start_coordinator(self):
         self.logger.log('debug', "Starting coordinator")

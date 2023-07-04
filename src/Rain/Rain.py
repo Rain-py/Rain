@@ -15,10 +15,13 @@ class Rain:
         self.ip_addresses = []
 
     def __del__(self):
-        del self.provisioner
-        del self.divider_proxy
-        del self.logger
-        del self.temp_manager
+        try:
+          del self.provisioner
+          del self.divider_proxy
+          del self.logger
+          del self.temp_manager
+        except Exception as e:
+           self.logger.log('error', f"Error deleting Rain: {e}")
 
     def train(self, X_train, y_train, strategy='sync'):
         # create workers

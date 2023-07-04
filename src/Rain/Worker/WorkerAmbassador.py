@@ -29,16 +29,24 @@ class WorkerAmbassador(worker_pb2_grpc.workerServicer):
         """
         function to delete the worker ambassador.
         """
-        self.stop_serving()
+        try:
+            self.stop_serving()
+        except Exception as e:
+            self.logger.log('error', f"Error deleting:{e}")
+            return
 
     def stop_serving(self) -> None:
         """
         function to stop the worker ambassador.
         """
-        if self.server:
-            # stop the server
-            self.server.stop(0)
-            self.logger.log('info', f"Worker stopped serving on port: {self.port}")
+        try:
+            if self.server:
+                # stop the server
+                self.server.stop(0)
+                self.logger.log('info', f"Worker stopped serving on port: {self.port}")
+        except Exception as e:
+            self.logger.log('error', "Error stopping serving: " + str(e))
+            return
     
     def download(self, request_iterator : worker_pb2.File, context : grpc.ServicerContext) -> worker_pb2.DownloadFileResponse:
         """

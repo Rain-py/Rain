@@ -23,14 +23,21 @@ class Divider:
             raise Exception("Unknown learning type")
 
     def __del__(self):
-        self.divider_ambassador.stop_serving()
+        try:
+            self.divider_ambassador.stop_serving()
+        except Exception as e:
+            self.logger.log('error', f"Error deleting Divider: {e}")
 
     def serve(self):
         self.divider_ambassador.serve()
 
     def stop_serving(self):
-        self.divider_ambassador.stop_serving()
-        self.logger.log('debug', f"Divider stopped serving")
+        try:
+            self.divider_ambassador.stop_serving()
+            self.logger.log('debug', f"Divider stopped serving")
+        except Exception as e:
+            self.logger.log('error', "Error stopping serving: " + str(e))
+            return
 
 
     def __partition_data(self, X, y):

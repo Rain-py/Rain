@@ -7,7 +7,10 @@ class DividerProxy():
         self.logger = LogService("DividerProxy")
 
     def __del__(self):
-        del self.divider
+        try:
+            del self.divider
+        except Exception as e:
+            self.logger.log('error', f"Error deleting DividerProxy: {e}")
     
     def train(self, X_train, y_train, strategy='sync'):
         try:
