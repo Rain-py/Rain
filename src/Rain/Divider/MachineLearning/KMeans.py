@@ -30,6 +30,7 @@ class KMeans(MachineLearningInterface):
                 if np.any(mask):
                     self.cluster_centers[cluster] = np.mean(X[mask], axis=0)
             if i == self.iterations - 1:
+                print(self.cluster_centers)
                 return labels
 
 
@@ -61,6 +62,7 @@ class KMeans(MachineLearningInterface):
             return self
         
     def get_labels(self, X):
+        print(self.cluster_centers)
         distances = self._calculate_distances(X)
         labels = np.argmin(distances, axis=1)
         return labels

@@ -80,7 +80,7 @@ class DividerAmbassador(divider_pb2_grpc.dividerServicer):
         try:
             self.stop_serving()
         except Exception as e:
-            self.logger.log('error', "Error deleting DividerAmbassador: " + str(e))
+            self.logger.log('error', f"Error deleting: {e}")
             return
 
     def send_data(self, worker_id: int, X_train_partition: List[Any], y_train_partition: List[Any], worker_stub: worker_pb2_grpc.workerStub) -> None:

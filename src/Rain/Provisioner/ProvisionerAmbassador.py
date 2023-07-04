@@ -1,6 +1,6 @@
 from concurrent import futures # indicates the num of workers (threads)
 import grpc
-from Rain.Protos import provisioner_pb2, provisioner_pb2_grpc
+from Rain.Protos import provisioner_pb2, provisioner_pb2_grpc, worker_pb2, worker_pb2_grpc
 from Rain.LogService.LogService import LogService
 
 
@@ -61,7 +61,17 @@ class ProvisionerAmbassador(provisioner_pb2_grpc.provisionerServicer):
         except Exception as e:
             self.logger.log('error', f"Error receiving the number of workers: {e}")
             return provisioner_pb2.response(message = "Error receiving the number of workers")
-    
+
+    def stop_worker(self,worker_ip, worker_port):
+        try:
+            with grpc.insecure_channel(worker_ip + f":{str(worker_port)}") as channel:
+                worker_stub = worker_pb2_grpc.workerStub(channel)
+                worker_stub.StopWorker(worker_pb2.StopSignal(message = "Stop the worker"))
+                return 
+        except Exception as e:
+            self.logger.log('error', f"Error stopping worker: {e}")
+            return 
+
     def create_workers(self)    -> None:
         pass
     def delete_workers(self)    -> None:

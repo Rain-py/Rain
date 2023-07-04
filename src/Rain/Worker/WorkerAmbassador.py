@@ -130,7 +130,11 @@ class WorkerAmbassador(worker_pb2_grpc.workerServicer):
             self.logger.log('error', f"Error executing the file: {e}")
             # return error message
             return worker_pb2.ExecuteFileResponse(message='Error executing the file')
-        
+
+    def StopWorker(self, request, context):
+        response = worker_pb2.StopSignal(message='Worker stopped!')
+        return response
+         
     def serve(self) -> None:
         """
         function to start the worker ambassador as a server to listen on the given port.

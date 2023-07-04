@@ -25,7 +25,7 @@ class PreProvisioner(ProvisionerInterface):
 
     def delete_workers(self):
         del self.workers  
-        self.logger.debug('info', f"Workers are deleted")      
+        self.logger.log('debug', f"Workers are deleted")      
     
     def create_workers(self, num_workers = None):
         self.logger.log('debug', f"Creating {num_workers} workers")

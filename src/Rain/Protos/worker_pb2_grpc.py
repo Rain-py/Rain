@@ -2,7 +2,8 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 
-from Rain.Protos import worker_pb2 as Protos_dot_worker__pb2
+from google.protobuf import empty_pb2 as google_dot_protobuf_dot_empty__pb2
+from Rain.Protos import worker_pb2 as protos_dot_worker__pb2
 
 
 class workerStub(object):
@@ -16,18 +17,23 @@ class workerStub(object):
         """
         self.download = channel.stream_unary(
                 '/worker.worker/download',
-                request_serializer=Protos_dot_worker__pb2.File.SerializeToString,
-                response_deserializer=Protos_dot_worker__pb2.DownloadFileResponse.FromString,
+                request_serializer=protos_dot_worker__pb2.File.SerializeToString,
+                response_deserializer=protos_dot_worker__pb2.DownloadFileResponse.FromString,
                 )
         self.upload = channel.unary_stream(
                 '/worker.worker/upload',
-                request_serializer=Protos_dot_worker__pb2.MetaData.SerializeToString,
-                response_deserializer=Protos_dot_worker__pb2.UploadFileResponse.FromString,
+                request_serializer=protos_dot_worker__pb2.MetaData.SerializeToString,
+                response_deserializer=protos_dot_worker__pb2.UploadFileResponse.FromString,
                 )
         self.Execute = channel.unary_unary(
                 '/worker.worker/Execute',
-                request_serializer=Protos_dot_worker__pb2.ExecuteData.SerializeToString,
-                response_deserializer=Protos_dot_worker__pb2.ExecuteFileResponse.FromString,
+                request_serializer=protos_dot_worker__pb2.ExecuteData.SerializeToString,
+                response_deserializer=protos_dot_worker__pb2.ExecuteFileResponse.FromString,
+                )
+        self.StopWorker = channel.unary_unary(
+                '/worker.worker/StopWorker',
+                request_serializer=protos_dot_worker__pb2.StopSignal.SerializeToString,
+                response_deserializer=google_dot_protobuf_dot_empty__pb2.Empty.FromString,
                 )
 
 
@@ -55,23 +61,34 @@ class workerServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def StopWorker(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_workerServicer_to_server(servicer, server):
     rpc_method_handlers = {
             'download': grpc.stream_unary_rpc_method_handler(
                     servicer.download,
-                    request_deserializer=Protos_dot_worker__pb2.File.FromString,
-                    response_serializer=Protos_dot_worker__pb2.DownloadFileResponse.SerializeToString,
+                    request_deserializer=protos_dot_worker__pb2.File.FromString,
+                    response_serializer=protos_dot_worker__pb2.DownloadFileResponse.SerializeToString,
             ),
             'upload': grpc.unary_stream_rpc_method_handler(
                     servicer.upload,
-                    request_deserializer=Protos_dot_worker__pb2.MetaData.FromString,
-                    response_serializer=Protos_dot_worker__pb2.UploadFileResponse.SerializeToString,
+                    request_deserializer=protos_dot_worker__pb2.MetaData.FromString,
+                    response_serializer=protos_dot_worker__pb2.UploadFileResponse.SerializeToString,
             ),
             'Execute': grpc.unary_unary_rpc_method_handler(
                     servicer.Execute,
-                    request_deserializer=Protos_dot_worker__pb2.ExecuteData.FromString,
-                    response_serializer=Protos_dot_worker__pb2.ExecuteFileResponse.SerializeToString,
+                    request_deserializer=protos_dot_worker__pb2.ExecuteData.FromString,
+                    response_serializer=protos_dot_worker__pb2.ExecuteFileResponse.SerializeToString,
+            ),
+            'StopWorker': grpc.unary_unary_rpc_method_handler(
+                    servicer.StopWorker,
+                    request_deserializer=protos_dot_worker__pb2.StopSignal.FromString,
+                    response_serializer=google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -95,8 +112,8 @@ class worker(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.stream_unary(request_iterator, target, '/worker.worker/download',
-            Protos_dot_worker__pb2.File.SerializeToString,
-            Protos_dot_worker__pb2.DownloadFileResponse.FromString,
+            protos_dot_worker__pb2.File.SerializeToString,
+            protos_dot_worker__pb2.DownloadFileResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -112,8 +129,8 @@ class worker(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_stream(request, target, '/worker.worker/upload',
-            Protos_dot_worker__pb2.MetaData.SerializeToString,
-            Protos_dot_worker__pb2.UploadFileResponse.FromString,
+            protos_dot_worker__pb2.MetaData.SerializeToString,
+            protos_dot_worker__pb2.UploadFileResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -129,7 +146,24 @@ class worker(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/worker.worker/Execute',
-            Protos_dot_worker__pb2.ExecuteData.SerializeToString,
-            Protos_dot_worker__pb2.ExecuteFileResponse.FromString,
+            protos_dot_worker__pb2.ExecuteData.SerializeToString,
+            protos_dot_worker__pb2.ExecuteFileResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def StopWorker(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/worker.worker/StopWorker',
+            protos_dot_worker__pb2.StopSignal.SerializeToString,
+            google_dot_protobuf_dot_empty__pb2.Empty.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
