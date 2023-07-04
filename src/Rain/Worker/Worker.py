@@ -103,11 +103,10 @@ class Worker:
         for cluster in range(model.n_clusters):
             mask = labels == cluster
             if np.any(mask):
-                cluster_centers[cluster] = np.sum(X_train[mask], axis=0)
+                cluster_centers[cluster] = np.mean(X_train[mask], axis=0)
             result[cluster][:-1] = cluster_centers[cluster]
             result[cluster][-1] = len(X_train[mask])
         
-        print("result in worker : ", result)
         return result
 
     def _calculate_distances(self, X, cluster_centers):
