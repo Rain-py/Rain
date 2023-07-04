@@ -7,10 +7,10 @@ class KMeans(MachineLearningInterface):
         if config is not None:
             super().__init__(config, divider_ambassador)
             self.n_clusters = config["ML"]["algorithm"]["params"]["K"]
-            self.max_iters = config["iterations"]
+            self.iterations = config["iterations"]
         else:
             self.n_clusters = n_clusters
-            self.max_iters = max_iters
+            self.iterations = max_iters
         self.cluster_centers = None
 
     def fit(self, X):
@@ -19,7 +19,7 @@ class KMeans(MachineLearningInterface):
         random_indices = np.random.choice(n_samples, size=self.n_clusters, replace=False)
         self.cluster_centers = X[random_indices]
 
-        for i in range(self.max_iters):
+        for i in range(self.iterations):
             # Assign samples to nearest cluster
             distances = self._calculate_distances(X)
             labels = np.argmin(distances, axis=1)
@@ -29,7 +29,7 @@ class KMeans(MachineLearningInterface):
                 mask = labels == cluster
                 if np.any(mask):
                     self.cluster_centers[cluster] = np.mean(X[mask], axis=0)
-            if i == self.max_iters - 1:
+            if i == self.iterations - 1:
                 return labels
 
 
@@ -59,11 +59,15 @@ class KMeans(MachineLearningInterface):
         
         if final_iteration:
             return self
+        
+    def get_labels(self, X):
+        distances = self._calculate_distances(X)
+        labels = np.argmin(distances, axis=1)
+        return labels
 
 
     def save_model(self, iteration_num):
-        data = [{"config": self.config, "model": type("Model", (object,), {"cluster_centers": self.cluster_centers, "n_clusters": self.n_clusters})}]
-        print(data)
+        data = [{"config": self.config, "model": type("KMeansModel", (object,), {"cluster_centers": self.cluster_centers, "n_clusters": self.n_clusters})}]
         file_path = f"{self.model_base_path}{iteration_num}.pkl"
         try:
             # save the data to the file
