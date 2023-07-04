@@ -3,11 +3,12 @@ import os
 import grpc
 from Rain.Protos import worker_pb2, worker_pb2_grpc
 from Rain.LogService.LogService import LogService
+from Rain.TemporaryFilesManager.TemporaryFilesManager import TemporaryFilesManager
+from Rain.Worker.Worker import Worker
 
-
-class CloudWorker(worker_pb2_grpc.workerServicer):
+class WorkerAmbassador(worker_pb2_grpc.workerServicer):
     def __init__(self, port):
-        self.data_base_path = '~/data/' 
+        self.data_base_path = TemporaryFilesManager.get_instance().create_temp_dir('worker/') 
         self.port = port
         self.server = None
         self.logger = LogService(f"Worker_{self.port}")
@@ -66,11 +67,9 @@ class CloudWorker(worker_pb2_grpc.workerServicer):
 
     def Execute(self, request, context):
         try:
-            command = f'sudo docker run -v {self.data_base_path}:/app/data mostafaw/rain_worker /app/Algo.py {request.worker_id} /app/data/ {request.iteration_num}'
-            self.logger.log('info', f"Executing command: {command}")
-            # execute the command and return the output
-            os.system(command)
-            
+            self.logger.log('info', f"Running the worker with id: {request.worker_id} on iteration: {request.iteration_num}")
+            worker = Worker(request.worker_id, self.data_base_path, request.iteration_num)
+            worker.run()
             return worker_pb2.ExecuteFileResponse(message='Executed!')
         except Exception as e:
             self.logger.log('error', f"Error executing the file: {e}")

@@ -1,5 +1,5 @@
 
-from Rain.Worker.Worker import Worker
+from Rain.Worker.WorkerAmbassador import WorkerAmbassador
 from Rain.Protos import provisioner_pb2
 from Rain.LogService.LogService import LogService
 from Rain.Provisioner.ProvisionerInterface import ProvisionerInterface
@@ -40,7 +40,7 @@ class LocalProvisioner(ProvisionerInterface):
         
         try:
             for i in range(self.num_workers):
-                worker = Worker(self.ports[i])
+                worker = WorkerAmbassador(self.ports[i])
                 worker.serve()
                 self.workers.append(worker)
             return self.workers

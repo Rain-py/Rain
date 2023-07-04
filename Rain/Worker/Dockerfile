@@ -38,7 +38,7 @@ RUN apt-get remove -y --purge \
     && rm -rf /var/lib/apt/lists/* /tmp/* ~/*
 
 # Copy the script to the image
-COPY Algo.py /app/Algo.py
+COPY Worker.py /app/Worker.py
 
 # Create a Directory for the data
 RUN mkdir /app/data
@@ -47,4 +47,4 @@ RUN mkdir /app/data
 ENTRYPOINT ["python"]
 
 # Default command to print usage information
-CMD ["-c", "print('You can run your script with: docker run -v /data:/app/data mostafaw/rain_worker /app/algo.py arg1 arg2')"]
+CMD ["-c", "print('You can run your script with: docker run -v /data:/app/data mostafaw/rain_worker /app/Worker.py arg1 arg2')"]
