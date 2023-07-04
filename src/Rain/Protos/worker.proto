@@ -1,5 +1,6 @@
 syntax = "proto3";
 package worker;
+import "google/protobuf/empty.proto";
 
 service worker {
     // worker downloads (recieves) a file
@@ -8,6 +9,8 @@ service worker {
     rpc upload(MetaData) returns (stream UploadFileResponse) {}
     // execute file
     rpc Execute(ExecuteData) returns (ExecuteFileResponse) {}
+
+    rpc StopWorker(StopSignal) returns (google.protobuf.Empty) {}
   }
 
   
@@ -42,6 +45,12 @@ service worker {
     string iteration_num = 4;
   }
   message ExecuteFileResponse {
+    string message = 1;
+  }
+
+  // -------------------
+  // for stopping a worker
+  message StopSignal {
     string message = 1;
   }
   

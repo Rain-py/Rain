@@ -28,6 +28,7 @@ class Rain:
         try:
           self.provisioner.serve()
           model = self.divider_proxy.train(X_train, y_train, strategy) 
+          
           self.provisioner.stop_serving()
         except Exception as e:
           self.logger.log('error', f"Error training the model: {e}")

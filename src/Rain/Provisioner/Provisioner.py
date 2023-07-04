@@ -38,12 +38,21 @@ class Provisioner(ProvisionerAmbassador):
         self.statuses = self.provisioner.get_workers_statuses()
         self.logger.log('debug', f"[Created workers]\nIPs : {self.ips}, ports: {self.ports}, statuses: {self.statuses}, IDs : {self.ids}")
 
+    def stop_worker(self, worker_ip, worker_port):
+        return super().stop_worker(worker_ip, worker_port)
+
+
     def delete_workers(self):
         self.provisioner.delete_workers()
         self.ids = self.provisioner.get_workers_ids()
         self.ips = self.provisioner.get_workers_ips()
         self.ports = self.provisioner.get_workers_ports()
         self.statuses = self.provisioner.get_workers_statuses()
+        # for i in range(len(self.ids)):
+        #     self.stop_worker(self.ips[i], self.ports[i])
+
         self.logger.log('debug', f"[Deleted workers]\nIPs : {self.ips}, ports: {self.ports}, statuses: {self.statuses}, IDs : {self.ids}")
     
-    
+    def stop_serving(self) -> None:
+        self.delete_workers()
+        super().stop_serving()
