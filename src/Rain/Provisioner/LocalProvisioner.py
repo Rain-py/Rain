@@ -27,7 +27,9 @@ class LocalProvisioner(ProvisionerInterface):
             return
 
     def delete_workers(self):
-        del self.workers  
+        for worker in self.workers:
+            worker.stop_serving()
+            del worker
         self.logger.log('debug', f"Workers are deleted")      
     
     def create_workers(self, num_workers):
