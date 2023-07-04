@@ -58,7 +58,7 @@ class CloudProvisioner(ProvisionerInterface):
         self.nic_name_list = []
         self.ip_name_list = []
         self.vm_name_list = []
-        self.custom_data_script = "#cloud-config\n\nruncmd:\n  - apt-get update\n -curl -fsSL https://get.docker.com -o get-docker.sh\n -sudo sh get-docker.sh\n -sudo docker pull mostafaw/rain_worker\n - apt-get install -y apache2\n  - echo 'Hello I am a worker' > /var/www/html/index.html"
+        self.custom_data_script = "#cloud-config\n\nruncmd:\n  - apt-get update\n  - apt-get install -y apache2\n  - echo 'Hello I am a worker' > /var/www/html/index.html"
 
         self.logger = LogService("CloudProvisioner")
         self.logger.log('debug', f"Provisioner is initialized")
@@ -351,6 +351,7 @@ class CloudProvisioner(ProvisionerInterface):
         except Exception as e:
             self.logger.log('error', f"Error creating SSH key pair:{e}")            
             raise Exception("Error creating SSH key pair")
+        self.logger.log('debug', f"Created SSH key pair at {private_key_path} and {public_key_path}")
         return private_key, public_key
 
     def get_ip_address_by_vm_name(self, vm_name):

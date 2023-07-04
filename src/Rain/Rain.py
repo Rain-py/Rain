@@ -8,7 +8,7 @@ class Rain:
     def __init__(self, config, model=None):
         self.config = config
         self.logger = LogService("Rain")
-        self.temp_manager = TemporaryFilesManager.get_instance(config["temp_data_path"])
+        self.temp_manager = TemporaryFilesManager.get_instance(config["temp_data_path"] if "temp_data_path" in config else None)
         self.logger.log('debug', f"Rain is initialized")
         self.provisioner = Provisioner(self.config)
         self.divider_proxy = DividerProxy(config, model)

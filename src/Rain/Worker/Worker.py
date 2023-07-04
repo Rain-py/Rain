@@ -165,10 +165,3 @@ class Worker:
                 # Send result to the server
                 self.send_data(result, self.id)
 
-
-if __name__ == '__main__':
-    id = sys.argv[1]
-    data_base_path = sys.argv[2]
-    iteration_num = sys.argv[3]
-    worker = Worker(id, data_base_path, iteration_num)
-    worker.run()
