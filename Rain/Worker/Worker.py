@@ -4,6 +4,7 @@ import grpc
 from Rain.Protos import worker_pb2, worker_pb2_grpc
 from Rain.LogService.LogService import LogService
 from Rain.TemporaryFilesManager.TemporaryFilesManager import TemporaryFilesManager
+from Rain.Worker.Algo import TrainingWorker
 
 class Worker(worker_pb2_grpc.workerServicer):
     def __init__(self, port):
@@ -67,12 +68,9 @@ class Worker(worker_pb2_grpc.workerServicer):
 
     def Execute(self, request, context):
         try:
-            filepath = self.algo_path + request.filename +  request.extension
-            command = 'python3 '  + filepath +  " " + request.worker_id + " " + self.data_base_path + " " + request.iteration_num
-            self.logger.log('info', f"Executing command: {command}")
-            # execute the command and return the output
-            os.system(command)
-            
+            self.logger.log('info', f"Running the worker with id: {request.worker_id} on iteration: {request.iteration_num}")
+            train_worker = TrainingWorker(request.worker_id, self.data_base_path, request.iteration_num)
+            train_worker.run()
             return worker_pb2.ExecuteFileResponse(message='Executed!')
         except Exception as e:
             self.logger.log('error', f"Error executing the file: {e}")
