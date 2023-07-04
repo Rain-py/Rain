@@ -13,7 +13,7 @@ class PreProvisioner(ProvisionerInterface):
         self.ids = []
         self.workers = []
         self.num_workers = len(ips)
-        self.logger = LogService("LocalProvisioner")
+        self.logger = LogService("PreProvisioner")
         self.logger.log('debug', f"Provisioner is initialized")
     
     def __del__(self):

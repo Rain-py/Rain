@@ -16,9 +16,7 @@ class ProvisionerFactory:
         elif config["mode"]["type"] == 'onPremise':
             try:
                 ips = config["mode"]["params"]["ips"]
-                print(ips)
                 ports = config["mode"]["params"]["ports"]
-                print(ports)
                 return PreProvisioner(ips=ips, ports=ports)
             except Exception as e:
                 raise Exception("Invalid provisioner config")
