@@ -17,8 +17,19 @@ class ProvisionerAmbassador(provisioner_pb2_grpc.provisionerServicer):
 
     def __del__(self):
         self.stop_serving()
-     # sendStatus() returns (WorkerStatus) {}
-    def SendStatus(self, request, context):
+
+    # sendStatus() returns (WorkerStatus) {}
+    def SendStatus(self, request: provisioner_pb2.StatusRequest, context: grpc.ServicerContext) -> provisioner_pb2.WorkerStatus:
+        """
+        This function will be called from the coordinator side to get the status of the workers.
+
+        Args:
+            request (provisioner_pb2.StatusRequest): A `StatusRequest` message sent by the coordinator.
+            context (grpc.ServicerContext): The context of the gRPC service.
+
+        Returns:
+            A `WorkerStatus` message containing the IP addresses, port numbers, statuses, and IDs of the workers.
+        """
         try:
             self.logger.log('debug', f"Received '{request}' from the coordinator to send status")
             self.logger.log('debug', f"Workers\nIPs : {self.ips}, ports: {self.ports}, statuses: {self.statuses}, IDs : {self.ids}")
@@ -28,7 +39,17 @@ class ProvisionerAmbassador(provisioner_pb2_grpc.provisionerServicer):
             return provisioner_pb2.WorkerStatus(IPs = [], statuses = [], ports = [], ids = [])
 
     # DefineNWorkers(NumOfWorkers) returns () {}
-    def DefineNWorkers(self, request, context):
+    def DefineNWorkers(self, request: provisioner_pb2.NumOfWorkersRequest, context: grpc.ServicerContext) -> provisioner_pb2.response:
+        """
+        This function will be called from the coordinator side define the number of workers to be created.
+
+        Args:
+            request (provisioner_pb2.NumOfWorkersRequest): A `NumOfWorkersRequest` message sent by the coordinator.
+            context (grpc.ServicerContext): The context of the gRPC service.
+
+        Returns:
+            A `response` message indicating whether the request was successful or not.
+        """
         try:
             self.num_workers = request.NumOfWorkers
             self.logger.log('debug', f"Received '{request}' from the coordinator to define the number of workers")
@@ -37,21 +58,33 @@ class ProvisionerAmbassador(provisioner_pb2_grpc.provisionerServicer):
             self.logger.log('error', f"Error receiving the number of workers: {e}")
             return provisioner_pb2.response(message = "Error receiving the number of workers")
     
-    def create_workers(self):
+    def create_workers(self)    -> None:
         pass
-    def delete_workers(self):
+    def delete_workers(self)    -> None:
         pass
-    def get_num_workers(self):
+    def get_num_workers(self)   -> int:
         return self.num_workers
-    def start_coordinator(self):
+    def start_coordinator(self) -> None:
         pass
     
-    def stop_serving(self):
+    def stop_serving(self) -> None:
+        """
+        Stops the gRPC server for the provisioner.
+
+        Returns:
+            None
+        """
         if self.server:
             self.server.stop(0)
             self.logger.log('info', "provisioner stopped serving")
 
-    def serve(self):
+    def serve(self) -> None:
+        """
+        Starts the gRPC server for the provisioner.
+
+        Returns:
+            None
+        """
         try:
             # create a gRPC server
             self.server = grpc.server(futures.ThreadPoolExecutor(max_workers=1))
