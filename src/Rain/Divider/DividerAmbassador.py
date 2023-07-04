@@ -2,6 +2,7 @@ from __future__ import print_function
 from concurrent import futures  # indicates the num of (threads)
 import grpc
 import numpy as np
+from typing import List, Tuple, Any, Iterator
 from Rain.TemporaryFilesManager.TemporaryFilesManager import TemporaryFilesManager
 from Rain.LogService.LogService import LogService
 from Rain.Protos import (
@@ -13,7 +14,17 @@ from Rain.Protos import (
     worker_pb2
 )
 
-def read_file(filepath, chunk_size=1024):
+def read_file(filepath: str, chunk_size: int = 1024) -> Iterator[divider_pb2.File]:
+    """
+    A generator function that reads a file in chunks and yields the data as protobuf messages.
+
+    Args:
+        filepath (str): The path to the file to be read.
+        chunk_size (int): The size of each chunk to be read, in bytes.
+
+    Yields:
+        An instance of `divider_pb2.File` containing either the metadata of the file or a chunk of file data.
+    """
     split_data = filepath.split("/")
     filename, extension = split_data[-1].split(".")[0], "." + split_data[-1].split(".")[1]
     metadata = divider_pb2.MetaData(
@@ -28,11 +39,23 @@ def read_file(filepath, chunk_size=1024):
                 yield entry_request
             else:  # The chunk was empty, which means we're at the end of the file
                 return
-            
-def read_partitioned_data(data, filename, extension, chunk_size = 1024):
-    # The data is a list of numpy arrays
+
+def read_partitioned_data(data: List[Any], filename: str, extension: str, chunk_size: int = 1024) -> Iterator[divider_pb2.File]:
+    """
+    A generator function that reads partitioned data in chunks and yields the data as protobuf messages.
+
+    Args:
+        data (List[Any]): The partitioned data to be read.
+        filename (str): The name of the file containing the partitioned data.
+        extension (str): The file extension of the file containing the partitioned data.
+        chunk_size (int): The size of each chunk to be read, in bytes.
+
+    Yields:
+        An instance of `divider_pb2.File` containing either the metadata of the file or a chunk of file data.
+    """
     metadata = divider_pb2.MetaData(
-        filename= filename, extension=extension
+        filename=filename,
+        extension=extension
     )
     # We need to yield the data in chunks
     yield divider_pb2.File(metadata=metadata)
@@ -43,7 +66,7 @@ def read_partitioned_data(data, filename, extension, chunk_size = 1024):
     for i in range(len(data)):
         yield divider_pb2.File(chunk_data=data[i])
     return
-    
+
 
 
 class DividerAmbassador(divider_pb2_grpc.dividerServicer):
@@ -52,42 +75,65 @@ class DividerAmbassador(divider_pb2_grpc.dividerServicer):
         self.server = None
         self.logger = LogService("DividerAmbassador")
         self.coordinator_IP = '127.0.0.1'
+        
     def __del__(self):
         self.stop_serving()
-    
-    def send_data(self, worker_id, X_train_partition, y_train_partition, worker_stub):
+
+    def send_data(self, worker_id: int, X_train_partition: List[Any], y_train_partition: List[Any], worker_stub: worker_pb2_grpc.workerStub) -> None:
         """
-        This function will send the data to the workers.
-        send the num of workers to the provisioner to create the workers.
-        send the data to coordinator to distribute it among workers.
-        """ 
+        Sends the data to the workers and coordinates the distribution of the data.
+
+        Args:
+            worker_id (int): The ID of the worker being sent data.
+            X_train_partition (List[Any]): The partitioned training data to be sent to the worker.
+            y_train_partition (List[Any]): The partitioned training labels to be sent to the worker.
+            worker_stub (worker_pb2_grpc.workerStub): The gRPC stub of the worker being sent data.
+
+        Returns:
+            None
+        """
         # TODO: Remove writing and reading the file
         try:
-                np.save(f"{self.data_base_path}X_train_{worker_id}.npy", X_train_partition)
-                response = worker_stub.download(
-                    read_file(self.data_base_path + f"X_train_{worker_id}.npy")
+            np.save(f"{self.data_base_path}X_train_{worker_id}.npy", X_train_partition)
+            response = worker_stub.download(
+                read_file(self.data_base_path + f"X_train_{worker_id}.npy")
                     # read_partitioned_data(X_train_partition, f"X_train_{worker_id}", ".npy")
-                )
-                self.logger.log('debug', "divider is sending x train to the worker")
-                np.save(f"{self.data_base_path}y_train_{worker_id}.npy", y_train_partition)
-                response = worker_stub.download(
-                    read_file(self.data_base_path + f"y_train_{worker_id}.npy")
+            )
+            self.logger.log('debug', "divider is sending x train to the worker")
+            np.save(f"{self.data_base_path}y_train_{worker_id}.npy", y_train_partition)
+            response = worker_stub.download(
+                read_file(self.data_base_path + f"y_train_{worker_id}.npy")
                     # read_partitioned_data(y_train_partition, f"y_train_{worker_id}", ".npy")
-                )
-                self.logger.log('debug', "divider is sending y train to the worker")
+            )
+            self.logger.log('debug', "divider is sending y train to the worker")
         except Exception as e:
             self.logger.log('debug', "Error sending the data to the coordinator: " + str(e))
             return
 
-    def iteration(self, worker_id , worker_ip, worker_port, data_status, iteration_num, model_name,  X_train_partition, y_train_partition):
+    def iteration(self, worker_id: int, worker_ip: str, worker_port: str, data_status: int, iteration_num: int, model_name: str, X_train_partition: List[Any], y_train_partition: List[Any]) -> None:
+        """
+        Executes one iteration of federated learning on a single worker.
+
+        Args:
+            worker_id (int): The ID of the worker being executed.
+            worker_ip (str): The IP address of the worker being executed.
+            worker_port (str): The port number of the worker being executed.
+            data_status (int): A flag indicating whether the worker has already received the training data.
+            iteration_num (int): The current iteration number.
+            model_name (str): The name of the model being used for federated learning.
+            X_train_partition (List[Any]): The partitioned training data being sent to the worker.
+            y_train_partition (List[Any]): The partitioned training labels being sent to the worker.
+
+        Returns:
+            None
+        """
         self.logger.log('debug', f'{worker_ip}:{worker_port}')
         with grpc.insecure_channel(f'{worker_ip}:{worker_port}') as channel:
-            worker_stub = worker_pb2_grpc.workerStub(channel) 
+            worker_stub = worker_pb2_grpc.workerStub(channel)
             try:
                 # send data to the worker
                 if not data_status:
                     self.send_data(worker_id, X_train_partition, y_train_partition, worker_stub)
-
             except Exception as e:
                 self.logger.log('error', "Error sending the data to the worker: " + str(e))
                 return
@@ -95,41 +141,49 @@ class DividerAmbassador(divider_pb2_grpc.dividerServicer):
                 # send the model to the worker
                 self.logger.log('debug', f"Sending {self.data_base_path}{worker_id}.pkl to worker{worker_id}")
                 response = worker_stub.download(read_file(f'{self.data_base_path}{model_name}.pkl'))
-                self.logger.log('debug',"divider received: " + response.message +  " after sending the model to worker " + str(worker_id))
+                self.logger.log('debug', "divider received: " + response.message +  " after sending the model to worker " + str(worker_id))
             except Exception as e:
                 self.logger.log('error', "Error sending the model to the worker: " + str(e))
                 return
             try:
                 # execute the model
                 self.logger.log('debug', f"divider begins executing iteration{iteration_num} for worker{worker_id}")
-                filename, extension = 'Algo', '.py' 
-                response =  worker_stub.Execute(worker_pb2.executeData(filename=filename,extension=extension,worker_id=str(worker_id), iteration_num=str(model_name)))
-                self.logger.log('debug',"divider received: " + response.message + " after executing the model on worker " + str(worker_id))
+                filename, extension = 'Algo', '.py'
+                response = worker_stub.Execute(worker_pb2.executeData(filename=filename,extension=extension,worker_id=str(worker_id), iteration_num=str(model_name)))
+                self.logger.log('debug', "divider received: " + response.message + " after executing the model on worker{worker_id}")
             except Exception as e:
-                self.logger.log('error', "Error executing the model: " + str(e))
+                self.logger.log('error', "Error executing the model on the worker: " + str(e))
                 return
-            try:
-                # receive the model from the worker
-                filename, extension = f'{worker_id}_{model_name}_trained', '.pkl'
-                filepath = self.data_base_path + filename + extension
-                self.logger.log('debug', f"divider begins downloading {filepath} from worker{worker_id}")
-                data = bytearray()
-                for request in worker_stub.upload(
-                    worker_pb2.MetaData(filename=filename, extension=extension)
-                ):
-                    data.extend(request.chunk_data)
 
-                with open(filepath, mode="wb") as f:
-                    f.write(data)
-                self.logger.log('debug', f"Downloaded {filepath} from worker{worker_id} successfully")
+            try:
+                    # receive the model from the worker
+                    filename, extension = f'{worker_id}_{model_name}_trained', '.pkl'
+                    filepath = self.data_base_path + filename + extension
+                    self.logger.log('debug', f"divider begins downloading {filepath} from worker{worker_id}")
+                    data = bytearray()
+                    for request in worker_stub.upload(
+                        worker_pb2.MetaData(filename=filename, extension=extension)
+                    ):
+                        data.extend(request.chunk_data)
+
+                    with open(filepath, mode="wb") as f:
+                        f.write(data)
+                    self.logger.log('debug', f"Downloaded {filepath} from worker{worker_id} successfully")
             except Exception as e:
                 self.logger.log('error', "Error downloading the model: " + str(e))
                 return
-    
 
-    def download(self, request_iterator, context):
+
+    def download(self, request_iterator: Iterator[divider_pb2.DownloadFileRequest], context: grpc.ServicerContext) -> divider_pb2.DownloadFileResponse:
         """
-        This function will receive the data from and the coordinator.
+        Receives data from the coordinator and saves it to disk.
+
+        Args:
+            request_iterator (Iterator[divider_pb2.DownloadFileRequest]): An iterator over `DownloadFileRequest` messages.
+            context (grpc.ServicerContext): The context of the gRPC service.
+
+        Returns:
+            A `DownloadFileResponse` message indicating the success or failure of the data transfer.
         """
         data = bytearray()
         for request in request_iterator:
@@ -141,7 +195,16 @@ class DividerAmbassador(divider_pb2_grpc.dividerServicer):
             f.write(data)
         return divider_pb2.DownloadFileResponse(message="Success!")
 
-    def get_workers_info(self, coordinator_IP):
+    def get_workers_info(self, coordinator_IP: str) -> Tuple[str, int, int]:
+        """
+        Retrieves information about the workers from the coordinator.
+
+        Args:
+            coordinator_IP (str): The IP address of the coordinator.
+
+        Returns:
+            A tuple containing the IP addresses, port numbers, and IDs of the workers.
+        """
         with grpc.insecure_channel(coordinator_IP + ":50052") as channel:
             # create an interface for the grpc client (coord)
             coord_stub = coord_pb2_grpc.coordinatorStub(channel)
@@ -150,7 +213,14 @@ class DividerAmbassador(divider_pb2_grpc.dividerServicer):
             )
             self.logger.log('debug', "divider received: information from coordinator")
             return response.workers_ips, response.workers_ports, response.workers_ids
-    def serve(self):
+
+    def serve(self) -> None:
+        """
+        Starts the gRPC server for the divider.
+
+        Returns:
+            None
+        """
         self.server = grpc.server(futures.ThreadPoolExecutor(1))
         divider_pb2_grpc.add_dividerServicer_to_server(self, self.server)
         self.server.add_insecure_port(
@@ -159,17 +229,33 @@ class DividerAmbassador(divider_pb2_grpc.dividerServicer):
         self.server.start()
         self.logger.log('debug', "divider ambassador is serving")
 
-    def get_worker_IPs(self, coordinator_IP, num_of_workers):
+    def get_worker_IPs(self, coordinator_IP: str, num_of_workers: int) -> List[str]:
+        """
+        Retrieves the IP addresses of the workers from the coordinator.
+
+        Args:
+            coordinator_IP (str): The IP address of the coordinator.
+            num_of_workers (int): The number of workers participating in the federated learning process.
+
+        Returns:
+            A list of IP addresses of the workers.
+        """
         with grpc.insecure_channel(coordinator_IP + ":50052") as channel:
             # create an interface for the grpc client (coord)
             coord_stub = coord_pb2_grpc.coordinatorStub(channel)
             response = coord_stub.get_worker_IPs(
                 coord_pb2.NumOfWorkers(num_of_workers=num_of_workers)
-            )
+        )
             self.logger.log('debug', "divider received: " + response.message + " from coordinator")
             return response.worker_IPs
-        
-    def stop_serving(self):
+
+    def stop_serving(self) -> None:
+        """
+        Stops the gRPC server for the divider.
+
+        Returns:
+            None
+        """
         if self.server:
             self.server.stop(0)
             self.logger.log('debug', "divider ambassador stopped serving")
