@@ -92,13 +92,23 @@ classifiers = [  # Optional
 # For an analysis of this field vs pip's requirements files see:
 # https://packaging.python.org/discussions/install-requires-vs-requirements/
 dependencies = [ # Optional
-  "grpcio",
-  "grpcio-tools",
-  "dill",
-  "numpy",
-  "torch",
-  "keras",
-  "tensorflow"
+  "grpcio==1.56.0",
+  "grpcio-tools==1.56.0",
+  'protobuf>=4.21.6,<5.0',
+  "dill==0.3.6",
+  'numpy>=1.22,<1.24',
+  "torch==2.0.1",
+  'keras>=2.12,<2.13',
+  "tensorflow==2.12.0",
+  'paramiko==3.2.0',
+  'azure-mgmt-compute==29.1.0',
+  'azure-mgmt-core==1.4.0',
+  'azure-mgmt-network==23.0.0',
+  'azure-mgmt-resource==23.0.0',
+  'azure-storage-blob==12.13.0',
+  'azure-identity==1.12.0',
+  'azure-common==1.1.28',
+  'azure-core==1.26.4'
 ]
 
 # List additional groups of dependencies here (e.g. development
