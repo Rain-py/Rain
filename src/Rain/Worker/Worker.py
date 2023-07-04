@@ -119,7 +119,45 @@ class Worker:
             distances[:, cluster] = np.linalg.norm(X - cluster_centers[cluster], axis=1)
 
         return distances
+    
+    def calculate_probabilities(self, X_train, y_train):
+        result = {
+            "class_counts": {},
+            "class_likelihoods": None,
+            "samples_count": len(y_train)
+        }
+        count = np.bincount(y_train)
+        for i in range(len(count)):
+            result["class_counts"][i] = count[i]
 
+        result["class_likelihoods"] = self.calculate_class_likelihoods(X_train, y_train)
+        return result
+    
+    def calculate_class_likelihoods(self, X, y):
+        num_features = X.shape[1]
+        class_likelihoods = []
+        classes = np.unique(y)
+
+        for class_label in classes:
+            class_samples = X[y == class_label]
+            feature_likelihoods = []
+
+            for feature_idx in range(num_features):
+                feature_values = class_samples[:, feature_idx]
+                feature_likelihood = self.calculate_feature_likelihood(feature_values)
+                feature_likelihoods.append(feature_likelihood)
+
+            class_likelihoods.append(feature_likelihoods)
+
+        return np.asarray(class_likelihoods)
+
+    def calculate_feature_likelihood(self, feature_values):
+        feature_likelihood = {
+            'sum': np.sum(feature_values),
+            'squared_sum': np.sum(np.square(feature_values)),
+            'n': feature_values.shape[0]
+        }
+        return feature_likelihood
 
     def run(self):
         try:
@@ -165,4 +203,7 @@ class Worker:
                 result = self.calculate_cluster_means(model, X_train)
                 # Send result to the server
                 self.send_data(result, self.id)
-
+            elif self.algo == "GaussianNaiveBayes":
+                y_train = np.load(f"{self.base_path}/y_train_{self.id}.npy")
+                result = self.calculate_probabilities(X_train, y_train)
+                self.send_data(result, self.id)

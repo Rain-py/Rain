@@ -7,7 +7,6 @@ from Rain.LogService.LogService import LogService
 class MachineLearningInterface:
     def __init__(self, config, divider_ambassador):
         self.config = config
-        self.iterations = config["iterations"]
         self.partitions = config["partitions"]
         self.num_of_workers = config["num_of_workers"]
 
@@ -31,7 +30,7 @@ class MachineLearningInterface:
                 msg = dill.load(open(f"{self.model_base_path}{j + 1}_{iteration_num}_trained.pkl", "rb"))
                 msgs.append(msg)
         except Exception as e:
-            self.logger.log('debug', f"Error in receiving the gradients from the workers: {e}")
+            self.logger.log('debug', f"Error in receiving from the workers: {e}")
             return
         return msgs
     

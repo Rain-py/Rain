@@ -1,6 +1,6 @@
 from Rain.Divider.MachineLearning.KNN import KNN
 from Rain.Divider.MachineLearning.KMeans import KMeans
-from Rain.Divider.MachineLearning.NaiveBayes import NaiveBayes
+from Rain.Divider.MachineLearning.GaussianNaiveBayes import GaussianNaiveBayes
 
 class MachineLearningFactory:
     @staticmethod
@@ -11,8 +11,7 @@ class MachineLearningFactory:
             pass
         elif algorithm_type == "KMeans":
             return KMeans(config=config, divider_ambassador=divider_ambassador)
-        elif algorithm_type == "NaiveBayes":
-            # return NaiveBayes(config, divider_ambassador)
-            pass
+        elif algorithm_type == "GaussianNaiveBayes":
+            return GaussianNaiveBayes(config=config, divider_ambassador=divider_ambassador)
         else:
             raise Exception("Invalid machine learning interface type")
