@@ -71,7 +71,7 @@ class Coordinator(coord_pb2_grpc.coordinatorServicer):
         try:
             self.stop_serving()
         except Exception as e:
-            self.logger.log('error', f"Error deleting the coordinator: {e}")
+            self.logger.log('error', f"Error deleting: {e}")
             return
 
     def set_num_of_workers(self, num_of_workers: int) -> None:

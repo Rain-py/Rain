@@ -24,9 +24,9 @@ class Divider:
 
     def __del__(self):
         try:
-            self.divider_ambassador.stop_serving()
+            del self.divider_ambassador
         except Exception as e:
-            self.logger.log('error', f"Error deleting Divider: {e}")
+            self.logger.log('error', f"Error deleting: {e}")
 
     def serve(self):
         self.divider_ambassador.serve()
@@ -79,7 +79,6 @@ class Divider:
             model = self.algorithm.train_centralized_async(X_train_partitions, y_train_partitions) 
         else:
             raise Exception("Invalid strategy")
-        self.stop_serving()     
         return model 
 
 

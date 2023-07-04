@@ -18,10 +18,9 @@ class Rain:
         try:
           del self.provisioner
           del self.divider_proxy
-          del self.logger
           del self.temp_manager
         except Exception as e:
-           self.logger.log('error', f"Error deleting Rain: {e}")
+           self.logger.log('error', f"Error deleting: {e}")
 
     def train(self, X_train, y_train, strategy='sync'):
         # create workers
