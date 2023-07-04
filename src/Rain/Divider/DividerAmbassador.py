@@ -266,10 +266,8 @@ class DividerAmbassador(divider_pb2_grpc.dividerServicer):
         """
         try:
             if self.server:
-                # check if the server is running
-                if self.server._state.name == "IDLE":
-                    self.server.stop(0)
-                    self.logger.log('debug', "divider ambassador stopped serving")
+                self.server.stop(0)
+                self.logger.log('debug', "divider ambassador stopped serving")
         except Exception as e:
             self.logger.log('error', "Error stopping serving: " + str(e))
             return
