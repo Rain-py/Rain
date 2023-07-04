@@ -149,7 +149,7 @@ class Coordinator(coord_pb2_grpc.coordinatorServicer):
                 working_ids.append(self.ids[i])
         return coord_pb2.WorkersInfoResponse(workers_ips=working_IPs, workers_ports=working_ports, workers_ids=working_ids)
 
-    def upload(self, request: worker_pb2.UploadFileRequest, context: grpc.ServicerContext) -> worker_pb2.UploadFileResponse:
+    def upload(self, request: coord_pb2.MetaData, context: grpc.ServicerContext) -> coord_pb2.UploadFileResponse:
         """
         Divide the file into chunks and send them as a stream.
 
@@ -175,7 +175,7 @@ class Coordinator(coord_pb2_grpc.coordinatorServicer):
             self.logger.log('error', f"Error uploading the file: {e}")
             return worker_pb2.UploadFileResponse(chunk_data=b'') # No file to upload, upload an empty chunk
 
-    def download(self, request_iterator: Iterator[worker_pb2.DownloadFileRequest], context: grpc.ServicerContext) -> worker_pb2.DownloadFileResponse:
+    def download(self, request_iterator: coord_pb2.File, context: grpc.ServicerContext) -> coord_pb2.DownloadFileResponse:
         """
         Receives the data from workers as small chunks and appends them to a bytearray then writes the bytearray to a file.
 
@@ -206,7 +206,7 @@ class Coordinator(coord_pb2_grpc.coordinatorServicer):
             # return error message
             return worker_pb2.DownloadFileResponse(message='Error downloading the file')
 
-    def execute(self, worker_id: int, ip: str, port: int, iteration_num: int = 0) -> worker_pb2.executeData:
+    def execute(self, worker_id: int, ip: str, port: int, iteration_num: int = 0) -> worker_pb2.ExecuteData:
         """
         Executes a Python command on a worker.
 
@@ -217,18 +217,18 @@ class Coordinator(coord_pb2_grpc.coordinatorServicer):
             iteration_num (int): The iteration number (default 0).
 
         Returns:
-            An `executeData` message containing a success or error message.
+            An `ExecuteData` message containing a success or error message.
         """
         try:
             with grpc.insecure_channel(f'{ip}:{port}') as channel:
                 worker_stub = worker_pb2_grpc.workerStub(channel)   # interface for the grpc client(worker)
 
                 filename, extension = 'Algo', '.py'  
-                response =  worker_stub.Execute(worker_pb2.executeData(filename=filename,extension=extension,worker_id=str(worker_id), iteration_num=str(iteration_num)))
+                response =  worker_stub.Execute(worker_pb2.ExecuteData(filename=filename,extension=extension,worker_id=str(worker_id), iteration_num=str(iteration_num)))
                 self.logger.log('debug', f"coordinator received: {response.message} from worker")
         except Exception as e:
             self.logger.log('error', f"Error executing the file: {e}")
-            return worker_pb2.executeData(message='Error executing the file')
+            return worker_pb2.ExecuteData(message='Error executing the file')
 
     def send(self, target: str, worker_id: int, ip: str, port: int, iteration_num: int = 0) -> None:
         """

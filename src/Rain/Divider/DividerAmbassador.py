@@ -153,7 +153,7 @@ class DividerAmbassador(divider_pb2_grpc.dividerServicer):
                 # execute the model
                 self.logger.log('debug', f"divider begins executing iteration{iteration_num} for worker{worker_id}")
                 filename, extension = 'Algo', '.py'
-                response = worker_stub.Execute(worker_pb2.executeData(filename=filename,extension=extension,worker_id=str(worker_id), iteration_num=str(model_name)))
+                response = worker_stub.Execute(worker_pb2.ExecuteData(filename=filename,extension=extension,worker_id=str(worker_id), iteration_num=str(model_name)))
                 self.logger.log('debug', "divider received: " + response.message + " after executing the model on worker{worker_id}")
             except Exception as e:
                 self.logger.log('error', "Error executing the model on the worker: " + str(e))
@@ -178,7 +178,7 @@ class DividerAmbassador(divider_pb2_grpc.dividerServicer):
                 return
 
 
-    def download(self, request_iterator: Iterator[divider_pb2.DownloadFileRequest], context: grpc.ServicerContext) -> divider_pb2.DownloadFileResponse:
+    def download(self, request_iterator: divider_pb2.File, context: grpc.ServicerContext) -> divider_pb2.DownloadFileResponse:
         """
         Receives data from the coordinator and saves it to disk.
 

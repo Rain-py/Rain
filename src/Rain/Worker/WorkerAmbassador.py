@@ -7,7 +7,7 @@ from Rain.TemporaryFilesManager.TemporaryFilesManager import TemporaryFilesManag
 from Rain.Worker.Worker import Worker
 
 class WorkerAmbassador(worker_pb2_grpc.workerServicer):
-    def __init__(self, port):
+    def __init__(self, port : int) -> None:
         self.data_base_path = TemporaryFilesManager.get_instance().create_temp_dir('worker/') 
         self.port = port
         self.server = None
@@ -23,7 +23,7 @@ class WorkerAmbassador(worker_pb2_grpc.workerServicer):
             self.server.stop(0)
             self.logger.log('info', f"Worker stopped serving on port: {self.port}")
     
-    def download(self, request_iterator, context):
+    def download(self, request_iterator : worker_pb2.File, context : grpc.ServicerContext) -> worker_pb2.DownloadFileResponse:
         """
         function to receive data files from the coordinator.
         """
@@ -48,7 +48,7 @@ class WorkerAmbassador(worker_pb2_grpc.workerServicer):
             # return error message
             return worker_pb2.DownloadFileResponse(message='Error downloading the file')
 
-    def upload(self, request, context):
+    def upload(self, request : worker_pb2.MetaData, context : grpc.ServicerContext)-> worker_pb2.UploadFileResponse:
         chunk_size = 1024 # size of chunks used for uploading files
         
         filepath = self.data_base_path + request.filename + request.extension
@@ -65,7 +65,7 @@ class WorkerAmbassador(worker_pb2_grpc.workerServicer):
             self.logger.log('error', f"Error uploading the file: {e}")
             return worker_pb2.UploadFileResponse(chunk_data=b'') # No file to upload, upload an empty chunk
 
-    def Execute(self, request, context):
+    def Execute(self, request : worker_pb2.ExecuteData, context : grpc.ServicerContext)-> worker_pb2.ExecuteFileResponse:
         try:
             self.logger.log('info', f"Running the worker with id: {request.worker_id} on iteration: {request.iteration_num}")
             worker = Worker(request.worker_id, self.data_base_path, request.iteration_num)
@@ -75,7 +75,7 @@ class WorkerAmbassador(worker_pb2_grpc.workerServicer):
             self.logger.log('error', f"Error executing the file: {e}")
             return worker_pb2.ExecuteFileResponse(message='Error executing the file')
         
-    def serve(self):
+    def serve(self) -> None:
         try:
             # create a gRPC server
             self.server = grpc.server(futures.ThreadPoolExecutor(max_workers=4))

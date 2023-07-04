@@ -7,7 +7,7 @@ service worker {
     // worker uploads (sends) a file
     rpc upload(MetaData) returns (stream UploadFileResponse) {}
     // execute file
-    rpc Execute(executeData) returns (ExecuteFileResponse) {}
+    rpc Execute(ExecuteData) returns (ExecuteFileResponse) {}
   }
 
   
@@ -35,7 +35,7 @@ service worker {
 
   // -------------------
   // for execution
-  message executeData {
+  message ExecuteData {
     string filename = 1;
     string extension = 2;
     string worker_id = 3;

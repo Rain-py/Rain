@@ -19,7 +19,7 @@ class ProvisionerAmbassador(provisioner_pb2_grpc.provisionerServicer):
         self.stop_serving()
 
     # sendStatus() returns (WorkerStatus) {}
-    def SendStatus(self, request: provisioner_pb2.StatusRequest, context: grpc.ServicerContext) -> provisioner_pb2.WorkerStatus:
+    def SendStatus(self, request: provisioner_pb2.emptyMessage, context: grpc.ServicerContext) -> provisioner_pb2.WorkerStatus:
         """
         This function will be called from the coordinator side to get the status of the workers.
 
@@ -39,7 +39,7 @@ class ProvisionerAmbassador(provisioner_pb2_grpc.provisionerServicer):
             return provisioner_pb2.WorkerStatus(IPs = [], statuses = [], ports = [], ids = [])
 
     # DefineNWorkers(NumOfWorkers) returns () {}
-    def DefineNWorkers(self, request: provisioner_pb2.NumOfWorkersRequest, context: grpc.ServicerContext) -> provisioner_pb2.response:
+    def DefineNWorkers(self, request: provisioner_pb2.NumOfWorkers, context: grpc.ServicerContext) -> provisioner_pb2.response:
         """
         This function will be called from the coordinator side define the number of workers to be created.
 

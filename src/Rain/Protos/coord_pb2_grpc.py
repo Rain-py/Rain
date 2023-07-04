@@ -2,7 +2,7 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 
-from protos import coord_pb2 as protos_dot_coord__pb2
+from Rain.Protos import coord_pb2 as protos_dot_coord__pb2
 
 
 class coordinatorStub(object):
