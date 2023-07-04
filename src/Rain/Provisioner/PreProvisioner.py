@@ -1,0 +1,52 @@
+from Rain.Worker.WorkerAmbassador import WorkerAmbassador
+from Rain.Protos import provisioner_pb2
+from Rain.LogService.LogService import LogService
+from Rain.Provisioner.ProvisionerInterface import ProvisionerInterface
+
+BASE_PORT = 50151
+
+class PreProvisioner(ProvisionerInterface):
+    def __init__(self, ips, ports):
+        self.ips = ips 
+        self.statuses = []
+        self.ports = ports
+        self.ids = []
+        self.workers = []
+        self.num_workers = len(ips)
+        self.logger = LogService("LocalProvisioner")
+        self.logger.log('debug', f"Provisioner is initialized")
+    
+    def __del__(self):
+        self.delete_workers()
+
+    def delete_workers(self):
+        del self.workers  
+        self.logger.debug('info', f"Workers are deleted")      
+    
+    def create_workers(self, num_workers = None):
+        self.logger.log('debug', f"Creating {num_workers} workers")
+        try:
+            self.statuses = [provisioner_pb2.Status.UP] * self.num_workers
+            self.ids = [i+1 for i in range(self.num_workers)]
+        except Exception as e:
+            self.logger.log('error', f"Error configuring the workers: {e}")
+            return
+        
+        try:
+            for i in range(self.num_workers):
+                worker = WorkerAmbassador(self.ports[i])
+                worker.serve()
+                self.workers.append(worker)
+            return self.workers
+        except Exception as e:
+            self.logger.log('error', f"Error creating the workers: {e}")
+            return
+    
+    def get_workers_ids(self):
+        return self.ids
+    def get_workers_ips(self):
+        return self.ips
+    def get_workers_ports(self):
+        return self.ports
+    def get_workers_statuses(self):
+        return self.statuses
