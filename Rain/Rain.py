@@ -6,10 +6,10 @@ from Rain.LogService.LogService import LogService
 from Rain.TemporaryFilesManager.TemporaryFilesManager import TemporaryFilesManager
 class Rain:
     def __init__(self, config, model=None):
-        self.logger = LogService("Rain")
-        self.temp_manager = TemporaryFilesManager.get_instance()
-        self.logger.log('debug', f"Rain is initialized")
         self.config = config
+        self.logger = LogService("Rain")
+        self.temp_manager = TemporaryFilesManager.get_instance(config["temp_data_path"])
+        self.logger.log('debug', f"Rain is initialized")
         self.provisioner = Provisioner(self.config)
         self.divider_proxy = DividerProxy(config, model)
         self.ip_addresses = []

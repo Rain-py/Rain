@@ -6,18 +6,19 @@ class TemporaryFilesManager:
     __instance = None
 
     @staticmethod
-    def get_instance():
+    def get_instance(temp_dir=None):
         if TemporaryFilesManager.__instance is None:
-            TemporaryFilesManager()
+            TemporaryFilesManager(temp_dir)
         return TemporaryFilesManager.__instance
 
-    def __init__(self):
+    def __init__(self, temp_dir):
         if TemporaryFilesManager.__instance is not None:
             raise Exception("TemporaryFileManager is a singleton class. Use get_instance() to retrieve the instance.")
         else:
             TemporaryFilesManager.__instance = self
             self.temp_dir = os.getenv('TEMP') if os.name == 'nt' else '/tmp'
-            self.temp_dir = '../../../../Rain_data'
+            self.temp_dir = temp_dir if temp_dir is not None else self.temp_dir
+            self.temp_dir = f'{self.temp_dir}/RainData'
             self.temp_dirs = []
             self.logger = LogService(f"TemporaryFilesManager")
     
