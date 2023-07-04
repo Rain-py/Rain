@@ -24,11 +24,6 @@ class coordinatorStub(object):
                 request_serializer=protos_dot_coord__pb2.MetaData.SerializeToString,
                 response_deserializer=protos_dot_coord__pb2.UploadFileResponse.FromString,
                 )
-        self.start_loop = channel.unary_unary(
-                '/coord.coordinator/start_loop',
-                request_serializer=protos_dot_coord__pb2.StartLoopMessage.SerializeToString,
-                response_deserializer=protos_dot_coord__pb2.LoopResponse.FromString,
-                )
         self.get_workers_info = channel.unary_unary(
                 '/coord.coordinator/get_workers_info',
                 request_serializer=protos_dot_coord__pb2.WorkersInfoRequest.SerializeToString,
@@ -53,13 +48,6 @@ class coordinatorServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def start_loop(self, request, context):
-        """coordinator start its loop which sending the data and receiving the model
-        """
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
     def get_workers_info(self, request, context):
         """to get workers information 
         """
@@ -79,11 +67,6 @@ def add_coordinatorServicer_to_server(servicer, server):
                     servicer.upload,
                     request_deserializer=protos_dot_coord__pb2.MetaData.FromString,
                     response_serializer=protos_dot_coord__pb2.UploadFileResponse.SerializeToString,
-            ),
-            'start_loop': grpc.unary_unary_rpc_method_handler(
-                    servicer.start_loop,
-                    request_deserializer=protos_dot_coord__pb2.StartLoopMessage.FromString,
-                    response_serializer=protos_dot_coord__pb2.LoopResponse.SerializeToString,
             ),
             'get_workers_info': grpc.unary_unary_rpc_method_handler(
                     servicer.get_workers_info,
@@ -131,23 +114,6 @@ class coordinator(object):
         return grpc.experimental.unary_stream(request, target, '/coord.coordinator/upload',
             protos_dot_coord__pb2.MetaData.SerializeToString,
             protos_dot_coord__pb2.UploadFileResponse.FromString,
-            options, channel_credentials,
-            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
-
-    @staticmethod
-    def start_loop(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/coord.coordinator/start_loop',
-            protos_dot_coord__pb2.StartLoopMessage.SerializeToString,
-            protos_dot_coord__pb2.LoopResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 

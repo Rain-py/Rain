@@ -13,7 +13,6 @@ class DividerProxy():
         try:
             # send data
             self.divider.serve()
-            self.logger.log('debug', f"Sending data to workers")
             # train
             self.logger.log('debug', f"Training Started")
             model = self.divider.train(strategy, X_train, y_train)

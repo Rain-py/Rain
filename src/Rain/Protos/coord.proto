@@ -6,8 +6,6 @@ service coordinator {
     rpc download(stream File) returns (DownloadFileResponse) {}
     // coordinator upload (sends) a file 
     rpc upload(MetaData) returns (stream UploadFileResponse) {}
-    // coordinator start its loop which sending the data and receiving the model
-    rpc start_loop(StartLoopMessage) returns (LoopResponse) {}
     // to get workers information 
     rpc get_workers_info(WorkersInfoRequest) returns (WorkersInfoResponse) {}
   }

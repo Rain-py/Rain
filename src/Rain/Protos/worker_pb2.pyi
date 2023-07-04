@@ -38,7 +38,7 @@ class downloadFileResponse(_message.Message):
     chunk_data: bytes
     def __init__(self, chunk_data: _Optional[bytes] = ...) -> None: ...
 
-class executeData(_message.Message):
+class ExecuteData(_message.Message):
     __slots__ = ["extension", "filename", "worker_id"]
     EXTENSION_FIELD_NUMBER: _ClassVar[int]
     FILENAME_FIELD_NUMBER: _ClassVar[int]

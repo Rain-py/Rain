@@ -28,7 +28,7 @@ class Worker:
     def send_data(self, msg, ID):
         try:
             dill.dump(msg, open(f"{self.base_path}{ID}_{self.iteration_num}_trained.pkl", "wb"))
-            print("sending data to coordinator")
+            print("sending data to divider")
         except Exception as e:
             print("Error in sending the data: ", e)
             return
@@ -103,10 +103,11 @@ class Worker:
         for cluster in range(model.n_clusters):
             mask = labels == cluster
             if np.any(mask):
-                cluster_centers[cluster] = np.mean(X_train[mask], axis=0)
+                cluster_centers[cluster] = np.sum(X_train[mask], axis=0)
             result[cluster][:-1] = cluster_centers[cluster]
             result[cluster][-1] = len(X_train[mask])
         
+        print("result in worker : ", result)
         return result
 
     def _calculate_distances(self, X, cluster_centers):
