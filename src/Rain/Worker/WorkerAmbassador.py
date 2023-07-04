@@ -8,30 +8,53 @@ from Rain.Worker.Worker import Worker
 
 class WorkerAmbassador(worker_pb2_grpc.workerServicer):
     def __init__(self, port : int) -> None:
-        self.data_base_path = TemporaryFilesManager.get_instance().create_temp_dir('worker/') 
+        """
+        function to initialize the worker ambassador.
+        Args:
+            port (int): the port number to serve the worker on.
+        """
         self.port = port
         self.server = None
+
+        # create a temporary directory for the worker to store its data
+        self.data_base_path = TemporaryFilesManager.get_instance().create_temp_dir('worker/')
+        # create a logger for the worker 
         self.logger = LogService(f"Worker_{self.port}")
+        
+        # create the directory if it does not exist
         if not os.path.exists(self.data_base_path):
             os.makedirs(self.data_base_path) 
 
-    def __del__(self):
+    def __del__(self) -> None:
+        """
+        function to delete the worker ambassador.
+        """
         self.stop_serving()
 
-    def stop_serving(self):
+    def stop_serving(self) -> None:
+        """
+        function to stop the worker ambassador.
+        """
         if self.server:
+            # stop the server
             self.server.stop(0)
             self.logger.log('info', f"Worker stopped serving on port: {self.port}")
     
     def download(self, request_iterator : worker_pb2.File, context : grpc.ServicerContext) -> worker_pb2.DownloadFileResponse:
         """
-        function to receive data files from the coordinator.
+        function to receive data files from any service and save this data as file.
+        Args:
+            request_iterator (worker_pb2.File): the file to be received as stream of chunks.
+            context (grpc.ServicerContext): the context of the request.
+        Returns:
+            worker_pb2.DownloadFileResponse: the response message.
         """
         data = bytearray()
         try:
             # receive file name and its data
             for request in request_iterator:
                 if request.metadata.filename and request.metadata.extension:
+                    # the request is a file metadata, save the file name and extension
                     filepath = request.metadata.filename + request.metadata.extension
                 else:
                     # the request is a file data, collect it
@@ -49,6 +72,18 @@ class WorkerAmbassador(worker_pb2_grpc.workerServicer):
             return worker_pb2.DownloadFileResponse(message='Error downloading the file')
 
     def upload(self, request : worker_pb2.MetaData, context : grpc.ServicerContext)-> worker_pb2.UploadFileResponse:
+        """
+        function to read and send data files to any service.
+        Args:
+            request (worker_pb2.MetaData): the file name and extention to be sent.
+            context (grpc.ServicerContext): the context of the request.
+
+        Returns:
+            worker_pb2.UploadFileResponse: the chunck that will be send as response.
+
+        Yields:
+            Iterator[worker_pb2.UploadFileResponse]: the file data as stream of chunks.
+        """
         chunk_size = 1024 # size of chunks used for uploading files
         
         filepath = self.data_base_path + request.filename + request.extension
@@ -56,7 +91,7 @@ class WorkerAmbassador(worker_pb2_grpc.workerServicer):
             with open(filepath, mode="rb") as f:
                 while True:
                     chunk = f.read(chunk_size)
-                    if chunk:  # or len(chunk) > 0
+                    if chunk: 
                         entry_response = worker_pb2.UploadFileResponse(chunk_data=chunk)
                         yield entry_response
                     else:  # The chunk was empty, which means we're at the end of the file
@@ -66,16 +101,32 @@ class WorkerAmbassador(worker_pb2_grpc.workerServicer):
             return worker_pb2.UploadFileResponse(chunk_data=b'') # No file to upload, upload an empty chunk
 
     def Execute(self, request : worker_pb2.ExecuteData, context : grpc.ServicerContext)-> worker_pb2.ExecuteFileResponse:
+        """
+        function to execute worker.
+
+        Args:
+            request (worker_pb2.ExecuteData): the worker id and iteration number.
+            context (grpc.ServicerContext): the context of the request.
+
+        Returns:
+            worker_pb2.ExecuteFileResponse: the response message.
+        """
         try:
             self.logger.log('info', f"Running the worker with id: {request.worker_id} on iteration: {request.iteration_num}")
+            # create a worker and run it
             worker = Worker(request.worker_id, self.data_base_path, request.iteration_num)
             worker.run()
+            # return success message
             return worker_pb2.ExecuteFileResponse(message='Executed!')
         except Exception as e:
             self.logger.log('error', f"Error executing the file: {e}")
+            # return error message
             return worker_pb2.ExecuteFileResponse(message='Error executing the file')
         
     def serve(self) -> None:
+        """
+        function to start the worker ambassador as a server to listen on the given port.
+        """
         try:
             # create a gRPC server
             self.server = grpc.server(futures.ThreadPoolExecutor(max_workers=4))
