@@ -62,6 +62,15 @@ class ProvisionerAmbassador(provisioner_pb2_grpc.provisionerServicer):
             self.logger.log('error', f"Error receiving the number of workers: {e}")
             return provisioner_pb2.response(message = "Error receiving the number of workers")
 
+
+    def start_coordinator(self) -> None:
+        pass
+    def create_workers(self)    -> None:
+        pass
+    def get_num_workers(self)   -> int:
+        return self.num_workers
+    def delete_workers(self)    -> None:
+        pass
     def stop_worker(self,worker_ip, worker_port):
         try:
             with grpc.insecure_channel(worker_ip + f":{str(worker_port)}") as channel:
@@ -69,17 +78,8 @@ class ProvisionerAmbassador(provisioner_pb2_grpc.provisionerServicer):
                 worker_stub.StopWorker(worker_pb2.StopSignal(message = "Stop the worker"))
                 return 
         except Exception as e:
-            self.logger.log('error', f"Error stopping worker: {e}")
+            self.logger.log('error', f"Error stopping worker {worker_ip}:{worker_port}: {e}")
             return 
-
-    def create_workers(self)    -> None:
-        pass
-    def delete_workers(self)    -> None:
-        pass
-    def get_num_workers(self)   -> int:
-        return self.num_workers
-    def start_coordinator(self) -> None:
-        pass
     
     def stop_serving(self) -> None:
         """
@@ -89,11 +89,16 @@ class ProvisionerAmbassador(provisioner_pb2_grpc.provisionerServicer):
             None
         """
         try:
+            self.delete_workers()
+        except Exception as e:
+            self.logger.log('error', f"Error deleting workers: {e}")
+            
+        try:
             if self.server:
                 self.server.stop(0)
                 self.logger.log('info', "provisioner stopped serving")
         except Exception as e:
-            self.logger.log('error', "Error stopping serving: " + str(e))
+            self.logger.log('error', f"Error stopping serving: {e}")
             return
 
     def serve(self) -> None:
@@ -116,6 +121,7 @@ class ProvisionerAmbassador(provisioner_pb2_grpc.provisionerServicer):
             
             self.start_coordinator()
 
+            # busy wait until receiving the number of workers
             while self.num_workers == 0:
                 continue
             # create the workers

@@ -140,7 +140,7 @@ test = ["coverage"]
 # The following would provide a command line executable called `WorkerServe`
 # which executes the function `worker_serve` from this package when invoked.
 [project.scripts]  # Optional
-WorkerServe = "Rain:worker_serve"
+start_rain_worker = "Rain:start_rain_worker"
 # You can run 'WorkerServe' in anywhere in the terminal.
 
 # This is configuration specific to the `setuptools` build backend.

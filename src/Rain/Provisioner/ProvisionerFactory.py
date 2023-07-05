@@ -13,7 +13,7 @@ class ProvisionerFactory:
                 raise Exception("Invalid provisioner config")
             return CloudProvisioner(subscription_id= subscription_id,
                                     location=location)
-        elif config["mode"]["type"] == 'onPremise':
+        elif config["mode"]["type"] == 'lazy':
             try:
                 ips = config["mode"]["params"]["ips"]
                 ports = config["mode"]["params"]["ports"]

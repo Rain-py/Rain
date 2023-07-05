@@ -8,7 +8,7 @@ from Rain.LogService.LogService import LogService
 
 class Divider:
     def __init__(self, model, config):
-        self.num_of_workers = config["partitions"]
+        self.num_of_workers = config["mode"]["params"]["num_of_workers"]
         self.partitions = config["partitions"]
         self.logger = LogService("Divider")
         self.divider_ambassador = DividerAmbassador()        

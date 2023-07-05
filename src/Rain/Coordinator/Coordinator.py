@@ -322,7 +322,8 @@ class Coordinator(coord_pb2_grpc.coordinatorServicer):
 
             self.server.start()
             self.logger.log('info', f"coordinator is serving")
-            self.set_num_of_workers(3)
+            # TODO: Critical, should be solved!!!
+            self.set_num_of_workers(1)
             
         except Exception as e:
             self.logger.log('error', f"Error in the coordinator server: {e}")

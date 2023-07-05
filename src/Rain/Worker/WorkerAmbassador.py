@@ -152,4 +152,6 @@ class WorkerAmbassador(worker_pb2_grpc.workerServicer):
         except Exception as e:
             self.logger.log('error', f"Error in the worker server: {e}")
             return
+    def wait_for_termination(self):
+        self.server.wait_for_termination()
     

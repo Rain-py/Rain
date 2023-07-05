@@ -37,7 +37,6 @@ class LocalProvisioner(ProvisionerInterface):
         self.num_workers = num_workers
         try:
             self.ips = ['127.0.0.1'] * self.num_workers
-            self.statuses = [provisioner_pb2.Status.UP] * self.num_workers
             self.ports = [i+BASE_PORT for i in range(self.num_workers)]
             self.ids = [i+1 for i in range(self.num_workers)]
         except Exception as e:
@@ -49,6 +48,7 @@ class LocalProvisioner(ProvisionerInterface):
                 worker = WorkerAmbassador(self.ports[i])
                 worker.serve()
                 self.workers.append(worker)
+            self.statuses = [provisioner_pb2.Status.UP] * self.num_workers
             return self.workers
         except Exception as e:
             self.logger.log('error', f"Error creating the workers: {e}")

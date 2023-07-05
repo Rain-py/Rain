@@ -12,7 +12,6 @@ class Rain:
         self.logger.log('debug', f"Rain is initialized")
         self.provisioner = Provisioner(self.config)
         self.divider_proxy = DividerProxy(config, model)
-        self.ip_addresses = []
 
     def __del__(self):
         try:
@@ -23,12 +22,9 @@ class Rain:
            self.logger.log('error', f"Error deleting: {e}")
 
     def train(self, X_train, y_train, strategy='sync'):
-        # create workers
-        self.logger.log('debug', f"Creating workers")
         try:
           self.provisioner.serve()
           model = self.divider_proxy.train(X_train, y_train, strategy) 
-          
           self.provisioner.stop_serving()
         except Exception as e:
           self.logger.log('error', f"Error training the model: {e}")

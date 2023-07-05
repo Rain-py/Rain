@@ -58,8 +58,25 @@ class CloudProvisioner(ProvisionerInterface):
         self.nic_name_list = []
         self.ip_name_list = []
         self.vm_name_list = []
-        self.custom_data_script = "#cloud-config\n\nruncmd:\n  - apt-get update\n  - apt-get install -y apache2\n  - echo 'Hello I am a worker' > /var/www/html/index.html"
+        # self.custom_data_script = "#cloud-config\n\nruncmd:\n  - apt-get update\n  - apt-get install -y apache2\n  - echo 'Hello I am a worker' > /var/www/html/index.html"
+        self.custom_data_script = '''\
+                            #!/usr/bin/env bash
 
+                            apt-get update
+                            apt-get install -y apache2
+                            apt-get install -y python3-pip
+                            pip3 install numpy
+
+                            cat << EOF > /var/www/html/index.html
+                            <!DOCTYPE html>
+                            <html>
+                            <head>
+                            <title>Rain Worker</title>
+                            </head>
+                            <body>
+                            <h1>I am a Rain Worker and I am waiting for a task -or working on one already, IDK :(- </h1>
+                            <pre>
+                            '''
         self.logger = LogService("CloudProvisioner")
         self.logger.log('debug', f"Provisioner is initialized")
     ############## Destructors ##############
