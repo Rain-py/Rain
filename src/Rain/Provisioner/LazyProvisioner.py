@@ -34,16 +34,6 @@ class LazyProvisioner(ProvisionerInterface):
             self.logger.log('error', f"Error configuring the workers: {e}")
             return
         
-        try:
-            for i in range(self.num_workers):
-                worker = WorkerAmbassador(self.ports[i])
-                worker.serve()
-                self.workers.append(worker)
-            return self.workers
-        except Exception as e:
-            self.logger.log('error', f"Error creating the workers: {e}")
-            return
-    
     def get_workers_ids(self):
         return self.ids
     def get_workers_ips(self):
