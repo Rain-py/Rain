@@ -159,7 +159,7 @@ class DividerAmbassador(divider_pb2_grpc.dividerServicer):
                 self.logger.log('debug', f"divider begins executing iteration{iteration_num} for worker{worker_id}")
                 filename, extension = 'Algo', '.py'
                 response = worker_stub.Execute(worker_pb2.ExecuteData(filename=filename,extension=extension,worker_id=str(worker_id), iteration_num=str(model_name)))
-                self.logger.log('debug', "divider received: " + response.message + " after executing the model on worker{worker_id}")
+                self.logger.log('debug', "divider received: " + response.message + f" after executing the model on worker{worker_id}")
             except Exception as e:
                 self.logger.log('error', "Error executing the model on the worker: " + str(e))
                 return
