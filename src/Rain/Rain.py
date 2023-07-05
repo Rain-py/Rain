@@ -16,12 +16,13 @@ class Rain:
           model (any, optional): the model to be trained (if machine learning, pass None).
       """   
       self.config = config
-      self.config_handler = ConfigHandler()
+      # self.config_handler = ConfigHandler()
       # create a logger for the Rain file.
       self.logger = LogService("Rain")
       try:
         # validate the config.
-        self.config_handler.validate_config(config)
+        # self.config_handler.validate_config(config)
+        pass
       except Exception as e:
         self.logger.log("error", f"Error in the config: {e}")
       # create a temporary directory for the Rain to store its data.

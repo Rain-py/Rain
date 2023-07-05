@@ -70,11 +70,12 @@ def read_partitioned_data(data: List[Any], filename: str, extension: str, chunk_
 
 
 class DividerAmbassador(divider_pb2_grpc.dividerServicer):
-    def __init__(self):
+    def __init__(self, chunk_size: int = 1024):
         self.data_base_path = TemporaryFilesManager.get_instance().create_temp_dir('divider/')
         self.server = None
         self.logger = LogService("DividerAmbassador")
         self.coordinator_IP = '127.0.0.1'
+        self.chunk_size = chunk_size
         
     def __del__(self):
         try:
@@ -100,13 +101,13 @@ class DividerAmbassador(divider_pb2_grpc.dividerServicer):
         try:
             np.save(f"{self.data_base_path}X_train_{worker_id}.npy", X_train_partition)
             response = worker_stub.download(
-                read_file(self.data_base_path + f"X_train_{worker_id}.npy")
+                read_file(self.data_base_path + f"X_train_{worker_id}.npy", chunk_size=self.chunk_size)
                     # read_partitioned_data(X_train_partition, f"X_train_{worker_id}", ".npy")
                 )
             self.logger.log('debug', "divider receive: " + response.message + " from  worker after sending X_train")
             np.save(f"{self.data_base_path}y_train_{worker_id}.npy", y_train_partition)
             response = worker_stub.download(
-                read_file(self.data_base_path + f"y_train_{worker_id}.npy")
+                read_file(self.data_base_path + f"y_train_{worker_id}.npy", chunk_size=self.chunk_size)
                 # read_partitioned_data(y_train_partition, f"y_train_{worker_id}", ".npy")
             )
             self.logger.log('debug', "divider receive: " + response.message + " from worker after sending y_train")
@@ -148,7 +149,7 @@ class DividerAmbassador(divider_pb2_grpc.dividerServicer):
             try:
                 # send the model to the worker
                 self.logger.log('debug', f"Sending {self.data_base_path}{worker_id}.pkl to worker{worker_id}")
-                response = worker_stub.download(read_file(f'{self.data_base_path}{model_name}.pkl'))
+                response = worker_stub.download(read_file(f'{self.data_base_path}{model_name}.pkl', chunk_size=self.chunk_size))
                 self.logger.log('debug', "divider received: " + response.message +  " after sending the model to worker " + str(worker_id))
             except Exception as e:
                 self.logger.log('error', "Error sending the model to the worker: " + str(e))
@@ -158,7 +159,7 @@ class DividerAmbassador(divider_pb2_grpc.dividerServicer):
                 self.logger.log('debug', f"divider begins executing iteration{iteration_num} for worker{worker_id}")
                 filename, extension = 'Algo', '.py'
                 response = worker_stub.Execute(worker_pb2.ExecuteData(filename=filename,extension=extension,worker_id=str(worker_id), iteration_num=str(model_name)))
-                self.logger.log('debug', "divider received: " + response.message + " after executing the model on worker{worker_id}")
+                self.logger.log('debug', "divider received: " + response.message + f" after executing the model on worker{worker_id}")
             except Exception as e:
                 self.logger.log('error', "Error executing the model on the worker: " + str(e))
                 return

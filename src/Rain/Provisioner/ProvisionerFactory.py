@@ -21,6 +21,6 @@ class ProvisionerFactory:
             except Exception as e:
                 raise Exception("Invalid provisioner config")
         elif config["mode"]["type"] == 'local':
-            return LocalProvisioner()
+            return LocalProvisioner(chunk_size=config["chunk_size"])
         else:
             raise Exception("Invalid provisioner type")

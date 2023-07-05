@@ -9,7 +9,6 @@ class LazyProvisioner(ProvisionerInterface):
         self.statuses = []
         self.ports = ports
         self.ids = []
-        self.workers = []
         self.num_workers = len(ips)
         self.logger = LogService("LazyProvisioner")
         self.logger.log('debug', f"Provisioner is initialized")
@@ -22,8 +21,7 @@ class LazyProvisioner(ProvisionerInterface):
             return
 
     def delete_workers(self):
-        del self.workers  
-        self.logger.log('debug', f"Workers are deleted")      
+        self.logger.log('debug', f"Delete your workers, please")      
     
     def create_workers(self, num_workers = None):
         self.logger.log('debug', f"Creating {num_workers} workers")
@@ -34,16 +32,6 @@ class LazyProvisioner(ProvisionerInterface):
             self.logger.log('error', f"Error configuring the workers: {e}")
             return
         
-        try:
-            for i in range(self.num_workers):
-                worker = WorkerAmbassador(self.ports[i])
-                worker.serve()
-                self.workers.append(worker)
-            return self.workers
-        except Exception as e:
-            self.logger.log('error', f"Error creating the workers: {e}")
-            return
-    
     def get_workers_ids(self):
         return self.ids
     def get_workers_ips(self):
