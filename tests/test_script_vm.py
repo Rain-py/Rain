@@ -56,7 +56,7 @@ config = {
         
       }
     },
-  "temp_data_path": "../../../",
+  "temp_data_path": "./",
   "partitions": 3,
   "iterations": 3,
   "chunk_size": 1024*1024,

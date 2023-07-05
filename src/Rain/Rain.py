@@ -4,7 +4,7 @@ from Rain.Provisioner.Provisioner import Provisioner
 from Rain.Divider.DividerProxy import DividerProxy
 from Rain.LogService.LogService import LogService
 from Rain.TemporaryFilesManager.TemporaryFilesManager import TemporaryFilesManager
-from Rain.ConfigHandler.ConfigHandler import ConfigHandler
+# from Rain.ConfigHandler.ConfigHandler import ConfigHandler
 import numpy
 class Rain:
     def __init__(self, config : dict, model : any = None) -> None:
@@ -40,9 +40,6 @@ class Rain:
       try:
         del self.provisioner
         del self.divider_proxy
-        del self.temp_manager
-        del self.logger
-        del self.config_handler
       except Exception as e:
           self.logger.log('error', f"Error deleting: {e}")
 
