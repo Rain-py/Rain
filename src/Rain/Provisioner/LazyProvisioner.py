@@ -3,8 +3,6 @@ from Rain.Protos import provisioner_pb2
 from Rain.LogService.LogService import LogService
 from Rain.Provisioner.ProvisionerInterface import ProvisionerInterface
 
-BASE_PORT = 50151
-
 class LazyProvisioner(ProvisionerInterface):
     def __init__(self, ips, ports):
         self.ips = ips 

@@ -104,3 +104,21 @@ The Adapter pattern converts the interface of one class into another interface t
 
 Example:
 Suppose you have an existing LegacyRectangle class that represents a rectangle with methods calculateArea() and calculatePerimeter(). However, you have a client code that expects a Shape interface with methods getArea() and getPerimeter(). To make the LegacyRectangle compatible with the client code, you can create an Adapter class that implements the Shape interface and internally uses the LegacyRectangle object. The Adapter class maps the getArea() and getPerimeter() methods to the corresponding methods of the LegacyRectangle class.
+
+
+tar -czvf dist.tar.gz dist/
+sudo scp -i /tmp/RainData/prov/private_key.pem ./dist.tar.gz  rain@172.190.224.121:~/
+
+
+sudo apt-get update
+sudo apt install python3-pip -y
+tar -xvf ./dist.tar.gz
+pip install ./dist/Rain-0.1.1.tar.gz 
+
+nc -zv 172.190.116.144 50151 # check port is open
+
+udo iptables -A INPUT -p tcp --dport 50151 -j ACCEPT #open a port
+
+watch -n 1 netstat -tlp
+
+curl -sSL "https://github.com/fullstorydev/grpcurl/releases/download/v1.8.7/grpcurl_1.8.7_linux_x86_64.tar.gz" | sudo tar -xz -C /usr/local/bin
