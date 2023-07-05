@@ -1,5 +1,4 @@
 import base64
-import paramiko
 from azure.identity import DefaultAzureCredential
 from azure.mgmt.compute import ComputeManagementClient
 from azure.mgmt.compute.models import (HardwareProfile, LinuxConfiguration,
@@ -58,7 +57,7 @@ class CloudProvisioner(ProvisionerInterface):
         self.nic_name_list = []
         self.ip_name_list = []
         self.vm_name_list = []
-        self.custom_data_script = "#cloud-config\n\nruncmd:\n  - sudo apt-get update\n  - sudo apt-get install -y apache2\n  - sudo apt-get update\n  - sudo apt install -y python3-pip\n  - sudo pip install grpcio==1.56.0\n  - sudo pip install grpcio-tools==1.56.0\n  - sudo pip install protobuf>=4.21.6,<5.0\n  - sudo pip install azure-mgmt-compute==29.1.0\n  - sudo pip install azure-mgmt-core==1.4.0\n  - sudo pip install azure-mgmt-network==23.0.0\n  - sudo pip install azure-mgmt-resource==23.0.0\n  - sudo pip install azure-storage-blob==12.13.0\n  - sudo pip install azure-identity==1.12.0\n  - sudo pip install dill==0.3.6\n  - sudo pip install numpy>=1.22,<1.24\n  - sudo pip install torch==2.0.1\n  - sudo pip install keras>=2.12,<2.13\n  - sudo pip install tensorflow==2.12.0\n  - echo 'Hello I am a worker All packages are installed' > /var/www/html/index.html"
+        self.custom_data_script = "#cloud-config\n\nruncmd:\n  - sudo apt-get update\n  - sudo apt-get install -y apache2\n  - sudo apt-get update\n  - sudo apt install -y python3-pip\n  - sudo pip install grpcio==1.56.0\n  - sudo pip install grpcio-tools==1.56.0\n  - sudo pip install protobuf>=4.21.6,<5.0\n  - sudo pip install azure-mgmt-compute==29.1.0\n  - sudo pip install azure-mgmt-core==1.4.0\n  - sudo pip install azure-mgmt-network==23.0.0\n  - sudo pip install azure-mgmt-resource==23.0.0\n  - sudo pip install azure-storage-blob==12.13.0\n  - sudo pip install azure-identity==1.12.0\n  - sudo pip install dill==0.3.6\n  - sudo pip install numpy>=1.22,<1.24\n  - sudo pip install torch==2.0.1\n  - sudo pip install keras>=2.12,<2.13\n  - sudo pip install tensorflow==2.12.0\n  - git clone https://github.com/Rain-py/Rain.git\n - pip install ./Rain/dist/Rain-0.1.1.tar.gz\n - echo 'Hello I am a worker All packages are installed' > /var/www/html/index.html"
         self.logger = LogService("CloudProvisioner")
         self.logger.log('debug', f"Provisioner is initialized")
     ############## Destructors ##############
@@ -332,25 +331,17 @@ class CloudProvisioner(ProvisionerInterface):
             self.resource_group_name, virtual_machine_name).wait()
 
     ############## Utility Methods ############## 
-    def create_ssh_key_pair(self, private_key_path, public_key_path):
-        try:
-            # Generate an SSH key pair
-            key = paramiko.RSAKey.generate(2048)
+    def create_ssh_key_pair(self, private_key_path, public_key_path): 
+        private_key_path = './keys/private_key.pem'
+        # read the path: keys/private_key.pem
+        with open(private_key_path, 'r') as f:
+            private_key = f.read()
 
-            # Save the private key to a file
-            key.write_private_key_file(private_key_path)
-            # save the private key to a string
-            private_key = key.get_base64()
-
-            # Save the public key to a file
-            with open(public_key_path, 'w') as f:
-                f.write(f'ssh-rsa {key.get_base64()}')
-            # Save the public key to a string
-            public_key = f'ssh-rsa {key.get_base64()}'
-        except Exception as e:
-            self.logger.log('error', f"Error creating SSH key pair:{e}")            
-            raise Exception("Error creating SSH key pair")
-        self.logger.log('debug', f"Created SSH key pair at {private_key_path} and {public_key_path}")
+        public_key_path = './keys/public_key.pem'
+        # read the path: keys/public_key.pem
+        with open(public_key_path, 'r') as f:
+            public_key = f.read()
+        self.logger.log('debug', f"Read SSH key pair at {private_key_path} and {public_key_path}")
         return private_key, public_key
 
     def get_ip_address_by_vm_name(self, vm_name):
