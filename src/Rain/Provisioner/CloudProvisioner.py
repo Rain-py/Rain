@@ -42,7 +42,7 @@ class CloudProvisioner(ProvisionerInterface):
         self.ids = []
         self.num_workers = 0
         # TODO: should be a parameter/temporary variable
-        self.vm_size = 'Standard_B2s' # vcpu=2, RAM=4, price=0.04/hr
+        self.vm_size = 'Standard_B2ms' # vcpu=2, RAM=8, price=0.08/hr
         self.data_base_path = TemporaryFilesManager.get_instance().create_temp_dir('prov/')
 
         # For the internal use only
@@ -58,25 +58,24 @@ class CloudProvisioner(ProvisionerInterface):
         self.nic_name_list = []
         self.ip_name_list = []
         self.vm_name_list = []
-        # self.custom_data_script = "#cloud-config\n\nruncmd:\n  - apt-get update\n  - apt-get install -y apache2\n  - echo 'Hello I am a worker' > /var/www/html/index.html"
         self.custom_data_script = '''\
-                            #!/usr/bin/env bash
-
-                            apt-get update
-                            apt-get install -y apache2
-                            apt-get install -y python3-pip
-                            pip3 install numpy
-
-                            cat << EOF > /var/www/html/index.html
-                            <!DOCTYPE html>
-                            <html>
-                            <head>
-                            <title>Rain Worker</title>
-                            </head>
-                            <body>
-                            <h1>I am a Rain Worker and I am waiting for a task -or working on one already, IDK :(- </h1>
-                            <pre>
-                            '''
+                                #cloud-config\n\nruncmd:\n 
+                                - apt-get update\n  
+                                - apt install -y python-pip\n
+                                - apt-get install -y apache2\n  
+                                - echo 'Hello I am a worker\n\n Installing gRPC...' > /var/www/html/index.html
+                                - pip install grpcio==1.56.0 grpcio-tools==1.56.0 protobuf>=4.21.6,<5.0 
+                                - echo 'Hello I am a worker\n\n Installing Azure...' > /var/www/html/index.html
+                                - pip install paramiko==3.2.0 azure-mgmt-compute==29.1.0 azure-mgmt-core==1.4.0 azure-mgmt-network==23.0.0 azure-mgmt-resource==23.0.0 azure-storage-blob==12.13.0 azure-identity==1.12.0 azure-common==1.1.28 azure-core==1.26.4
+                                - echo 'Hello I am a worker\n\n Installing numpy and dill...' > /var/www/html/index.html
+                                - pip install dill==0.3.6 numpy>=1.22,<1.24 
+                                - echo 'Hello I am a worker\n\n Installing torch...' > /var/www/html/index.html
+                                - pip install torch==2.0.1 
+                                - echo 'Hello I am a worker\n\n Installing Tensor...' > /var/www/html/index.html
+                                - pip install keras>=2.12,<2.13 tensorflow==2.12.0 
+                                - echo 'Hello I am a worker\n\n Installing Rain...' > /var/www/html/index.html
+                                - echo 'Hello I am a worker\n\n All packages are installed' > /var/www/html/index.html
+                                '''
         self.logger = LogService("CloudProvisioner")
         self.logger.log('debug', f"Provisioner is initialized")
     ############## Destructors ##############

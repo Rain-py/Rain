@@ -4,10 +4,17 @@ from Rain.Provisioner.Provisioner import Provisioner
 from Rain.Divider.DividerProxy import DividerProxy
 from Rain.LogService.LogService import LogService
 from Rain.TemporaryFilesManager.TemporaryFilesManager import TemporaryFilesManager
+from Rain.ConfigHandler.ConfigHandler import ConfigHandler
 class Rain:
     def __init__(self, config, model=None):
         self.config = config
+        self.config_handler = ConfigHandler()
         self.logger = LogService("Rain")
+        try:
+          self.config_handler.validate_config(config)
+        except Exception as e:
+          self.logger.log("error", f"Error in the config: {e}")
+          # return
         self.temp_manager = TemporaryFilesManager.get_instance(config["temp_data_path"] if "temp_data_path" in config else None)
         self.logger.log('debug', f"Rain is initialized")
         self.provisioner = Provisioner(self.config)

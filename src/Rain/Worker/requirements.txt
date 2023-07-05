@@ -1,6 +1,6 @@
-  "grpcio==1.56.0",
-  "grpcio-tools==1.56.0",
-  'protobuf>=4.21.6,<5.0',
+grpcio==1.56.0
+grpcio-tools==1.56.0
+protobuf>=4.21.6,<5.0
 dill==0.3.6
 numpy>=1.22,<1.24
 torch==2.0.1

@@ -153,33 +153,33 @@ class Coordinator(coord_pb2_grpc.coordinatorServicer):
                 working_ids.append(self.ids[i])
         return coord_pb2.WorkersInfoResponse(workers_ips=working_IPs, workers_ports=working_ports, workers_ids=working_ids)
 
-    def upload(self, request: coord_pb2.MetaData, context: grpc.ServicerContext) -> coord_pb2.UploadFileResponse:
-        """
-        Divide the file into chunks and send them as a stream.
+    # def upload(self, request: coord_pb2.MetaData, context: grpc.ServicerContext) -> coord_pb2.UploadFileResponse:
+    #     """
+    #     Divide the file into chunks and send them as a stream.
 
-        Args:
-            request (UploadFileRequest): A `UploadFileRequest` message containing the filename and extension of the file.
-            context (grpc.ServicerContext): The context of the gRPC service.
+    #     Args:
+    #         request (UploadFileRequest): A `UploadFileRequest` message containing the filename and extension of the file.
+    #         context (grpc.ServicerContext): The context of the gRPC service.
 
-        Yields:
-            A `UploadFileResponse` message containing a chunk of the file data.
-        """
-        chunk_size = 1024
-        filepath = self.date_base_path + request.filename + request.extension
-        try:
-            with open(filepath, mode="rb") as f:
-                while True:
-                    chunk = f.read(chunk_size)
-                    if chunk:
-                        entry_response = worker_pb2.UploadFileResponse(chunk_data=chunk)
-                        yield entry_response
-                    else:  # The chunk was empty, which means we're at the end of the file
-                        return
-        except Exception as e:
-            self.logger.log('error', f"Error uploading the file: {e}")
-            return worker_pb2.UploadFileResponse(chunk_data=b'') # No file to upload, upload an empty chunk
+    #     Yields:
+    #         A `UploadFileResponse` message containing a chunk of the file data.
+    #     """
+    #     chunk_size = 1024
+    #     filepath = self.date_base_path + request.filename + request.extension
+    #     try:
+    #         with open(filepath, mode="rb") as f:
+    #             while True:
+    #                 chunk = f.read(chunk_size)
+    #                 if chunk:
+    #                     entry_response = worker_pb2.UploadFileResponse(chunk_data=chunk)
+    #                     yield entry_response
+    #                 else:  # The chunk was empty, which means we're at the end of the file
+    #                     return
+    #     except Exception as e:
+    #         self.logger.log('error', f"Error uploading the file: {e}")
+    #         return worker_pb2.UploadFileResponse(chunk_data=b'') # No file to upload, upload an empty chunk
 
-    def download(self, request_iterator: coord_pb2.File, context: grpc.ServicerContext) -> coord_pb2.DownloadFileResponse:
+    # def download(self, request_iterator: coord_pb2.File, context: grpc.ServicerContext) -> coord_pb2.DownloadFileResponse:
         """
         Receives the data from workers as small chunks and appends them to a bytearray then writes the bytearray to a file.
 
@@ -210,100 +210,100 @@ class Coordinator(coord_pb2_grpc.coordinatorServicer):
             # return error message
             return worker_pb2.DownloadFileResponse(message='Error downloading the file')
 
-    def execute(self, worker_id: int, ip: str, port: int, iteration_num: int = 0) -> worker_pb2.ExecuteData:
-        """
-        Executes a Python command on a worker.
+    # def execute(self, worker_id: int, ip: str, port: int, iteration_num: int = 0) -> worker_pb2.ExecuteData:
+    #     """
+    #     Executes a Python command on a worker.
 
-        Args:
-            worker_id (int): The ID of the worker.
-            ip (str): The IP address of the worker.
-            port (int): The port number of the worker.
-            iteration_num (int): The iteration number (default 0).
+    #     Args:
+    #         worker_id (int): The ID of the worker.
+    #         ip (str): The IP address of the worker.
+    #         port (int): The port number of the worker.
+    #         iteration_num (int): The iteration number (default 0).
 
-        Returns:
-            An `ExecuteData` message containing a success or error message.
-        """
-        try:
-            with grpc.insecure_channel(f'{ip}:{port}') as channel:
-                worker_stub = worker_pb2_grpc.workerStub(channel)   # interface for the grpc client(worker)
+    #     Returns:
+    #         An `ExecuteData` message containing a success or error message.
+    #     """
+    #     try:
+    #         with grpc.insecure_channel(f'{ip}:{port}') as channel:
+    #             worker_stub = worker_pb2_grpc.workerStub(channel)   # interface for the grpc client(worker)
 
-                filename, extension = 'Algo', '.py'  
-                response =  worker_stub.Execute(worker_pb2.ExecuteData(filename=filename,extension=extension,worker_id=str(worker_id), iteration_num=str(iteration_num)))
-                self.logger.log('debug', f"coordinator received: {response.message} from worker")
-        except Exception as e:
-            self.logger.log('error', f"Error executing the file: {e}")
-            return worker_pb2.ExecuteData(message='Error executing the file')
+    #             filename, extension = 'Algo', '.py'  
+    #             response =  worker_stub.Execute(worker_pb2.ExecuteData(filename=filename,extension=extension,worker_id=str(worker_id), iteration_num=str(iteration_num)))
+    #             self.logger.log('debug', f"coordinator received: {response.message} from worker")
+    #     except Exception as e:
+    #         self.logger.log('error', f"Error executing the file: {e}")
+    #         return worker_pb2.ExecuteData(message='Error executing the file')
 
-    def send(self, target: str, worker_id: int, ip: str, port: int, iteration_num: int = 0) -> None:
-        """
-        Defines the interface for the workers and establishes a connection with the workers and sends them their tasks. 
-        Defines the interface for the divider and establishes a connection with the divider and sends it the weights collected from the workers.
+    # def send(self, target: str, worker_id: int, ip: str, port: int, iteration_num: int = 0) -> None:
+    #     """
+    #     Defines the interface for the workers and establishes a connection with the workers and sends them their tasks. 
+    #     Defines the interface for the divider and establishes a connection with the divider and sends it the weights collected from the workers.
 
-        Args:
-            target (str): The target of the send operation (worker or divider).
-            worker_id (int): The ID of the worker.
-            ip (str): The IP address of the target (provisioner IP or worker IP).
-            port (int): The port number of the worker.
-            iteration_num (int): The iteration number (default 0).
+    #     Args:
+    #         target (str): The target of the send operation (worker or divider).
+    #         worker_id (int): The ID of the worker.
+    #         ip (str): The IP address of the target (provisioner IP or worker IP).
+    #         port (int): The port number of the worker.
+    #         iteration_num (int): The iteration number (default 0).
 
-        Returns:
-            A `DownloadFileResponse` message containing a success or error message.
-        """
-        if target == "worker":
-            # Establish a connection with the worker on port 50051
-            with grpc.insecure_channel(f'{ip}:{port}') as channel:
-                # create an interface for the grpc client (worker)
-                worker_stub = worker_pb2_grpc.workerStub(channel) 
-                # send files
-                if not self.data_status[worker_id - 1]:
-                    response = worker_stub.download(read_file(f'{self.data_base_path}X_train_{worker_id}.npy', self.logger))
-                    self.logger.log('debug', f"coordinator received: {response.message} from worker")
-                    response = worker_stub.download(read_file(f'{self.data_base_path}y_train_{worker_id}.npy', self.logger))
-                    self.logger.log('debug', f"coordinator received: {response.message} from worker")
-                    self.data_status[worker_id - 1] = 1
+    #     Returns:
+    #         A `DownloadFileResponse` message containing a success or error message.
+    #     """
+    #     if target == "worker":
+    #         # Establish a connection with the worker on port 50051
+    #         with grpc.insecure_channel(f'{ip}:{port}') as channel:
+    #             # create an interface for the grpc client (worker)
+    #             worker_stub = worker_pb2_grpc.workerStub(channel) 
+    #             # send files
+    #             if not self.data_status[worker_id - 1]:
+    #                 response = worker_stub.download(read_file(f'{self.data_base_path}X_train_{worker_id}.npy', self.logger))
+    #                 self.logger.log('debug', f"coordinator received: {response.message} from worker")
+    #                 response = worker_stub.download(read_file(f'{self.data_base_path}y_train_{worker_id}.npy', self.logger))
+    #                 self.logger.log('debug', f"coordinator received: {response.message} from worker")
+    #                 self.data_status[worker_id - 1] = 1
 
-                response = worker_stub.download(read_file(f'{self.data_base_path}{iteration_num}.pkl', self.logger))
-                self.logger.log('debug', f"coordinator received: {response.message} from worker")
-        elif target == 'divider':
-            # Establish a connection with the divider on port 50052
-            with grpc.insecure_channel(ip + ":50053") as channel:
-                # create an interface for the grpc client (divider)
-                divider_stub = divider_pb2_grpc.dividerStub(channel)  
-                response = divider_stub.download(read_file(f'{self.data_base_path}{worker_id}_{iteration_num}_trained.pkl', self.logger))
-                self.logger.log('debug', f"coordinator received: {response.message} from divider")
+    #             response = worker_stub.download(read_file(f'{self.data_base_path}{iteration_num}.pkl', self.logger))
+    #             self.logger.log('debug', f"coordinator received: {response.message} from worker")
+    #     elif target == 'divider':
+    #         # Establish a connection with the divider on port 50052
+    #         with grpc.insecure_channel(ip + ":50053") as channel:
+    #             # create an interface for the grpc client (divider)
+    #             divider_stub = divider_pb2_grpc.dividerStub(channel)  
+    #             response = divider_stub.download(read_file(f'{self.data_base_path}{worker_id}_{iteration_num}_trained.pkl', self.logger))
+    #             self.logger.log('debug', f"coordinator received: {response.message} from divider")
 
-    def receive(self, worker_id: int, ip: str, port: int, iteration_num: int) -> worker_pb2.UploadFileResponse:
-        """
-        Receives a trained model from a worker as a small chunks and appends them to a bytearray then writes the bytearray to a file.
+    # def receive(self, worker_id: int, ip: str, port: int, iteration_num: int) -> worker_pb2.UploadFileResponse:
+    #     """
+    #     Receives a trained model from a worker as a small chunks and appends them to a bytearray then writes the bytearray to a file.
 
-        Args:
-            worker_id (int): The ID of the worker.
-            ip (str): The IP address of the worker.
-            port (int): The port number of the worker.
-            iteration_num (int): The iteration number.
+    #     Args:
+    #         worker_id (int): The ID of the worker.
+    #         ip (str): The IP address of the worker.
+    #         port (int): The port number of the worker.
+    #         iteration_num (int): The iteration number.
 
-        Returns:
-            An `UploadFileResponse` message containing a success or error message.
-        """
-        try:
+    #     Returns:
+    #         An `UploadFileResponse` message containing a success or error message.
+    #     """
+    #     try:
             
-            with grpc.insecure_channel(f'{ip}:{port}') as channel:
-                worker_stub = worker_pb2_grpc.workerStub(channel)   # interface for the grpc client(worker)
+    #         with grpc.insecure_channel(f'{ip}:{port}') as channel:
+    #             worker_stub = worker_pb2_grpc.workerStub(channel)   # interface for the grpc client(worker)
 
-                filename, extension = f'{worker_id}_{iteration_num}_trained', '.pkl'
-                filepath = self.data_base_path + filename + extension
-                data = bytearray()
-                for request in worker_stub.upload(
-                    worker_pb2.MetaData(filename=filename, extension=extension)
-                ):
-                    data.extend(request.chunk_data)
+    #             filename, extension = f'{worker_id}_{iteration_num}_trained', '.pkl'
+    #             filepath = self.data_base_path + filename + extension
+    #             data = bytearray()
+    #             for request in worker_stub.upload(
+    #                 worker_pb2.MetaData(filename=filename, extension=extension)
+    #             ):
+    #                 data.extend(request.chunk_data)
 
-                with open(filepath, mode="wb") as f:
-                    f.write(data)
-                self.logger.log('debug', f"Downloaded {filepath} in coordinator")
-        except Exception as e:
-            self.logger.log('error', f"Error receiving the file: {e}")
-            return worker_pb2.UploadFileResponse(chunk_data=b'')
+    #             with open(filepath, mode="wb") as f:
+    #                 f.write(data)
+    #             self.logger.log('debug', f"Downloaded {filepath} in coordinator")
+    #     except Exception as e:
+    #         self.logger.log('error', f"Error receiving the file: {e}")
+    #         return worker_pb2.UploadFileResponse(chunk_data=b'')
 
 
     def serve(self) -> None:
