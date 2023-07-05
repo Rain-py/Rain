@@ -9,13 +9,14 @@ BASE_PORT = 50151
 
 
 class LocalProvisioner(ProvisionerInterface):
-    def __init__(self):
+    def __init__(self, chunk_size):
         self.ips = [] 
         self.statuses = []
         self.ports = []
         self.ids = []
         self.workers = []
         self.num_workers = 0
+        self.chunk_size = chunk_size
         self.logger = LogService("LocalProvisioner")
         self.logger.log('debug', f"Provisioner is initialized")
     
@@ -45,7 +46,7 @@ class LocalProvisioner(ProvisionerInterface):
         
         try:
             for i in range(self.num_workers):
-                worker = WorkerAmbassador(self.ports[i])
+                worker = WorkerAmbassador(self.ports[i], chunk_size=self.chunk_size)
                 worker.serve()
                 self.workers.append(worker)
             self.statuses = [provisioner_pb2.Status.UP] * self.num_workers

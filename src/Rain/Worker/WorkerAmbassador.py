@@ -7,7 +7,7 @@ from Rain.TemporaryFilesManager.TemporaryFilesManager import TemporaryFilesManag
 from Rain.Worker.Worker import Worker
 
 class WorkerAmbassador(worker_pb2_grpc.workerServicer):
-    def __init__(self, port : int) -> None:
+    def __init__(self, port : int, chunk_size = 1024) -> None:
         """
         Function to initialize the worker ambassador.
         
@@ -16,7 +16,7 @@ class WorkerAmbassador(worker_pb2_grpc.workerServicer):
         """
         self.port = port
         self.server = None
-
+        self.chunk_size = chunk_size # size of chunks used for uploading files
         # create a temporary directory for the worker to store its data
         self.data_base_path = TemporaryFilesManager.get_instance().create_temp_dir('worker/')
         # create a logger for the worker 
@@ -95,13 +95,12 @@ class WorkerAmbassador(worker_pb2_grpc.workerServicer):
         Yields:
             Iterator[worker_pb2.UploadFileResponse]: the file data as stream of chunks.
         """
-        chunk_size = 1024 # size of chunks used for uploading files
         
         filepath = self.data_base_path + request.filename + request.extension
         try:
             with open(filepath, mode="rb") as f:
                 while True:
-                    chunk = f.read(chunk_size)
+                    chunk = f.read(self.chunk_size)
                     if chunk: 
                         entry_response = worker_pb2.UploadFileResponse(chunk_data=chunk)
                         yield entry_response

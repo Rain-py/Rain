@@ -26,7 +26,7 @@ class Divider:
         self.logger = LogService("Divider")
 
         # create a divider ambassador to serve the divider with other services.
-        self.divider_ambassador = DividerAmbassador()  
+        self.divider_ambassador = DividerAmbassador(chunk_size = config["chunk_size"])  
 
         # create a temporary directory for the divider to store its data.      
         self.model_base_path = TemporaryFilesManager.get_instance().create_temp_dir('divider/')
