@@ -28,7 +28,6 @@ Local Mode
 - [x] Hard coding info in the divider.
 - [x] Finish the Docker image of the worker and the algo.
 - [x] Add divider proxy.
-- [ ] Publish package to pypi.
 
 ## Monday 3/7
 
@@ -41,22 +40,25 @@ Cloud Mode
 
 Cloud Mode
 
-- [ ] Continue working on the documentation.
-- [ ] Test the code using provisioned instances.
+- [x] Publish package to pypi.
+- [x] Continue working on the documentation.
+- [x] Test the onPrem mode with local machines.
 
 ## Wednesday 5/7
 
 Cloud Mode
 
-- [ ] Test scheduling on multiple workers.
-- [ ] Solve hard coding the number of workers in the coordinator.
-- [ ] Test fault tolerance.
-- [ ] Decide what to do with the planar.
+- [ ] Test onPrem on the cloud.
+- [ ] Cloud mode.
 
 ## Thursday 6/7
 
 Cloud Mode
 
+- [ ] Test scheduling on multiple workers.
+- [ ] Solve hard coding the number of workers in the coordinator.
+- [ ] Decide what to do with the planar.
+- [ ] Test fault tolerance.
 - [ ] Try working on the monitoring.
 - [ ] Final touches.
 
@@ -71,5 +73,39 @@ Full demo
 
 ## Sunday 9/7
 
+- [ ] Submit the documentation.
+
 ## Monday 10/7
+
+- [ ] Submit the code.
+
+# Documentation
+
+Gendy:
+
+| Service Name          | Types | Doc String | GP Doc |
+|-----------------------|-------|------------|--------|
+| Worker                |  [ ]  |     [ ]    |  [ ]   |
+| Deep Learning         |  [ ]  |     [ ]    |  [ ]   |
+| Machine Learning      |  [ ]  |     [ ]    |  [ ]   |
+
+
+Nada:
+
+| Service Name          | Types | Doc String | GP Doc |
+|-----------------------|-------|------------|--------|
+| Worker Ambassador     |  [x]  |     [x]    |  [ ]   |
+| Divider Proxy         |  [x]  |     [x]    |  [ ]   |
+| Rain                  |  [x]  |     [x]    |  [ ]   |
+| Temp File Manager     |  [x]  |     [x]    |  [ ]   |
+| Log Service           |  [x]  |     [x]    |  [ ]   |
+| Divider               |  [x]  |     [x]    |  [ ]   |
+
+Menna:
+
+| Service Name          | Types | Doc String | GP Doc |
+|-----------------------|-------|------------|--------|
+| Coordinator           |  [x]  |     [x]    |  [ ]   |
+| Provisioner Ambassador|  [x]  |     [x]    |  [x]   |
+| Divider Ambassador    |  [x]  |     [x]    |  [x]   |
 
