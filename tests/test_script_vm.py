@@ -51,12 +51,15 @@ config = {
       "type": "local",
       "params": {
         "num_of_workers": 3,
-        "ips": ['127.0.0.1', '127.0.0.1', '172.190.224.121'],
-        "ports": [50151, 50152, 50160]
+        "ips": ['127.0.0.1', '127.0.0.1', '127.0.0.1'], #[,'127.0.0.1', '127.0.0.1', '127.0.0.1'], 
+        "ports": [50151, 50152, 50153]
+        
       }
     },
+  "temp_data_path": "../../../",
   "partitions": 3,
   "iterations": 3,
+  "chunk_size": 1024*1024,
   "learning_type": "DL",
   "DL": {
     "lib": {
@@ -68,11 +71,10 @@ config = {
       }
     },
     "lr": 0.001,
-    "epochs": 10,
+    "epochs": 5,
     "batch_size": 128,
   }
 }
-
 def main():
     model = create_model()
     X_train, y_train, X_test, y_test = getData()
