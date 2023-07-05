@@ -18,7 +18,7 @@ class WorkerAmbassador(worker_pb2_grpc.workerServicer):
         self.server = None
 
         # create a temporary directory for the worker to store its data
-        self.data_base_path = TemporaryFilesManager.get_instance().create_temp_dir('worker/')
+        self.data_base_path = TemporaryFilesManager.get_instance().create_temp_dir(f'worker_{self.port}/')
         # create a logger for the worker 
         self.logger = LogService(f"Worker_{self.port}")
         
