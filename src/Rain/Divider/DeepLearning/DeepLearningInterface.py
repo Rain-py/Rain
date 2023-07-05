@@ -12,7 +12,7 @@ class DeepLearningInterface:
         self.loss = config["DL"]["lib"]["params"]["loss"]
         self.iterations = config["iterations"]
         self.partitions = config["partitions"]
-        self.num_of_workers = config["num_of_workers"]
+        self.num_of_workers = config["mode"]["params"]["num_of_workers"]
         self.model = model
 
         self.logger = LogService("DeepLearning")

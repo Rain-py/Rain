@@ -8,7 +8,7 @@ class MachineLearningInterface:
     def __init__(self, config, divider_ambassador):
         self.config = config
         self.partitions = config["partitions"]
-        self.num_of_workers = config["num_of_workers"]
+        self.num_of_workers = config["mode"]["params"]["num_of_workers"]
 
         self.logger = LogService("MachineLearning")
         self.divider_ambassador = divider_ambassador        

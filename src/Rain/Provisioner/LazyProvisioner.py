@@ -5,7 +5,7 @@ from Rain.Provisioner.ProvisionerInterface import ProvisionerInterface
 
 BASE_PORT = 50151
 
-class PreProvisioner(ProvisionerInterface):
+class LazyProvisioner(ProvisionerInterface):
     def __init__(self, ips, ports):
         self.ips = ips 
         self.statuses = []
@@ -13,7 +13,7 @@ class PreProvisioner(ProvisionerInterface):
         self.ids = []
         self.workers = []
         self.num_workers = len(ips)
-        self.logger = LogService("PreProvisioner")
+        self.logger = LogService("LazyProvisioner")
         self.logger.log('debug', f"Provisioner is initialized")
     
     def __del__(self):

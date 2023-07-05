@@ -1,6 +1,6 @@
 from Rain.Provisioner.LocalProvisioner import LocalProvisioner
 from Rain.Provisioner.CloudProvisioner import CloudProvisioner
-from Rain.Provisioner.PreProvisioner import PreProvisioner
+from Rain.Provisioner.LazyProvisioner import LazyProvisioner
 
 class ProvisionerFactory:
     @staticmethod
@@ -17,7 +17,7 @@ class ProvisionerFactory:
             try:
                 ips = config["mode"]["params"]["ips"]
                 ports = config["mode"]["params"]["ports"]
-                return PreProvisioner(ips=ips, ports=ports)
+                return LazyProvisioner(ips=ips, ports=ports)
             except Exception as e:
                 raise Exception("Invalid provisioner config")
         elif config["mode"]["type"] == 'local':
