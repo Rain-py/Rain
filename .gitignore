@@ -25,4 +25,3 @@ __pycache__/
 .cache
 
 *.pem
-dist.tar.gz
