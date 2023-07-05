@@ -56,11 +56,12 @@ def create_model():
 config = {
   "mode": {
       "type": "local",
-      "params": {}
+      "params": {
+          "num_of_workers": 3,
+      }
 
     },
   "partitions": 3,
-  "num_of_workers": 3,
   "iterations": 3,
   "learning_type": "DL",
   "DL": {

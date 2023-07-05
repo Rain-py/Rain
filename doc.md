@@ -1,29 +1,29 @@
 1 typing, 2 doc string, 3 doc
 
 # Nada 
-- worker ampassoder
+- worker ambassodor
     - [x] Typing
     - [x] Docstring
     - [ ] Documentation
 - divider proxy
-    - [ ] Typing
-    - [ ] Docstring
+    - [x] Typing
+    - [x] Docstring
     - [ ] Documentation
 - Rain
-    - [ ] Typing
-    - [ ] Docstring
+    - [x] Typing
+    - [x] Docstring
     - [ ] Documentation      
-- Timpral file manger
-    - [ ] Typing
-    - [ ] Docstring
+- divider
+    - [x] Typing
+    - [x] Docstring
+    - [ ] Documentation
+- Temporary file manger
+    - [x] Typing
+    - [x] Docstring
     - [ ] Documentation
 - log service
-    - [ ] Typing
-    - [ ] Docstring
-    - [ ] Documentation
-- divider
-    - [ ] Typing
-    - [ ] Docstring
+    - [x] Typing
+    - [x] Docstring
     - [ ] Documentation
 
 # Mostafa G
@@ -32,11 +32,11 @@
     - [ ] Typing
     - [ ] Docstring
     - [ ] Documentation
-- deep learning
+- deep learning folder
     - [ ] Typing
     - [ ] Docstring
     - [ ] Documentation
-- machine learning
+- machine learning folder
     - [ ] Typing
     - [ ] Docstring
     - [ ] Documentation
@@ -44,15 +44,15 @@
 # Mostafa W
 
 # Menna
-- div ampassoder
+- divider ambassodor
     - [x] Typing
     - [x] Docstring
     - [ ] Documentation
-- coord ampassoder
+- coordinator ambassodor
     - [x] Typing
     - [x] Docstring
     - [ ] Documentation
-- provisioner ampassoder
+- provisioner ambassodor
     - [x] Typing
     - [x] Docstring
     - [ ] Documentation

@@ -9,7 +9,8 @@ from Rain.Worker.Worker import Worker
 class WorkerAmbassador(worker_pb2_grpc.workerServicer):
     def __init__(self, port : int) -> None:
         """
-        function to initialize the worker ambassador.
+        Function to initialize the worker ambassador.
+        
         Args:
             port (int): the port number to serve the worker on.
         """
@@ -27,7 +28,7 @@ class WorkerAmbassador(worker_pb2_grpc.workerServicer):
 
     def __del__(self) -> None:
         """
-        function to delete the worker ambassador.
+        Function to delete the worker ambassador.
         """
         try:
             self.stop_serving()
@@ -37,7 +38,7 @@ class WorkerAmbassador(worker_pb2_grpc.workerServicer):
 
     def stop_serving(self) -> None:
         """
-        function to stop the worker ambassador.
+        Function to stop the worker ambassador.
         """
         try:
             if self.server:
@@ -50,7 +51,8 @@ class WorkerAmbassador(worker_pb2_grpc.workerServicer):
     
     def download(self, request_iterator : worker_pb2.File, context : grpc.ServicerContext) -> worker_pb2.DownloadFileResponse:
         """
-        function to receive data files from any service and save this data as file.
+        Function to receive data files from any service and save this data as file.
+        
         Args:
             request_iterator (worker_pb2.File): the file to be received as stream of chunks.
             context (grpc.ServicerContext): the context of the request.
@@ -81,7 +83,8 @@ class WorkerAmbassador(worker_pb2_grpc.workerServicer):
 
     def upload(self, request : worker_pb2.MetaData, context : grpc.ServicerContext)-> worker_pb2.UploadFileResponse:
         """
-        function to read and send data files to any service.
+        Function to read and send data files to any service.
+
         Args:
             request (worker_pb2.MetaData): the file name and extention to be sent.
             context (grpc.ServicerContext): the context of the request.
@@ -110,7 +113,7 @@ class WorkerAmbassador(worker_pb2_grpc.workerServicer):
 
     def Execute(self, request : worker_pb2.ExecuteData, context : grpc.ServicerContext)-> worker_pb2.ExecuteFileResponse:
         """
-        function to execute worker.
+        Function to execute worker.
 
         Args:
             request (worker_pb2.ExecuteData): the worker id and iteration number.
@@ -131,13 +134,26 @@ class WorkerAmbassador(worker_pb2_grpc.workerServicer):
             # return error message
             return worker_pb2.ExecuteFileResponse(message='Error executing the file')
 
-    def StopWorker(self, request, context):
+    def StopWorker(self, request : worker_pb2.StopSignal, context : grpc.ServicerContext)-> worker_pb2.StopSignal:
+        """
+        Function to stop the worker server.
+
+        Args:
+            request (worker_pb2.StopSignal): signal to stop the worker.
+            context (grpc.ServicerContext): the context of the request.
+
+        Returns:
+            worker_pb2.StopSignal: the response message.
+
+        Note:
+            this function is not used in the current implementation.
+        """
         response = worker_pb2.StopSignal(message='Worker stopped!')
         return response
          
     def serve(self) -> None:
         """
-        function to start the worker ambassador as a server to listen on the given port.
+        Function to start the worker ambassador as a server to listen on the given port.
         """
         try:
             # create a gRPC server
@@ -152,6 +168,9 @@ class WorkerAmbassador(worker_pb2_grpc.workerServicer):
         except Exception as e:
             self.logger.log('error', f"Error in the worker server: {e}")
             return
-    def wait_for_termination(self):
+    def wait_for_termination(self)  -> None:
+        """
+        Function to wait for the worker server to terminate.
+        """
         self.server.wait_for_termination()
     
