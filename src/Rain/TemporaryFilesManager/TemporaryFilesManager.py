@@ -68,12 +68,12 @@ class TemporaryFilesManager:
         self.temp_dirs.clear()
         self.logger.log('debug', f"Temporary directories are cleaned up")
 
-    # def create_temp_dir(self, dir_name):
-    #     temp_dir_path = os.path.join(self.temp_dir, dir_name)
-    #     os.makedirs(temp_dir_path, exist_ok=True)
-    #     self.logger.log('debug', f"Created temporary directory {temp_dir_path}")
-    #     self.temp_dirs.append(temp_dir_path)
-    #     return temp_dir_path
+    def create_temp_dir(self, dir_name):
+        temp_dir_path = os.path.join(self.temp_dir, dir_name)
+        os.makedirs(temp_dir_path, exist_ok=True)
+        self.logger.log('debug', f"Created temporary directory {temp_dir_path}")
+        self.temp_dirs.append(temp_dir_path)
+        return temp_dir_path
 
 # Usage example
 # if __name__ == "__main__":

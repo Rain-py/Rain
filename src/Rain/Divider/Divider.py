@@ -1,4 +1,6 @@
 import numpy
+from typing import Tuple, List
+
 from Rain.Divider.DividerAmbassador import DividerAmbassador
 from Rain.Divider.DeepLearning.DeepLearningFactory import DeepLearningFactory
 from Rain.Divider.MachineLearning.MachineLearningFactory import MachineLearningFactory
@@ -66,7 +68,7 @@ class Divider:
             return
 
 
-    def __partition_data(self, X : numpy.ndarray, y : numpy.ndarray) -> tuple(list, list):
+    def __partition_data(self, X : numpy.ndarray, y : numpy.ndarray) -> Tuple[List[numpy.ndarray], List[numpy.ndarray]]:
         """
         Private function to partition the data into subsets equal to the number of partitions passed.
 
