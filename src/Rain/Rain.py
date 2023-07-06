@@ -38,6 +38,7 @@ class Rain:
       Function to delete the Rain and all instance that are used.
       """
       try:
+        self.provisioner.stop_serving()
         del self.provisioner
         del self.divider_proxy
       except Exception as e:
@@ -58,7 +59,7 @@ class Rain:
       try:
         self.provisioner.serve()
         model = self.divider_proxy.train(X_train, y_train, strategy) 
-        self.provisioner.stop_serving()
+        # self.provisioner.stop_serving()
         return model
       except Exception as e:
         self.logger.log('error', f"Error training the model: {e}")

@@ -18,6 +18,7 @@ class MachineLearningInterface:
         
         self.model_base_path = TemporaryFilesManager.get_instance().create_temp_dir('divider/')
 
+
     @abstractmethod
     def save_model(self, iteration_num):
         pass

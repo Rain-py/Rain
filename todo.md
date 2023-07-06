@@ -48,26 +48,36 @@ Cloud Mode
 
 Cloud Mode
 
-- [ ] Test onPrem on the cloud.
+- [x] Test onPrem on the cloud.
 - [ ] Cloud mode.
 
 ## Thursday 6/7
 
 Cloud Mode
 
-- [ ] Test scheduling on multiple workers.
+- [ ] Fault tolerance in the coordinator.
 - [ ] Solve hard coding the number of workers in the coordinator.
-- [ ] Decide what to do with the planar.
-- [ ] Test fault tolerance.
-- [ ] Try working on the monitoring.
-- [ ] Final touches.
+- [ ] Test scheduling on multiple workers.
+- [ ] Solve the K-means problem.
+- [ ] Add stratified partitioning.
+- [ ] Solo worker packages.
+- [ ] Solve read/write disc.
+- [ ] Fix the configuration handler.
 
 ## Friday 7/7
 
-Full demo
-
-- [ ] Test the full demo locally.
-- [ ] Test the full demo on the cloud.
+- [ ] Test all modes on all examples.
+  - MNISt:
+    - [ ] Local: TF,PT
+    - [ ] Lazy: TF, PT. Cloud machine.
+  - Breast Cancer:
+    - [ ] Local: NB, LR, KMs
+    - [ ] Lazy: NB, LR, KMs. Cloud machine.
+    - [ ] Cloud: TF
+  - California Housing:
+    - [ ] Cloud: lR
+  - CIFAR:
+    - [ ] Lazy: TF. Cloud machine.
 
 ## Saturday 8/7
 
@@ -86,9 +96,8 @@ Gendy:
 | Service Name          | Types | Doc String | GP Doc |
 |-----------------------|-------|------------|--------|
 | Worker                |  [ ]  |     [ ]    |  [ ]   |
-| Deep Learning         |  [ ]  |     [ ]    |  [ ]   |
-| Machine Learning      |  [ ]  |     [ ]    |  [ ]   |
-
+| Deep Learning         |  [x]  |     [x]    |  [ ]   |
+| Machine Learning      |  [x]  |     [x]    |  [ ]   |
 
 Nada:
 
