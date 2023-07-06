@@ -2,8 +2,8 @@ name: Release
 
 on:
   push:
-    branches:
-      - master
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
 
 jobs:
   build-and-publish:
@@ -25,4 +25,4 @@ jobs:
       env:
         TWINE_USERNAME: __token__
         TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}  # Add your TestPyPI token as a secret in your repository
-      run: python -m twine upload --repository testpypi dist/*
+      run: python -m twine upload --repository testpypi dist/* --skip-existing --verbose --non-interactive --disable-progress-bar
