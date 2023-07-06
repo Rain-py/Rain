@@ -267,7 +267,7 @@ class DividerAmbassador(divider_pb2_grpc.dividerServicer):
         Returns:
             None
         """
-        self.server = grpc.server(futures.ThreadPoolExecutor(1), compression=grpc.Compression.Gzip)
+        self.server = grpc.server(futures.ThreadPoolExecutor(max_workers=2), compression=grpc.Compression.Gzip)
         divider_pb2_grpc.add_dividerServicer_to_server(self, self.server)
         self.server.add_insecure_port(
             "[::]:50053"

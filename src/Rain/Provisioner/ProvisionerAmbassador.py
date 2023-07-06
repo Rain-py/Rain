@@ -3,6 +3,7 @@ import grpc
 from Rain.Protos import provisioner_pb2, provisioner_pb2_grpc, worker_pb2, worker_pb2_grpc
 from Rain.LogService.LogService import LogService
 
+DEFAULT_NUM_WORKERS = 5 # to creates a thread pool executor with a maximum of DEFAULT_NUM_WORKERS worker threads. 
 
 class ProvisionerAmbassador(provisioner_pb2_grpc.provisionerServicer):
     def __init__(self):
@@ -110,7 +111,8 @@ class ProvisionerAmbassador(provisioner_pb2_grpc.provisionerServicer):
         """
         try:
             # create a gRPC server
-            self.server = grpc.server(futures.ThreadPoolExecutor(max_workers=1), compression=grpc.Compression.Gzip)
+            # This executor is responsible for handling incoming requests concurrently. By default, gRPC servers use a thread pool executor to process incoming RPCs
+            self.server = grpc.server(futures.ThreadPoolExecutor(max_workers=DEFAULT_NUM_WORKERS), compression=grpc.Compression.Gzip)
             # add the provisioner to the server
             provisioner_pb2_grpc.add_provisionerServicer_to_server(self, self.server)
             # listen on port 50054

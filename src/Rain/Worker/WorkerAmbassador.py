@@ -156,7 +156,7 @@ class WorkerAmbassador(worker_pb2_grpc.workerServicer):
         """
         try:
             # create a gRPC server
-            self.server = grpc.server(futures.ThreadPoolExecutor(max_workers=4), compression=grpc.Compression.Gzip)
+            self.server = grpc.server(futures.ThreadPoolExecutor(max_workers=1), compression=grpc.Compression.Gzip)
             # add the worker to the server
             worker_pb2_grpc.add_workerServicer_to_server(self, self.server)
             # listen on port 50051 as a server based

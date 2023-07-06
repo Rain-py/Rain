@@ -314,7 +314,7 @@ class Coordinator(coord_pb2_grpc.coordinatorServicer):
             None
         """
         try:
-            self.server = grpc.server(futures.ThreadPoolExecutor(1), compression=grpc.Compression.Gzip)
+            self.server = grpc.server(futures.ThreadPoolExecutor(max_workers=2), compression=grpc.Compression.Gzip)
 
             coord_pb2_grpc.add_coordinatorServicer_to_server(self, self.server)
 
