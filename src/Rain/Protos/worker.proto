@@ -4,12 +4,12 @@ import "google/protobuf/empty.proto";
 
 service worker {
     // worker downloads (recieves) a file
-    rpc download(stream File) returns (DownloadFileResponse) {}
-    // worker uploads (sends) a file
-    rpc upload(MetaData) returns (stream UploadFileResponse) {}
+    rpc Download(stream File) returns (DownloadFileResponse) {}
+    // worker Uploads (sends) a file
+    rpc Upload(MetaData) returns (stream UploadFileResponse) {}
     // execute file
     rpc Execute(ExecuteData) returns (ExecuteFileResponse) {}
-
+    // to stop a worker serving
     rpc StopWorker(StopSignal) returns (google.protobuf.Empty) {}
   }
 
@@ -31,7 +31,7 @@ service worker {
   }
   // ------------------
 
-  // for uploading a file
+  // for Uploading a file
   message UploadFileResponse {
     bytes chunk_data = 1;
   }

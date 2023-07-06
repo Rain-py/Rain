@@ -57,7 +57,7 @@ class DeepLearningInterface:
     def train_centralized_sync(self, X_train_partitions, y_train_partitions):
         try:  
             # get the workers info from coordinator
-            self.workers_IPs, self.workers_ports, self.workers_ids = self.divider_ambassador.get_workers_info(self.coordinator_IP)
+            self.workers_IPs, self.workers_ports, self.workers_ids = self.divider_ambassador.GetWorkersInfo(self.coordinator_IP)
             self.data_status = [0] * len(self.workers_IPs) # 0 means no data sent yet, 1 means data is already sent to the workers
         
             for i in range(self.iterations):   
@@ -105,14 +105,27 @@ class DeepLearningInterface:
 
     def worker_process_async(self, worker_id, X_train_partition, y_train_partition):
         # get the workers info from coordinator
-        self.workers_IPs, self.workers_ports, self.workers_ids = self.divider_ambassador.get_workers_info(self.coordinator_IP)
+        self.workers_IPs, self.workers_ports, self.workers_ids = self.divider_ambassador.GetWorkersInfo(self.coordinator_IP)
         self.data_status = [0] * len(self.workers_IPs) # 0 means no data sent yet, 1 means data is already sent to the workers
         
         for i in range(self.iterations):
             self.logger.log('debug', f"Starting iteration {i + 1}/{self.iterations}")  
-            self.divider_ambassador.iteration(self.workers_ids[worker_id], self.workers_IPs[worker_id], self.workers_ports[worker_id], self.data_status[worker_id], i+1, self.workers_ids[worker_id], X_train_partition, y_train_partition)
-            if i == 0: # sending data (x_train , y_train) to workers only once
-                self.data_status[worker_id] = 1
+            
+            flag = False
+            while not flag:
+                try:
+                    self.divider_ambassador.iteration(self.workers_ids[worker_id], self.workers_IPs[worker_id], self.workers_ports[worker_id], self.data_status[worker_id], i+1, self.workers_ids[worker_id], X_train_partition, y_train_partition)
+                    flag = True
+                except Exception as e:
+                    self.logger.log('debug', f"Error in iteration {i} in worker {worker_id + 1}: {e}")
+                    ip, port = self.divider_ambassador.inform_coord(self.workers_IPs[worker_id], self.workers_ports[worker_id], worker_id)
+                    self.workers_IPs[worker_id] = ip
+                    self.workers_ports[worker_id] = port
+                    self.data_status[worker_id] = 0
+                    self.logger.log('debug', f"Worker {worker_id + 1} is restarted on {ip}:{port} and data_status is reset to 0")
+
+            # if i == 0: # sending data (x_train , y_train) to workers only once
+            self.data_status[worker_id] = 1
 
             gradient = self.receive_gradients_async(worker_id + 1,worker_id + 1) # worker_id, worker_id
             self.reduce_gradients_async(gradient, worker_id + 1)

@@ -5,11 +5,11 @@ service divider {
     /*
     send a file to the coordinator contains the file name and the file data.
     */
-    rpc upload(MetaData) returns (stream UploadFileResponse) {}
+    rpc Upload(MetaData) returns (stream UploadFileResponse) {}
     /*
     Recieve a file contains the weights from the workers.
     */
-    rpc download(stream File) returns (DownloadFileResponse) {}
+    rpc Download(stream File) returns (DownloadFileResponse) {}
   }
   
 
@@ -32,7 +32,7 @@ service divider {
   }
   // ------------------
 
-  // for uploading a file
+  // for Uploading a file
   message UploadFileResponse {
     bytes chunk_data = 1;
   }

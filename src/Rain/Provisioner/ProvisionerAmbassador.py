@@ -62,14 +62,34 @@ class ProvisionerAmbassador(provisioner_pb2_grpc.provisionerServicer):
             self.logger.log('error', f"Error receiving the number of workers: {e}")
             return provisioner_pb2.response(message = "Error receiving the number of workers")
 
+    def SolveFailureWorker(self, request: provisioner_pb2.FailureWorker, context: grpc.ServicerContext) -> provisioner_pb2.NewWorker:
+        """
+        This function will be called from the coordinator side to solve the failure of a worker.
 
-    def start_coordinator(self) -> None:
+        Args:
+            request (provisioner_pb2.FailureWorker): A `FailureWorker` message sent by the coordinator.
+            context (grpc.ServicerContext): The context of the gRPC service.
+
+        Returns:
+            A `NewWorker` message containing the IP address, port number, and ID of the new worker.
+        """
+        try:
+            self.logger.log('debug', f"Received request from the coordinator to solve the failure of a worker {request.worker_id + 1}")
+            self.create_worker(request.worker_id)
+            return provisioner_pb2.NewWorker(new_worker_ip=self.ips[request.worker_id], new_worker_port=self.ports[request.worker_id], new_worker_status=self.statuses[request.worker_id])
+        except Exception as e:
+            self.logger.log('error', f"Error solving the failure of a worker: {e}")
+            return provisioner_pb2.NewWorker(new_worker_ip = "", new_worker_port = 0, new_worker_status = 0)
+
+    def start_coordinator(self)         -> None:
         pass
-    def create_workers(self)    -> None:
+    def create_workers(self)            -> None:
         pass
-    def get_num_workers(self)   -> int:
+    def create_worker(self, worker_id)  -> None:
+        pass
+    def get_num_workers(self)           -> int:
         return self.num_workers
-    def delete_workers(self)    -> None:
+    def delete_workers(self)            -> None:
         pass
     def stop_worker(self,worker_ip, worker_port):
         try:

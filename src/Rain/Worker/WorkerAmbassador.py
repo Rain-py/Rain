@@ -49,7 +49,7 @@ class WorkerAmbassador(worker_pb2_grpc.workerServicer):
             self.logger.log('error', "Error stopping serving: " + str(e))
             return
     
-    def download(self, request_iterator : worker_pb2.File, context : grpc.ServicerContext) -> worker_pb2.DownloadFileResponse:
+    def Download(self, request_iterator : worker_pb2.File, context : grpc.ServicerContext) -> worker_pb2.DownloadFileResponse:
         """
         Function to receive data files from any service and save this data as file.
         
@@ -81,7 +81,7 @@ class WorkerAmbassador(worker_pb2_grpc.workerServicer):
             # return error message
             return worker_pb2.DownloadFileResponse(message='Error downloading the file')
 
-    def upload(self, request : worker_pb2.MetaData, context : grpc.ServicerContext)-> worker_pb2.UploadFileResponse:
+    def Upload(self, request : worker_pb2.MetaData, context : grpc.ServicerContext)-> worker_pb2.UploadFileResponse:
         """
         Function to read and send data files to any service.
 

@@ -6,6 +6,8 @@ service provisioner {
     rpc SendStatus(emptyMessage) returns (WorkerStatus) {}
     // define number of worker
     rpc DefineNWorkers(NumOfWorkers) returns (response) {}
+    // to solve failure worker and send new worker IP
+    rpc SolveFailureWorker(FailureWorker) returns (NewWorker) {}
   }
 
   enum Status{
@@ -27,4 +29,16 @@ service provisioner {
   }
 
   message emptyMessage {
+  }
+
+  message FailureWorker {
+    string worker_ip = 1;
+    int32 worker_port = 2;
+    int32 worker_id = 3;
+  }
+
+  message NewWorker {
+    string new_worker_ip = 1;
+    int32 new_worker_port = 2;
+    int32 new_worker_status = 3;
   }

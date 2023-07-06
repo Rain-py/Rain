@@ -2,7 +2,7 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 
-from Rain.Protos import provisioner_pb2 as protos_dot_provisioner__pb2
+from Rain.Protos import provisioner_pb2 as Protos_dot_provisioner__pb2
 
 
 class provisionerStub(object):
@@ -16,13 +16,18 @@ class provisionerStub(object):
         """
         self.SendStatus = channel.unary_unary(
                 '/provision.provisioner/SendStatus',
-                request_serializer=protos_dot_provisioner__pb2.emptyMessage.SerializeToString,
-                response_deserializer=protos_dot_provisioner__pb2.WorkerStatus.FromString,
+                request_serializer=Protos_dot_provisioner__pb2.emptyMessage.SerializeToString,
+                response_deserializer=Protos_dot_provisioner__pb2.WorkerStatus.FromString,
                 )
         self.DefineNWorkers = channel.unary_unary(
                 '/provision.provisioner/DefineNWorkers',
-                request_serializer=protos_dot_provisioner__pb2.NumOfWorkers.SerializeToString,
-                response_deserializer=protos_dot_provisioner__pb2.response.FromString,
+                request_serializer=Protos_dot_provisioner__pb2.NumOfWorkers.SerializeToString,
+                response_deserializer=Protos_dot_provisioner__pb2.response.FromString,
+                )
+        self.SolveFailureWorker = channel.unary_unary(
+                '/provision.provisioner/SolveFailureWorker',
+                request_serializer=Protos_dot_provisioner__pb2.FailureWorker.SerializeToString,
+                response_deserializer=Protos_dot_provisioner__pb2.NewWorker.FromString,
                 )
 
 
@@ -43,18 +48,30 @@ class provisionerServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def SolveFailureWorker(self, request, context):
+        """to solve failure worker and send new worker IP
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_provisionerServicer_to_server(servicer, server):
     rpc_method_handlers = {
             'SendStatus': grpc.unary_unary_rpc_method_handler(
                     servicer.SendStatus,
-                    request_deserializer=protos_dot_provisioner__pb2.emptyMessage.FromString,
-                    response_serializer=protos_dot_provisioner__pb2.WorkerStatus.SerializeToString,
+                    request_deserializer=Protos_dot_provisioner__pb2.emptyMessage.FromString,
+                    response_serializer=Protos_dot_provisioner__pb2.WorkerStatus.SerializeToString,
             ),
             'DefineNWorkers': grpc.unary_unary_rpc_method_handler(
                     servicer.DefineNWorkers,
-                    request_deserializer=protos_dot_provisioner__pb2.NumOfWorkers.FromString,
-                    response_serializer=protos_dot_provisioner__pb2.response.SerializeToString,
+                    request_deserializer=Protos_dot_provisioner__pb2.NumOfWorkers.FromString,
+                    response_serializer=Protos_dot_provisioner__pb2.response.SerializeToString,
+            ),
+            'SolveFailureWorker': grpc.unary_unary_rpc_method_handler(
+                    servicer.SolveFailureWorker,
+                    request_deserializer=Protos_dot_provisioner__pb2.FailureWorker.FromString,
+                    response_serializer=Protos_dot_provisioner__pb2.NewWorker.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -78,8 +95,8 @@ class provisioner(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/provision.provisioner/SendStatus',
-            protos_dot_provisioner__pb2.emptyMessage.SerializeToString,
-            protos_dot_provisioner__pb2.WorkerStatus.FromString,
+            Protos_dot_provisioner__pb2.emptyMessage.SerializeToString,
+            Protos_dot_provisioner__pb2.WorkerStatus.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -95,7 +112,24 @@ class provisioner(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/provision.provisioner/DefineNWorkers',
-            protos_dot_provisioner__pb2.NumOfWorkers.SerializeToString,
-            protos_dot_provisioner__pb2.response.FromString,
+            Protos_dot_provisioner__pb2.NumOfWorkers.SerializeToString,
+            Protos_dot_provisioner__pb2.response.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def SolveFailureWorker(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/provision.provisioner/SolveFailureWorker',
+            Protos_dot_provisioner__pb2.FailureWorker.SerializeToString,
+            Protos_dot_provisioner__pb2.NewWorker.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

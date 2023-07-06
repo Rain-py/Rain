@@ -2,7 +2,7 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 
-from Rain.Protos import divider_pb2 as protos_dot_divider__pb2
+from Rain.Protos import divider_pb2 as Protos_dot_divider__pb2
 
 
 class dividerStub(object):
@@ -14,22 +14,22 @@ class dividerStub(object):
         Args:
             channel: A grpc.Channel.
         """
-        self.upload = channel.unary_stream(
-                '/divider.divider/upload',
-                request_serializer=protos_dot_divider__pb2.MetaData.SerializeToString,
-                response_deserializer=protos_dot_divider__pb2.UploadFileResponse.FromString,
+        self.Upload = channel.unary_stream(
+                '/divider.divider/Upload',
+                request_serializer=Protos_dot_divider__pb2.MetaData.SerializeToString,
+                response_deserializer=Protos_dot_divider__pb2.UploadFileResponse.FromString,
                 )
-        self.download = channel.stream_unary(
-                '/divider.divider/download',
-                request_serializer=protos_dot_divider__pb2.File.SerializeToString,
-                response_deserializer=protos_dot_divider__pb2.DownloadFileResponse.FromString,
+        self.Download = channel.stream_unary(
+                '/divider.divider/Download',
+                request_serializer=Protos_dot_divider__pb2.File.SerializeToString,
+                response_deserializer=Protos_dot_divider__pb2.DownloadFileResponse.FromString,
                 )
 
 
 class dividerServicer(object):
     """Missing associated documentation comment in .proto file."""
 
-    def upload(self, request, context):
+    def Upload(self, request, context):
         """
         send a file to the coordinator contains the file name and the file data.
         """
@@ -37,7 +37,7 @@ class dividerServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def download(self, request_iterator, context):
+    def Download(self, request_iterator, context):
         """
         Recieve a file contains the weights from the workers.
         """
@@ -48,15 +48,15 @@ class dividerServicer(object):
 
 def add_dividerServicer_to_server(servicer, server):
     rpc_method_handlers = {
-            'upload': grpc.unary_stream_rpc_method_handler(
-                    servicer.upload,
-                    request_deserializer=protos_dot_divider__pb2.MetaData.FromString,
-                    response_serializer=protos_dot_divider__pb2.UploadFileResponse.SerializeToString,
+            'Upload': grpc.unary_stream_rpc_method_handler(
+                    servicer.Upload,
+                    request_deserializer=Protos_dot_divider__pb2.MetaData.FromString,
+                    response_serializer=Protos_dot_divider__pb2.UploadFileResponse.SerializeToString,
             ),
-            'download': grpc.stream_unary_rpc_method_handler(
-                    servicer.download,
-                    request_deserializer=protos_dot_divider__pb2.File.FromString,
-                    response_serializer=protos_dot_divider__pb2.DownloadFileResponse.SerializeToString,
+            'Download': grpc.stream_unary_rpc_method_handler(
+                    servicer.Download,
+                    request_deserializer=Protos_dot_divider__pb2.File.FromString,
+                    response_serializer=Protos_dot_divider__pb2.DownloadFileResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -69,7 +69,7 @@ class divider(object):
     """Missing associated documentation comment in .proto file."""
 
     @staticmethod
-    def upload(request,
+    def Upload(request,
             target,
             options=(),
             channel_credentials=None,
@@ -79,14 +79,14 @@ class divider(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_stream(request, target, '/divider.divider/upload',
-            protos_dot_divider__pb2.MetaData.SerializeToString,
-            protos_dot_divider__pb2.UploadFileResponse.FromString,
+        return grpc.experimental.unary_stream(request, target, '/divider.divider/Upload',
+            Protos_dot_divider__pb2.MetaData.SerializeToString,
+            Protos_dot_divider__pb2.UploadFileResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
-    def download(request_iterator,
+    def Download(request_iterator,
             target,
             options=(),
             channel_credentials=None,
@@ -96,8 +96,8 @@ class divider(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.stream_unary(request_iterator, target, '/divider.divider/download',
-            protos_dot_divider__pb2.File.SerializeToString,
-            protos_dot_divider__pb2.DownloadFileResponse.FromString,
+        return grpc.experimental.stream_unary(request_iterator, target, '/divider.divider/Download',
+            Protos_dot_divider__pb2.File.SerializeToString,
+            Protos_dot_divider__pb2.DownloadFileResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

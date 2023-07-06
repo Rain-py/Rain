@@ -100,20 +100,40 @@ class DividerAmbassador(divider_pb2_grpc.dividerServicer):
         # TODO: Remove writing and reading the file
         try:
             np.save(f"{self.data_base_path}X_train_{worker_id}.npy", X_train_partition)
-            response = worker_stub.download(
+            response = worker_stub.Download(
                 read_file(self.data_base_path + f"X_train_{worker_id}.npy", chunk_size=self.chunk_size)
                     # read_partitioned_data(X_train_partition, f"X_train_{worker_id}", ".npy")
                 )
-            self.logger.log('debug', "divider receive: " + response.message + " from  worker after sending X_train")
+            self.logger.log('debug', f"divider receive: {response.message} from worker {worker_id} after sending X_train")
             np.save(f"{self.data_base_path}y_train_{worker_id}.npy", y_train_partition)
-            response = worker_stub.download(
+            response = worker_stub.Download(
                 read_file(self.data_base_path + f"y_train_{worker_id}.npy", chunk_size=self.chunk_size)
                 # read_partitioned_data(y_train_partition, f"y_train_{worker_id}", ".npy")
             )
-            self.logger.log('debug', "divider receive: " + response.message + " from worker after sending y_train")
+            self.logger.log('debug', f"divider receive: {response.message} from worker {worker_id} after sending y_train")
         except Exception as e:
             self.logger.log('debug', "Error sending the data to the worker: " + str(e))
             return
+
+    def inform_coord(self, worker_ip : str, worker_port : int, worker_id: int) -> Tuple[str, int]:
+        """
+        Informs the coordinator that the worker has received the data.
+
+        Args:
+            worker_id (int): The ID of the worker being informed.
+
+        Returns:
+            Tuple[str, int] containing the IP address and port number of the coordinator.
+        """
+        with grpc.insecure_channel(self.coordinator_IP + ":50052") as channel:
+            coord_stub = coord_pb2_grpc.coordinatorStub(channel)
+            try:
+                response = coord_stub.WorkerNotRespond(coord_pb2.WorkerNotRespondRequest(worker_ip=worker_ip, worker_port=worker_port, worker_id=worker_id))
+                self.logger.log('debug', "divider receive: " +response.worker_ip+ " from coordinator after informing coordinator")
+                return response.worker_ip, response.worker_port
+            except Exception as e:
+                self.logger.log('error', "Error informing the coordinator: " + str(e))
+                return "", 0
 
     def iteration(self, worker_id: int, worker_ip: str, worker_port: str, data_status: int, iteration_num: int, model_name: str, X_train_partition: List[Any], y_train_partition: List[Any]) -> None:
         """
@@ -140,20 +160,21 @@ class DividerAmbassador(divider_pb2_grpc.dividerServicer):
                 if not data_status:
                     self.send_data(worker_id, X_train_partition, y_train_partition, worker_stub)
                 else:
-                    self.logger.log('debug', f"divider begins will not send data in iteration{iteration_num} to worker{worker_id}")
-                    
-
+                    self.logger.log('debug', f"divider begins will not send data in iteration {iteration_num} to worker {worker_id}")
+           
             except Exception as e:
                 self.logger.log('error', "Error sending the data to the worker: " + str(e))
-                return
+                raise Exception("Error sending the data to the worker")
+            
             try:
                 # send the model to the worker
                 self.logger.log('debug', f"Sending {self.data_base_path}{worker_id}.pkl to worker{worker_id}")
-                response = worker_stub.download(read_file(f'{self.data_base_path}{model_name}.pkl', chunk_size=self.chunk_size))
+                response = worker_stub.Download(read_file(f'{self.data_base_path}{model_name}.pkl', chunk_size=self.chunk_size))
                 self.logger.log('debug', "divider received: " + response.message +  " after sending the model to worker " + str(worker_id))
             except Exception as e:
                 self.logger.log('error', "Error sending the model to the worker: " + str(e))
-                return
+                raise Exception("Error sending the model to the worker")
+  
             try:
                 # execute the model
                 self.logger.log('debug', f"divider begins executing iteration{iteration_num} for worker{worker_id}")
@@ -162,7 +183,8 @@ class DividerAmbassador(divider_pb2_grpc.dividerServicer):
                 self.logger.log('debug', "divider received: " + response.message + f" after executing the model on worker{worker_id}")
             except Exception as e:
                 self.logger.log('error', "Error executing the model on the worker: " + str(e))
-                return
+                raise Exception("Error executing the model on the worker")
+
 
             try:
                     # receive the model from the worker
@@ -170,7 +192,7 @@ class DividerAmbassador(divider_pb2_grpc.dividerServicer):
                     filepath = self.data_base_path + filename + extension
                     self.logger.log('debug', f"divider begins downloading {filepath} from worker{worker_id}")
                     data = bytearray()
-                    for request in worker_stub.upload(
+                    for request in worker_stub.Upload(
                         worker_pb2.MetaData(filename=filename, extension=extension)
                     ):
                         data.extend(request.chunk_data)
@@ -180,10 +202,10 @@ class DividerAmbassador(divider_pb2_grpc.dividerServicer):
                     self.logger.log('debug', f"Downloaded {filepath} from worker{worker_id} successfully")
             except Exception as e:
                 self.logger.log('error', "Error downloading the model: " + str(e))
-                return
+                raise Exception("Error downloading the model from the worker")
 
 
-    def download(self, request_iterator: divider_pb2.File, context: grpc.ServicerContext) -> divider_pb2.DownloadFileResponse:
+    def Download(self, request_iterator: divider_pb2.File, context: grpc.ServicerContext) -> divider_pb2.DownloadFileResponse:
         """
         Receives data from the coordinator and saves it to disk.
 
@@ -204,7 +226,7 @@ class DividerAmbassador(divider_pb2_grpc.dividerServicer):
             f.write(data)
         return divider_pb2.DownloadFileResponse(message="Success!")
 
-    def get_workers_info(self, coordinator_IP: str) -> Tuple[str, int, int]:
+    def GetWorkersInfo(self, coordinator_IP: str) -> Tuple[str, int, int]:
         """
         Retrieves information about the workers from the coordinator.
 
@@ -217,7 +239,7 @@ class DividerAmbassador(divider_pb2_grpc.dividerServicer):
         with grpc.insecure_channel(coordinator_IP + ":50052") as channel:
             # create an interface for the grpc client (coord)
             coord_stub = coord_pb2_grpc.coordinatorStub(channel)
-            response = coord_stub.get_workers_info(
+            response = coord_stub.GetWorkersInfo(
                 coord_pb2.WorkersInfoRequest(message="get workers info")
             )
             self.logger.log('debug', "divider received: information from coordinator")

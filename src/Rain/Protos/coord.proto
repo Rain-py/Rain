@@ -2,50 +2,11 @@ syntax = "proto3";
 package coord;
 
 service coordinator {
-    // coordinator downloads (recieve) a file
-    rpc download(stream File) returns (DownloadFileResponse) {}
-    // coordinator upload (sends) a file 
-    rpc upload(MetaData) returns (stream UploadFileResponse) {}
     // to get workers information 
-    rpc get_workers_info(WorkersInfoRequest) returns (WorkersInfoResponse) {}
+    rpc GetWorkersInfo(WorkersInfoRequest) returns (WorkersInfoResponse) {}
+    // to inform coordinator that worker is not responding 
+    rpc WorkerNotRespond(WorkerNotRespondRequest) returns (WorkerNotRespondResponse) {}
   }
-
-  // Define the file metadata message
-  message MetaData {
-    string filename = 1;
-    string extension = 2;
-  }
-  //------------------
-  // for downloading a file
-  message File {
-
-    oneof request {
-      MetaData metadata = 1;
-      bytes chunk_data = 2;
-    }
-  }
-  message DownloadFileResponse {
-    string message = 1;
-  }
-  // ------------------
-
-  // for uploading a file
-  message UploadFileResponse {
-    bytes chunk_data = 1;
-  }
-  
-  // -------------------
-  
-  // for loop
-  message StartLoopMessage {
-    string message = 1;
-    int32 iteration_num = 2;
-  }
-  message LoopResponse {
-    string message = 1;
-  }
-
-  // -------------------
 
   // for workers info
 
@@ -57,6 +18,19 @@ service coordinator {
     repeated string workers_ips = 1;
     repeated int32 workers_ports = 2;
     repeated int32 workers_ids = 3;
+  }
+
+  // for worker not responding  
+
+  message WorkerNotRespondRequest {
+    string worker_ip = 1;
+    int32 worker_port = 2;
+    int32 worker_id = 3;
+  }
+
+  message WorkerNotRespondResponse{
+    string worker_ip = 1;
+    int32 worker_port = 2;
   }
 
   

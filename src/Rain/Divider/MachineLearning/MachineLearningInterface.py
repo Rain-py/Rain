@@ -43,7 +43,7 @@ class MachineLearningInterface:
     def train_centralized_sync(self, X_train_partitions, y_train_partitions):
         try:  
             # get the workers info from coordinator
-            self.workers_IPs, self.workers_ports, self.workers_ids = self.divider_ambassador.get_workers_info(self.coordinator_IP)
+            self.workers_IPs, self.workers_ports, self.workers_ids = self.divider_ambassador.GetWorkersInfo(self.coordinator_IP)
             self.data_status = [0] * len(self.workers_IPs) # 0 means no data sent yet, 1 means data is already sent to the workers
         
             for i in range(self.iterations):   

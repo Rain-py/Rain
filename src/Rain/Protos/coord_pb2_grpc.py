@@ -2,7 +2,7 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 
-from Rain.Protos import coord_pb2 as protos_dot_coord__pb2
+from Rain.Protos import coord_pb2 as Protos_dot_coord__pb2
 
 
 class coordinatorStub(object):
@@ -14,42 +14,30 @@ class coordinatorStub(object):
         Args:
             channel: A grpc.Channel.
         """
-        self.download = channel.stream_unary(
-                '/coord.coordinator/download',
-                request_serializer=protos_dot_coord__pb2.File.SerializeToString,
-                response_deserializer=protos_dot_coord__pb2.DownloadFileResponse.FromString,
+        self.GetWorkersInfo = channel.unary_unary(
+                '/coord.coordinator/GetWorkersInfo',
+                request_serializer=Protos_dot_coord__pb2.WorkersInfoRequest.SerializeToString,
+                response_deserializer=Protos_dot_coord__pb2.WorkersInfoResponse.FromString,
                 )
-        self.upload = channel.unary_stream(
-                '/coord.coordinator/upload',
-                request_serializer=protos_dot_coord__pb2.MetaData.SerializeToString,
-                response_deserializer=protos_dot_coord__pb2.UploadFileResponse.FromString,
-                )
-        self.get_workers_info = channel.unary_unary(
-                '/coord.coordinator/get_workers_info',
-                request_serializer=protos_dot_coord__pb2.WorkersInfoRequest.SerializeToString,
-                response_deserializer=protos_dot_coord__pb2.WorkersInfoResponse.FromString,
+        self.WorkerNotRespond = channel.unary_unary(
+                '/coord.coordinator/WorkerNotRespond',
+                request_serializer=Protos_dot_coord__pb2.WorkerNotRespondRequest.SerializeToString,
+                response_deserializer=Protos_dot_coord__pb2.WorkerNotRespondResponse.FromString,
                 )
 
 
 class coordinatorServicer(object):
     """Missing associated documentation comment in .proto file."""
 
-    def download(self, request_iterator, context):
-        """coordinator downloads (recieve) a file
-        """
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def upload(self, request, context):
-        """coordinator upload (sends) a file 
-        """
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def get_workers_info(self, request, context):
+    def GetWorkersInfo(self, request, context):
         """to get workers information 
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def WorkerNotRespond(self, request, context):
+        """to inform coordinator that worker is not responding 
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -58,20 +46,15 @@ class coordinatorServicer(object):
 
 def add_coordinatorServicer_to_server(servicer, server):
     rpc_method_handlers = {
-            'download': grpc.stream_unary_rpc_method_handler(
-                    servicer.download,
-                    request_deserializer=protos_dot_coord__pb2.File.FromString,
-                    response_serializer=protos_dot_coord__pb2.DownloadFileResponse.SerializeToString,
+            'GetWorkersInfo': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetWorkersInfo,
+                    request_deserializer=Protos_dot_coord__pb2.WorkersInfoRequest.FromString,
+                    response_serializer=Protos_dot_coord__pb2.WorkersInfoResponse.SerializeToString,
             ),
-            'upload': grpc.unary_stream_rpc_method_handler(
-                    servicer.upload,
-                    request_deserializer=protos_dot_coord__pb2.MetaData.FromString,
-                    response_serializer=protos_dot_coord__pb2.UploadFileResponse.SerializeToString,
-            ),
-            'get_workers_info': grpc.unary_unary_rpc_method_handler(
-                    servicer.get_workers_info,
-                    request_deserializer=protos_dot_coord__pb2.WorkersInfoRequest.FromString,
-                    response_serializer=protos_dot_coord__pb2.WorkersInfoResponse.SerializeToString,
+            'WorkerNotRespond': grpc.unary_unary_rpc_method_handler(
+                    servicer.WorkerNotRespond,
+                    request_deserializer=Protos_dot_coord__pb2.WorkerNotRespondRequest.FromString,
+                    response_serializer=Protos_dot_coord__pb2.WorkerNotRespondResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -84,7 +67,7 @@ class coordinator(object):
     """Missing associated documentation comment in .proto file."""
 
     @staticmethod
-    def download(request_iterator,
+    def GetWorkersInfo(request,
             target,
             options=(),
             channel_credentials=None,
@@ -94,14 +77,14 @@ class coordinator(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.stream_unary(request_iterator, target, '/coord.coordinator/download',
-            protos_dot_coord__pb2.File.SerializeToString,
-            protos_dot_coord__pb2.DownloadFileResponse.FromString,
+        return grpc.experimental.unary_unary(request, target, '/coord.coordinator/GetWorkersInfo',
+            Protos_dot_coord__pb2.WorkersInfoRequest.SerializeToString,
+            Protos_dot_coord__pb2.WorkersInfoResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
-    def upload(request,
+    def WorkerNotRespond(request,
             target,
             options=(),
             channel_credentials=None,
@@ -111,25 +94,8 @@ class coordinator(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_stream(request, target, '/coord.coordinator/upload',
-            protos_dot_coord__pb2.MetaData.SerializeToString,
-            protos_dot_coord__pb2.UploadFileResponse.FromString,
-            options, channel_credentials,
-            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
-
-    @staticmethod
-    def get_workers_info(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/coord.coordinator/get_workers_info',
-            protos_dot_coord__pb2.WorkersInfoRequest.SerializeToString,
-            protos_dot_coord__pb2.WorkersInfoResponse.FromString,
+        return grpc.experimental.unary_unary(request, target, '/coord.coordinator/WorkerNotRespond',
+            Protos_dot_coord__pb2.WorkerNotRespondRequest.SerializeToString,
+            Protos_dot_coord__pb2.WorkerNotRespondResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

@@ -55,6 +55,25 @@ class LocalProvisioner(ProvisionerInterface):
             self.logger.log('error', f"Error creating the workers: {e}")
             return
     
+    def create_worker(self, worker_id):
+        self.logger.log('debug', f"Creating worker {worker_id}")
+        try:
+            self.workers[worker_id].stop_serving()
+            del self.workers[worker_id]
+        except Exception as e:
+            self.logger.log('error', f"Error stopping the worker: {e}")
+            return
+        
+        try:
+            worker = WorkerAmbassador(self.ports[worker_id], chunk_size=self.chunk_size)
+            worker.serve()
+            self.workers[worker_id] = worker
+            self.statuses[worker_id] = provisioner_pb2.Status.UP
+            return 
+        except Exception as e:
+            self.logger.log('error', f"Error creating the worker: {e}")
+            return
+
     def get_workers_ids(self):
         return self.ids
     def get_workers_ips(self):

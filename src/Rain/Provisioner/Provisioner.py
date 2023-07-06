@@ -33,6 +33,18 @@ class Provisioner(ProvisionerAmbassador):
             self.logger.log('error', f"Error starting coordinator: {e}")
             return
 
+    def create_worker(self, worker_id)  -> None:
+        try:
+            self.provisioner.create_worker(worker_id)
+            self.ids = self.provisioner.get_workers_ids()
+            self.ips = self.provisioner.get_workers_ips()
+            self.ports = self.provisioner.get_workers_ports()
+            self.statuses = self.provisioner.get_workers_statuses()
+            self.logger.log('debug', f"[Created new worker]\nIPs : {self.ips}, ports: {self.ports}, statuses: {self.statuses}, IDs : {self.ids}")
+        except Exception as e:
+            self.logger.log('error', f"Error creating workers: {e}")
+            return
+
     def create_workers(self):
         try:
             self.provisioner.create_workers(self.get_num_workers())
