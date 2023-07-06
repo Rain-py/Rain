@@ -1,17 +1,29 @@
 import numpy as np
 from Rain.Rain import Rain
+import sys
 
 from keras.models import Sequential
 from keras.layers import Dense, Activation, Dropout
 import tensorflow as tf
 
+from keras.layers import Conv2D
+from keras.layers import MaxPooling2D
+from keras.layers import Dense
+from keras.layers import Flatten
+from keras.layers import Dropout
+from keras.optimizers import SGD
+from keras.losses import CategoricalCrossentropy
+
 import os
-from keras.datasets import mnist
+from keras.datasets import cifar10, mnist
 from keras.utils import to_categorical
 import numpy as np
 
-def getData():
-    (X_train, y_train),(X_test, y_test) = mnist.load_data()
+def getData(dataset='mnist'):
+    if dataset == 'mnist':
+      (X_train, y_train),(X_test, y_test) = mnist.load_data()
+    else:
+      (X_train, y_train),(X_test, y_test) = cifar10.load_data()
     y_train = to_categorical(y_train)
     y_test = to_categorical(y_test)
 
@@ -28,7 +40,28 @@ def getData():
         os.makedirs('./data')
     return X_train, y_train, X_test, y_test
 
-def create_model():
+def create_cifar():
+    model = Sequential()
+    model.add(Conv2D(32, (3, 3), activation='relu', kernel_initializer='he_uniform', padding='same', input_shape=(32, 32, 3)))
+    model.add(Conv2D(32, (3, 3), activation='relu', kernel_initializer='he_uniform', padding='same'))
+    model.add(MaxPooling2D((2, 2)))
+    model.add(Dropout(0.2))
+    model.add(Conv2D(64, (3, 3), activation='relu', kernel_initializer='he_uniform', padding='same'))
+    model.add(Conv2D(64, (3, 3), activation='relu', kernel_initializer='he_uniform', padding='same'))
+    model.add(MaxPooling2D((2, 2)))
+    model.add(Dropout(0.2))
+    model.add(Conv2D(128, (3, 3), activation='relu', kernel_initializer='he_uniform', padding='same'))
+    model.add(Conv2D(128, (3, 3), activation='relu', kernel_initializer='he_uniform', padding='same'))
+    model.add(MaxPooling2D((2, 2)))
+    model.add(Dropout(0.2))
+    model.add(Flatten())
+    model.add(Dense(128, activation='relu', kernel_initializer='he_uniform'))
+    model.add(Dropout(0.2))
+    model.add(Dense(10, activation='softmax'))
+    return model
+
+
+def create_mnist():
     # network parameters
     hidden_units = 256
     dropout = 0.45
@@ -48,15 +81,15 @@ def create_model():
 
 config = {
   "mode": {
-      "type": "local",
+      "type": "lazy",
       "params": {
         "num_of_workers": 3,
-        "ips": ['127.0.0.1', '127.0.0.1', '127.0.0.1'], #[,'127.0.0.1', '127.0.0.1', '127.0.0.1'], 
+        "ips": ['52.255.158.201', '52.255.158.201', '52.255.158.201'], #[,'127.0.0.1', '127.0.0.1', '127.0.0.1'], 
         "ports": [50151, 50152, 50153]
         
       }
     },
-  "temp_data_path": "../../../",
+  "temp_data_path": "./",
   "partitions": 3,
   "iterations": 3,
   "chunk_size": 1024*1024,
@@ -76,8 +109,12 @@ config = {
   }
 }
 def main():
-    model = create_model()
-    X_train, y_train, X_test, y_test = getData()
+    if sys.argv[1] == 'cifar':
+      model = create_cifar()
+      X_train, y_train, X_test, y_test = getData('cifar')
+    else:
+      model = create_mnist()
+      X_train, y_train, X_test, y_test = getData('mnist')
     rain = Rain(config, model)
     model = rain.train(X_train, y_train, strategy='sync')
     loss, acc = model.evaluate(X_test, y_test, batch_size=config["DL"]["batch_size"])
