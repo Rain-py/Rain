@@ -1,10 +1,9 @@
 import base64
-import asyncssh
+import socket
 from azure.identity import DefaultAzureCredential
 from azure.mgmt.compute import ComputeManagementClient
 from azure.mgmt.compute.models import (HardwareProfile, LinuxConfiguration,
-                                       OSProfile, SshConfiguration,
-                                       SshPublicKey)
+                                       OSProfile)
 from azure.mgmt.network import NetworkManagementClient
 from azure.mgmt.resource import ResourceManagementClient
 
@@ -127,17 +126,6 @@ class CloudProvisioner(ProvisionerInterface):
             'source_address_prefix': '*',
             'source_port_range': '*'
         }
-        security_rule_ssh = {
-            'name': 'ssh',
-            'protocol': 'Tcp',
-            'destination_port_range': '22',
-            'destinationAddressPrefix': '*',
-            'access': 'Allow',
-            'direction': 'Inbound',
-            'priority': 101,
-            'source_address_prefix': '*',
-            'source_port_range': '*'
-        }
         security_rule_http = {
             'name': 'http',
             'protocol': 'Tcp',
@@ -149,7 +137,7 @@ class CloudProvisioner(ProvisionerInterface):
             'source_address_prefix': '*',
             'source_port_range': '*'
         }
-        security_rules = [security_rule_ssh, security_rule_http, security_rule_grpc]
+        security_rules = [security_rule_http, security_rule_grpc]
         nsg_params = {
             'location': self.location,
             'security_rules': security_rules
@@ -234,15 +222,6 @@ class CloudProvisioner(ProvisionerInterface):
             'sku': '20_04-lts-gen2',
             'version': 'latest'
         }
-        # Create the SSH configuration
-        try:
-            ssh_configuration = SshConfiguration(public_keys=[
-                SshPublicKey(path='/home/rain/.ssh/authorized_keys',
-                             key_data=public_key)
-            ])
-        except Exception as e:
-            self.logger.log('error', f"Error creating SSH configuration:{e}")            
-            raise Exception("Error creating SSH configuration")
         # Set the admin username and password for the VM
         admin_username = 'rain'
         admin_password = 'passw0rd#1'
@@ -255,8 +234,7 @@ class CloudProvisioner(ProvisionerInterface):
                                    admin_password=admin_password,
                                    custom_data=custom_data_encoded,
                                    linux_configuration=LinuxConfiguration(
-                                       disable_password_authentication=True,
-                                       ssh=ssh_configuration))
+                                       disable_password_authentication=True))
         except Exception as e:
             self.logger.log('error', f"Error creating OS profile:{e}")            
             raise Exception("Error creating OS profile")
@@ -336,32 +314,6 @@ class CloudProvisioner(ProvisionerInterface):
             self.resource_group_name, virtual_machine_name).wait()
 
     ############## Utility Methods ############## 
-    def create_ssh_key_pair(self, private_key_path, public_key_path):
-        try:
-            # Generate an SSH key pair
-            # key = paramiko.RSAKey.generate(2048)
-            key = asyncssh.generate_private_key('ssh-rsa')
-
-            # Save the private key to a file
-            key.write_private_key(private_key_path)
-            # key.write_private_key_file(private_key_path)
-            # save the private key to a string
-            # private_key = key.get_base64()
-            private_key = key.export_private_key().decode("utf-8")
-
-            # Save the public key to a file
-            with open(public_key_path, 'w') as f:
-                key.write_public_key(public_key_path)
-                # f.write(f'ssh-rsa {key.get_base64()}')
-            # Save the public key to a string
-            # public_key = f'ssh-rsa {key.get_base64()}'
-            public_key = key.export_public_key().decode("utf-8")
-        except Exception as e:
-            self.logger.log('error', f"Error creating SSH key pair:{e}")            
-            raise Exception("Error creating SSH key pair")
-        self.logger.log('debug', f"Created SSH key pair at {private_key_path} and {public_key_path}")
-        return private_key, public_key
-
     def get_ip_address_by_vm_name(self, vm_name):
         try:
             # Get the public IP address
@@ -441,6 +393,8 @@ class CloudProvisioner(ProvisionerInterface):
                 ip = self.get_ip_address_by_vm_name(f'{self.vm_name}{i+1}')
                 self.ips.append(ip)
                 self.ports.append(BASE_PORT)
+                while self.get_worker_port_status(ip) != provisioner_pb2.Status.UP:
+                    continue
                 self.statuses.append(provisioner_pb2.Status.UP)
                 self.logger.log('info', f"Worker {i+1} is up on {ip}:{BASE_PORT}")
         except Exception as e:
@@ -455,3 +409,15 @@ class CloudProvisioner(ProvisionerInterface):
         return self.ports
     def get_workers_statuses(self):
         return self.statuses
+    def get_worker_port_status(self, ip):
+        try:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.settimeout(2)  # Set a timeout value for the connection attempt
+            result = sock.connect_ex((ip, BASE_PORT))
+            sock.close()
+            if result == 0:
+                return provisioner_pb2.Status.UP
+            else:
+                return provisioner_pb2.Status.DOWN
+        except socket.error as e:
+            self.logger.log('error', f"Error getting the port statuses of the worker with ip: {ip}: {e}")
