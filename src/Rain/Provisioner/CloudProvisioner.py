@@ -1,5 +1,5 @@
 import base64
-import paramiko
+import asyncssh
 from azure.identity import DefaultAzureCredential
 from azure.mgmt.compute import ComputeManagementClient
 from azure.mgmt.compute.models import (HardwareProfile, LinuxConfiguration,
@@ -58,7 +58,9 @@ class CloudProvisioner(ProvisionerInterface):
         self.nic_name_list = []
         self.ip_name_list = []
         self.vm_name_list = []
-        self.custom_data_script = "#cloud-config\n\nruncmd:\n  - sudo apt-get update\n  - sudo apt-get install -y apache2\n  - sudo apt-get update\n  - sudo apt install -y python3-pip\n  - sudo pip install grpcio==1.56.0\n  - sudo pip install grpcio-tools==1.56.0\n  - sudo pip install protobuf>=4.21.6,<5.0\n  - sudo pip install azure-mgmt-compute==29.1.0\n  - sudo pip install azure-mgmt-core==1.4.0\n  - sudo pip install azure-mgmt-network==23.0.0\n  - sudo pip install azure-mgmt-resource==23.0.0\n  - sudo pip install azure-storage-blob==12.13.0\n  - sudo pip install azure-identity==1.12.0\n  - sudo pip install dill==0.3.6\n  - sudo pip install numpy>=1.22,<1.24\n  - sudo pip install torch==2.0.1\n  - sudo pip install keras>=2.12,<2.13\n  - sudo pip install tensorflow==2.12.0\n  - echo 'Hello I am a worker All packages are installed' > /var/www/html/index.html"
+        # self.custom_data_script = "#cloud-config\n\nruncmd:\n  - sudo apt-get update\n  - sudo apt-get install -y apache2\n  - sudo apt-get update\n  - sudo apt install -y python3-pip\n  - sudo pip install grpcio==1.56.0\n  - sudo pip install grpcio-tools==1.56.0\n  - sudo pip install protobuf>=4.21.6,<5.0\n  - sudo pip install azure-mgmt-compute==29.1.0\n  - sudo pip install azure-mgmt-core==1.4.0\n  - sudo pip install azure-mgmt-network==23.0.0\n  - sudo pip install azure-mgmt-resource==23.0.0\n  - sudo pip install azure-storage-blob==12.13.0\n  - sudo pip install azure-identity==1.12.0\n  - sudo pip install dill==0.3.6\n  - sudo pip install numpy>=1.22,<1.24\n  - sudo pip install torch==2.0.1\n  - sudo pip install keras>=2.12,<2.13\n  - sudo pip install tensorflow==2.12.0\n  - sudo pip install asyncssh\n  - sudo apt remove python3-pip\n  - wget https://bootstrap.pypa.io/get-pip.py\n  - sudo python3 get-pip.py\n  - echo 'Hello I am a worker All packages are installed' > /var/www/html/index.html\n  - git clone https://github.com/Rain-py/Rain.git\n  - tar -xvf ./Rain/dist.tar.gz\n  - pip3 install ./dist/Rain-0.1.1.tar.gz\n  - echo 'Rain installed' > /var/www/html/index.html\n  - python3 -c 'from Rain.Worker.WorkerAmbassador import WorkerAmbassador;  worker = WorkerAmbassador(50151, 1024*1024); worker.serve(); worker.wait_for_termination();'"
+        self.custom_data_script = "#cloud-config\n\nruncmd:\n  - sudo apt-get update\n  - sudo apt-get install -y apache2\n  - sudo apt-get update\n  - sudo apt install -y python3-pip\n  - sudo pip install grpcio==1.56.0\n  - sudo pip install grpcio-tools==1.56.0\n  - sudo pip install protobuf>=4.21.6,<5.0\n  - sudo pip install azure-mgmt-compute==29.1.0\n  - sudo pip install azure-mgmt-core==1.4.0\n  - sudo pip install azure-mgmt-network==23.0.0\n  - sudo pip install azure-mgmt-resource==23.0.0\n  - sudo pip install azure-storage-blob==12.13.0\n  - sudo pip install azure-identity==1.12.0\n  - sudo pip install dill==0.3.6\n  - sudo pip install numpy>=1.22,<1.24\n  - sudo pip install torch==2.0.1\n  - sudo pip install keras>=2.12,<2.13\n  - sudo pip install tensorflow==2.12.0\n  - sudo pip install -i https://test.pypi.org/simple/ Rain\n   - echo 'Rain installed' > /var/www/html/index.html\n  - python3 -c 'from Rain.Worker.WorkerAmbassador import WorkerAmbassador;  worker = WorkerAmbassador(50151, 1024*1024); worker.serve(); worker.wait_for_termination();'\n"
+
         self.logger = LogService("CloudProvisioner")
         self.logger.log('debug', f"Provisioner is initialized")
     ############## Destructors ##############
@@ -335,18 +337,23 @@ class CloudProvisioner(ProvisionerInterface):
     def create_ssh_key_pair(self, private_key_path, public_key_path):
         try:
             # Generate an SSH key pair
-            key = paramiko.RSAKey.generate(2048)
+            # key = paramiko.RSAKey.generate(2048)
+            key = asyncssh.generate_private_key('ssh-rsa')
 
             # Save the private key to a file
-            key.write_private_key_file(private_key_path)
+            key.write_private_key(private_key_path)
+            # key.write_private_key_file(private_key_path)
             # save the private key to a string
-            private_key = key.get_base64()
+            # private_key = key.get_base64()
+            private_key = key.export_private_key().decode("utf-8")
 
             # Save the public key to a file
             with open(public_key_path, 'w') as f:
-                f.write(f'ssh-rsa {key.get_base64()}')
+                key.write_public_key(public_key_path)
+                # f.write(f'ssh-rsa {key.get_base64()}')
             # Save the public key to a string
-            public_key = f'ssh-rsa {key.get_base64()}'
+            # public_key = f'ssh-rsa {key.get_base64()}'
+            public_key = key.export_public_key().decode("utf-8")
         except Exception as e:
             self.logger.log('error', f"Error creating SSH key pair:{e}")            
             raise Exception("Error creating SSH key pair")
