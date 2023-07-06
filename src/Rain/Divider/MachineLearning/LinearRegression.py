@@ -45,18 +45,15 @@ class LinearRegression(MachineLearningInterface):
     
 
     def reduce_sync(self, msgs, final_iteration=False):
-        n_features = msgs[0].shape[0] - 1
-        
+        n_features = msgs[0].shape[0]
         if self.weights is None:
-            self._initialize_weights(n_features)
+            self._initialize_weights(n_features - 1)
             
         dw_sum = np.zeros(n_features)
-        N = 0
         for msg in msgs:
-            dw_sum += msg[:-1]
-            N += msg[-1]
+            dw_sum += msg
 
-        dw = dw_sum / N
+        dw = dw_sum / len(msgs)
         self.weights -= self.learning_rate * dw
         
         if final_iteration:

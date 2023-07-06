@@ -185,6 +185,25 @@ class Worker:
         result[:-1] = dw
         result[-1] = n_samples
         return result
+    
+    def calculate_linear_regression_gradient(self, model, X, y):
+        n_samples, n_features = X.shape
+        if model.weights is None:
+            weights = np.random.randn(n_features + 1)
+        else:
+            weights = model.weights
+
+        # prepend 1 to all the rows of X
+        X = np.concatenate((np.ones((n_samples, 1)), X), axis=1)
+
+        A = np.dot(X.T, X)
+        b = np.dot(X.T, y)
+
+        dw = (A + A.T).dot(weights) - 2 * b
+        dw = dw / n_samples
+        dw = dw / np.linalg.norm(dw)
+        print(f"Worker {self.id} ______________________ {dw.shape}")
+        return dw
 
 
     def run(self):
@@ -238,4 +257,8 @@ class Worker:
             elif self.algo == "LogisticRegression":
                 y_train = np.load(f"{self.base_path}/y_train_{self.id}.npy")
                 result = self.calculate_logistic_regression_gradient(model, X_train, y_train)
+                self.send_data(result, self.id)
+            elif self.algo == "LinearRegression":
+                y_train = np.load(f"{self.base_path}/y_train_{self.id}.npy")
+                result = self.calculate_linear_regression_gradient(model, X_train, y_train)
                 self.send_data(result, self.id)
