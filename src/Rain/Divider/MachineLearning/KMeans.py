@@ -19,19 +19,25 @@ class KMeans(MachineLearningInterface):
         random_indices = np.random.choice(n_samples, size=self.n_clusters, replace=False)
         self.cluster_centers = X[random_indices]
 
+        old_labels = None
         for i in range(self.iterations):
             # Assign samples to nearest cluster
             distances = self._calculate_distances(X)
             labels = np.argmin(distances, axis=1)
+            
+            if old_labels is not None and np.all(old_labels == labels):
+                print(f"Converged at iteration {i}")
+                return labels
 
             # Update cluster centers
             for cluster in range(self.n_clusters):
                 mask = labels == cluster
                 if np.any(mask):
                     self.cluster_centers[cluster] = np.mean(X[mask], axis=0)
-            if i == self.iterations - 1:
-                print(self.cluster_centers)
-                return labels
+
+            old_labels = labels
+        
+        return labels
 
 
     def _calculate_distances(self, X):
@@ -62,7 +68,6 @@ class KMeans(MachineLearningInterface):
             return self
         
     def get_labels(self, X):
-        print(self.cluster_centers)
         distances = self._calculate_distances(X)
         labels = np.argmin(distances, axis=1)
         return labels
