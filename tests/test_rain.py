@@ -4,10 +4,7 @@
 
 import unittest
 import numpy as np
-import sys
-sys.path.append("../src/")
 from Rain.Rain import Rain
-sys.path.pop()
 
 from keras.models import Sequential
 from keras.layers import Dense, Activation, Dropout
