@@ -73,7 +73,7 @@ class ProvisionerAmbassador(provisioner_pb2_grpc.provisionerServicer):
         pass
     def stop_worker(self,worker_ip, worker_port):
         try:
-            with grpc.insecure_channel(worker_ip + f":{str(worker_port)}") as channel:
+            with grpc.insecure_channel(target=worker_ip + f":{str(worker_port)}", compression=grpc.Compression.Gzip) as channel:
                 worker_stub = worker_pb2_grpc.workerStub(channel)
                 worker_stub.StopWorker(worker_pb2.StopSignal(message = "Stop the worker"))
                 return 
@@ -110,7 +110,7 @@ class ProvisionerAmbassador(provisioner_pb2_grpc.provisionerServicer):
         """
         try:
             # create a gRPC server
-            self.server = grpc.server(futures.ThreadPoolExecutor(max_workers=1))
+            self.server = grpc.server(futures.ThreadPoolExecutor(max_workers=1), compression=grpc.Compression.Gzip)
             # add the provisioner to the server
             provisioner_pb2_grpc.add_provisionerServicer_to_server(self, self.server)
             # listen on port 50054

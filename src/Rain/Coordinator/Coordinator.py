@@ -87,7 +87,7 @@ class Coordinator(coord_pb2_grpc.coordinatorServicer):
         try:
             self.logger.log('debug', f"sending the num of workers to the provisioner")
             # instantiate a channel to the provisioner
-            with grpc.insecure_channel(self.provisioner_IP + ":50054") as channel:
+            with grpc.insecure_channel(target=self.provisioner_IP + ":50054", compression=grpc.Compression.Gzip) as channel:
                 # create an interface for the grpc client (provisioner)
                 provisioner_stub = provisioner_pb2_grpc.provisionerStub(channel)
 
@@ -112,7 +112,7 @@ class Coordinator(coord_pb2_grpc.coordinatorServicer):
             A tuple containing a list of IPs, a list of statuses, a list of port numbers, and a list of IDs of the workers.
         """
         try:
-            with grpc.insecure_channel(self.provisioner_IP +':50054') as channel:
+            with grpc.insecure_channel(target=self.provisioner_IP +':50054', compression=grpc.Compression.Gzip) as channel:
                 # create an interface for the grpc client (provisioner)
                 provisioner_stub = provisioner_pb2_grpc.provisionerStub(channel) 
                 # call function send Status from provisioner stub 
@@ -314,7 +314,7 @@ class Coordinator(coord_pb2_grpc.coordinatorServicer):
             None
         """
         try:
-            self.server = grpc.server(futures.ThreadPoolExecutor(1))
+            self.server = grpc.server(futures.ThreadPoolExecutor(1), compression=grpc.Compression.Gzip)
 
             coord_pb2_grpc.add_coordinatorServicer_to_server(self, self.server)
 

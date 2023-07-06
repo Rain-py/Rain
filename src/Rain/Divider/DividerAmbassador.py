@@ -31,6 +31,7 @@ def read_file(filepath: str, chunk_size: int = 1024) -> Iterator[divider_pb2.Fil
         filename= filename, extension=extension
     )
     yield divider_pb2.File(metadata=metadata)
+
     with open(filepath, mode="rb") as f:
         while True:
             chunk = f.read(chunk_size)
@@ -39,6 +40,44 @@ def read_file(filepath: str, chunk_size: int = 1024) -> Iterator[divider_pb2.Fil
                 yield entry_request
             else:  # The chunk was empty, which means we're at the end of the file
                 return
+
+def read_data(filepath: str, data_partition, filename: str, extension: str, chunk_size: int = 1024) -> Iterator[divider_pb2.File]:
+    """
+    A generator function that reads a file in chunks and yields the data as protobuf messages.
+
+    Args:
+        filepath (str): The path to the file to be read.
+        chunk_size (int): The size of each chunk to be read, in bytes.
+
+    Yields:
+        An instance of `divider_pb2.File` containing either the metadata of the file or a chunk of file data.
+    """
+    metadata = divider_pb2.MetaData(
+        filename=filename,
+        extension=extension
+    )
+    yield divider_pb2.File(metadata=metadata)
+
+    np.save(filepath, data_partition)
+    with open(filepath, mode="rb") as f:
+        while True:
+            chunk = f.read(chunk_size)
+            if chunk:
+                entry_request = divider_pb2.File(chunk_data=chunk)
+                yield entry_request
+            else:  # The chunk was empty, which means we're at the end of the file
+                return
+    max_message_size = 1*1024*1024  # Update the maximum allowed message size
+    data_size = data_partition[0].nbytes * len(data_partition)
+    chunk_size = min(chunk_size, max_message_size)  # Set the chunk size to be within the maximum allowed size
+    offset = 0
+    while offset < data_size:
+        remaining_bytes = data_size - offset
+        chunk = data_partition[offset: offset + min(chunk_size, remaining_bytes)]
+        offset += min(chunk_size, remaining_bytes)
+        entry_request = divider_pb2.File(chunk_data=chunk.tobytes())
+        yield entry_request
+    return
 
 def read_partitioned_data(data: List[Any], filename: str, extension: str, chunk_size: int = 1024) -> Iterator[divider_pb2.File]:
     """
@@ -99,16 +138,14 @@ class DividerAmbassador(divider_pb2_grpc.dividerServicer):
         """
         # TODO: Remove writing and reading the file
         try:
-            np.save(f"{self.data_base_path}X_train_{worker_id}.npy", X_train_partition)
+            # X train data
             response = worker_stub.download(
-                read_file(self.data_base_path + f"X_train_{worker_id}.npy", chunk_size=self.chunk_size)
-                    # read_partitioned_data(X_train_partition, f"X_train_{worker_id}", ".npy")
+                read_data(f"{self.data_base_path}X_train_{worker_id}.npy", X_train_partition, f"X_train_{worker_id}", ".npy", chunk_size=self.chunk_size)
                 )
             self.logger.log('debug', "divider receive: " + response.message + " from  worker after sending X_train")
-            np.save(f"{self.data_base_path}y_train_{worker_id}.npy", y_train_partition)
+            # y train data
             response = worker_stub.download(
-                read_file(self.data_base_path + f"y_train_{worker_id}.npy", chunk_size=self.chunk_size)
-                # read_partitioned_data(y_train_partition, f"y_train_{worker_id}", ".npy")
+                read_data(f"{self.data_base_path}y_train_{worker_id}.npy", y_train_partition, f"y_train_{worker_id}", ".npy", chunk_size=self.chunk_size)
             )
             self.logger.log('debug', "divider receive: " + response.message + " from worker after sending y_train")
         except Exception as e:
@@ -133,7 +170,7 @@ class DividerAmbassador(divider_pb2_grpc.dividerServicer):
             None
         """
         self.logger.log('debug', f'{worker_ip}:{worker_port}')
-        with grpc.insecure_channel(f'{worker_ip}:{worker_port}') as channel:
+        with grpc.insecure_channel(target=f'{worker_ip}:{worker_port}', compression=grpc.Compression.Gzip) as channel:
             worker_stub = worker_pb2_grpc.workerStub(channel)
             try:
                 # send data to the worker
@@ -214,7 +251,7 @@ class DividerAmbassador(divider_pb2_grpc.dividerServicer):
         Returns:
             A tuple containing the IP addresses, port numbers, and IDs of the workers.
         """
-        with grpc.insecure_channel(coordinator_IP + ":50052") as channel:
+        with grpc.insecure_channel(target=coordinator_IP + ":50052", compression=grpc.Compression.Gzip) as channel:
             # create an interface for the grpc client (coord)
             coord_stub = coord_pb2_grpc.coordinatorStub(channel)
             response = coord_stub.get_workers_info(
@@ -230,7 +267,7 @@ class DividerAmbassador(divider_pb2_grpc.dividerServicer):
         Returns:
             None
         """
-        self.server = grpc.server(futures.ThreadPoolExecutor(1))
+        self.server = grpc.server(futures.ThreadPoolExecutor(1), compression=grpc.Compression.Gzip)
         divider_pb2_grpc.add_dividerServicer_to_server(self, self.server)
         self.server.add_insecure_port(
             "[::]:50053"
@@ -249,7 +286,7 @@ class DividerAmbassador(divider_pb2_grpc.dividerServicer):
         Returns:
             A list of IP addresses of the workers.
         """
-        with grpc.insecure_channel(coordinator_IP + ":50052") as channel:
+        with grpc.insecure_channel(target=coordinator_IP + ":50052", compression=grpc.Compression.Gzip) as channel:
             # create an interface for the grpc client (coord)
             coord_stub = coord_pb2_grpc.coordinatorStub(channel)
             response = coord_stub.get_worker_IPs(

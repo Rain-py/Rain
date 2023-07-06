@@ -106,6 +106,13 @@ Example:
 Suppose you have an existing LegacyRectangle class that represents a rectangle with methods calculateArea() and calculatePerimeter(). However, you have a client code that expects a Shape interface with methods getArea() and getPerimeter(). To make the LegacyRectangle compatible with the client code, you can create an Adapter class that implements the Shape interface and internally uses the LegacyRectangle object. The Adapter class maps the getArea() and getPerimeter() methods to the corresponding methods of the LegacyRectangle class.
 
 
+
+## gRPC
+
+[Source Code](https://github.com/grpc/grpc/tree/v1.43.x/)
+
+[Compression](https://github.com/grpc/grpc/tree/v1.43.x/examples/python/compression)
+
 tar -czvf dist.tar.gz dist/
 sudo scp -i /tmp/RainData/prov/private_key.pem ./dist.tar.gz  rain@172.190.224.121:~/
 
