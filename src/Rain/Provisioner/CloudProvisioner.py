@@ -1,5 +1,6 @@
 import base64
 import asyncssh
+import socket
 from azure.identity import DefaultAzureCredential
 from azure.mgmt.compute import ComputeManagementClient
 from azure.mgmt.compute.models import (HardwareProfile, LinuxConfiguration,
@@ -60,7 +61,7 @@ class CloudProvisioner(ProvisionerInterface):
         self.vm_name_list = []
         # self.custom_data_script = "#cloud-config\n\nruncmd:\n  - sudo apt-get update\n  - sudo apt-get install -y apache2\n  - sudo apt-get update\n  - sudo apt install -y python3-pip\n  - sudo pip install grpcio==1.56.0\n  - sudo pip install grpcio-tools==1.56.0\n  - sudo pip install protobuf>=4.21.6,<5.0\n  - sudo pip install azure-mgmt-compute==29.1.0\n  - sudo pip install azure-mgmt-core==1.4.0\n  - sudo pip install azure-mgmt-network==23.0.0\n  - sudo pip install azure-mgmt-resource==23.0.0\n  - sudo pip install azure-storage-blob==12.13.0\n  - sudo pip install azure-identity==1.12.0\n  - sudo pip install dill==0.3.6\n  - sudo pip install numpy>=1.22,<1.24\n  - sudo pip install torch==2.0.1\n  - sudo pip install keras>=2.12,<2.13\n  - sudo pip install tensorflow==2.12.0\n  - sudo pip install asyncssh\n  - sudo apt remove python3-pip\n  - wget https://bootstrap.pypa.io/get-pip.py\n  - sudo python3 get-pip.py\n  - echo 'Hello I am a worker All packages are installed' > /var/www/html/index.html\n  - git clone https://github.com/Rain-py/Rain.git\n  - tar -xvf ./Rain/dist.tar.gz\n  - pip3 install ./dist/Rain-0.1.1.tar.gz\n  - echo 'Rain installed' > /var/www/html/index.html\n  - python3 -c 'from Rain.Worker.WorkerAmbassador import WorkerAmbassador;  worker = WorkerAmbassador(50151, 1024*1024); worker.serve(); worker.wait_for_termination();'"
         # self.custom_data_script = "#cloud-config\n\nruncmd:\n  - sudo apt-get update\n  - sudo apt-get install -y apache2\n  - sudo apt-get update\n  - sudo apt install -y python3-pip\n  - sudo pip install grpcio==1.56.0\n  - sudo pip install grpcio-tools==1.56.0\n  - sudo pip install protobuf>=4.21.6,<5.0\n  - sudo pip install azure-mgmt-compute==29.1.0\n  - sudo pip install azure-mgmt-core==1.4.0\n  - sudo pip install azure-mgmt-network==23.0.0\n  - sudo pip install azure-mgmt-resource==23.0.0\n  - sudo pip install azure-storage-blob==12.13.0\n  - sudo pip install azure-identity==1.12.0\n  - sudo pip install dill==0.3.6\n  - sudo pip install numpy>=1.22,<1.24\n  - sudo pip install torch==2.0.1\n  - sudo pip install keras>=2.12,<2.13\n  - sudo pip install tensorflow==2.12.0\n  - sudo pip install -i https://test.pypi.org/simple/ Rain\n   - echo 'Rain installed' > /var/www/html/index.html"
-        self.custom_data_script = "#cloud-config\n\nruncmd:\n  - sudo apt-get update\n  - sudo apt-get install -y apache2\n  - sudo apt-get update\n  - sudo apt install -y python3-pip\n  - sudo git clone https://gist.github.com/menna15/1ae8287faa78bc31c8ced6c772e4aff7\n  - echo 'Done ..' > /var/www/html/index.html\n  - cd /1ae8287faa78bc31c8ced6c772e4aff7\n  - sudo chmod 777 setup.sh\n  - sudo ./setup.sh\n  - echo 'Done Installing ..' > /var/www/html/index.html\n  - start_rain_worker"
+        self.custom_data_script = "#cloud-config\n\nruncmd:\n  - sudo apt-get update\n  - sudo apt-get install -y apache2\n  - sudo apt-get update\n  - sudo apt install -y python3-pip\n  - sudo git clone https://gist.github.com/menna15/1ae8287faa78bc31c8ced6c772e4aff7\n  - echo 'Done ..' > /var/www/html/index.html\n  - cd /1ae8287faa78bc31c8ced6c772e4aff7\n  - sudo chmod 777 setup.sh\n  - sudo ./setup.sh\n  - echo 'Done Installing ..' > /var/www/html/index.html\n  - sudo start_rain_worker"
 
         #  - python3 -c 'from Rain.Worker.WorkerAmbassador import WorkerAmbassador;  worker = WorkerAmbassador(50151, 1024*1024); worker.serve(); worker.wait_for_termination();'\n"
         self.logger = LogService("CloudProvisioner")
@@ -441,6 +442,8 @@ class CloudProvisioner(ProvisionerInterface):
                 ip = self.get_ip_address_by_vm_name(f'{self.vm_name}{i+1}')
                 self.ips.append(ip)
                 self.ports.append(BASE_PORT)
+                while self.get_worker_port_status(ip) != provisioner_pb2.Status.UP:
+                    continue
                 self.statuses.append(provisioner_pb2.Status.UP)
                 self.logger.log('info', f"Worker {i+1} is up on {ip}:{BASE_PORT}")
         except Exception as e:
@@ -455,3 +458,16 @@ class CloudProvisioner(ProvisionerInterface):
         return self.ports
     def get_workers_statuses(self):
         return self.statuses
+
+    def get_worker_port_status(self, ip):
+        try:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.settimeout(2)  # Set a timeout value for the connection attempt
+            result = sock.connect_ex((ip, BASE_PORT))
+            sock.close()
+            if result == 0:
+                return provisioner_pb2.Status.UP
+            else:
+                return provisioner_pb2.Status.DOWN
+        except socket.error as e:
+            self.logger.log('error', f"Error getting the port statuses of the worker with ip: {ip}: {e}")

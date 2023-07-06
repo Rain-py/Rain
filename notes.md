@@ -113,7 +113,7 @@ sudo scp -i /tmp/RainData/prov/private_key.pem ./dist.tar.gz  rain@172.190.224.1
 sudo apt-get update
 sudo apt install python3-pip -y
 tar -xvf ./dist.tar.gz
-pip install ./dist/Rain-0.1.1.tar.gz 
+pip install ./dist/Rain-0.1.3.tar.gz 
 
 nc -zv 172.190.116.144 50151 # check port is open
 
