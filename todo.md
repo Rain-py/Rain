@@ -48,15 +48,16 @@ Cloud Mode
 
 Cloud Mode
 
-- [ ] Test onPrem on the cloud.
+- [x] Test onPrem on the cloud.
 - [ ] Cloud mode.
 
 ## Thursday 6/7
 
 Cloud Mode
 
-- [ ] Test scheduling on multiple workers.
 - [ ] Solve hard coding the number of workers in the coordinator.
+- [ ] 
+- [ ] Test scheduling on multiple workers.
 - [ ] Decide what to do with the planar.
 - [ ] Test fault tolerance.
 - [ ] Try working on the monitoring.
@@ -86,8 +87,8 @@ Gendy:
 | Service Name          | Types | Doc String | GP Doc |
 |-----------------------|-------|------------|--------|
 | Worker                |  [ ]  |     [ ]    |  [ ]   |
-| Deep Learning         |  [ ]  |     [ ]    |  [ ]   |
-| Machine Learning      |  [ ]  |     [ ]    |  [ ]   |
+| Deep Learning         |  [x]  |     [x]    |  [ ]   |
+| Machine Learning      |  [x]  |     [x]    |  [ ]   |
 
 
 Nada:
