@@ -58,7 +58,8 @@ class Rain:
       """
       try:
         self.provisioner.serve()
-        model = self.divider_proxy.train(X_train, y_train, strategy) 
+        model = self.divider_proxy.train(X_train, y_train, strategy)
+        # TODO: take an action. 
         # self.provisioner.stop_serving()
         return model
       except Exception as e:
@@ -66,45 +67,6 @@ class Rain:
         self.provisioner.stop_serving()
         return
 
-        
-# Config example:
-'''
-config = {
-  "mode": {
-      "type": "local",
-      "params": {
-      "num_of_workers": 3,
-      
-      }
-      
-  },
-  "partitions": 3,
-  "iterations": 3,
-  "learning_type": "DL",
-  "DL": {
-    "lib": {
-      "type": "tensorflow",
-      "params": {
-        "loss": tf.keras.losses.CategoricalCrossentropy(),
-        "optimizer": tf.keras.optimizers.Adam(learning_rate=0.001),
-
-      }
-    },
-    "lr": 0.001,
-    "epochs": 2,
-    "batch_size": 128,
-  },
-  "ML": {
-      "algorithm": {
-      "type": "KNN",
-      "params": {
-        "K": 5,
-        "metric": "euclidean"
-      }
-    }    
-  }
-}
-'''
 
     
 

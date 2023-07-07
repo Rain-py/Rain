@@ -49,7 +49,7 @@ Cloud Mode
 Cloud Mode
 
 - [x] Test onPrem on the cloud.
-- [ ] Cloud mode.
+- [x] Start working on the cloud mode.
 
 ## Thursday 6/7
 
@@ -87,45 +87,12 @@ Cloud Mode
 
 ## Monday 10/7
 
-
-- [ ] Solve read/write disc.
-- [ ] Fix the configuration handler.
-- [ ] Submit the code.
-
-# Documentation
-
-Gendy:
-
-| Service Name          | Types | Doc String | GP Doc |
-|-----------------------|-------|------------|--------|
-| Worker                |  [ ]  |     [ ]    |  [ ]   |
-| Deep Learning         |  [x]  |     [x]    |  [ ]   |
-| Machine Learning      |  [x]  |     [x]    |  [ ]   |
-
-Nada:
-
-| Service Name          | Types | Doc String | GP Doc |
-|-----------------------|-------|------------|--------|
-| Worker Ambassador     |  [x]  |     [x]    |  [ ]   |
-| Divider Proxy         |  [x]  |     [x]    |  [ ]   |
-| Rain                  |  [x]  |     [x]    |  [ ]   |
-| Temp File Manager     |  [x]  |     [x]    |  [ ]   |
-| Log Service           |  [x]  |     [x]    |  [ ]   |
-| Divider               |  [x]  |     [x]    |  [ ]   |
-
-Menna:
-
-| Service Name          | Types | Doc String | GP Doc |
-|-----------------------|-------|------------|--------|
-| Coordinator           |  [x]  |     [x]    |  [ ]   |
-| Provisioner Ambassador|  [x]  |     [x]    |  [x]   |
-| Divider Ambassador    |  [x]  |     [x]    |  [x]   |
-
-
-ُExamples:
-
-tf_mode_data
-PT_mode_data
-Ml_mode_data
-NB_lazy_cloudmachine_breast
-LR_lazy_localmacine_breast
+- [ ] Fix the configuration handler. [Easy]
+- [ ] Delete rain files after training. [Easy]
+- [ ] Stop server in the coordinator doesn't work. Has a TODO. [Easy]
+- [ ] Remove port 80(with the apache installation)and 22(with the SSH keys) from the cloud provisioner. [Easy]
+- [ ] Solve read/write disc.[Medium]
+- [ ] Add test pipelines.[Medium]
+- [ ] In the cloud mode, stop the VMs without closing them. [Hard]
+- [ ] Check all the TODOs.
+- [ ] **Submit the code**.
