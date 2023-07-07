@@ -22,6 +22,8 @@ class Coordinator(coord_pb2_grpc.coordinatorServicer):
         Args:
             divider_IP (str): The IP address of the Divider.
             provisioner_IP (str): The IP address of the Provisioner.
+            num_of_workers (int): The number of workers to create.
+            num_partitions (int): The number of partitions to create.
 
         Returns:
             None
