@@ -55,25 +55,23 @@ Cloud Mode
 
 Cloud Mode
 
-- [ ] Fault tolerance in the coordinator.
+- [x] Fault tolerance in the coordinator.
 - [x] Solve hard coding the number of workers in the coordinator.
 - [ ] Test scheduling on multiple workers.
-- [ ] Solve the K-means problem.
-- [ ] Add stratified partitioning.
-- [ ] Solo worker packages.
-- [ ] Solve read/write disc.
-- [ ] Fix the configuration handler.
+- [x] Solve the K-means problem.
+- [x] Add stratified partitioning.
+- [x] Solve long setup time on the cloud.
 
 ## Friday 7/7
 
 - [ ] Test all modes on all examples.
   - MNISt:
-    - [ ] Local: TF,PT
-    - [ ] Lazy: TF, PT. Cloud machine.
+    - [x] Local: TF,PT
+    - [x] Lazy: TF, PT. Cloud machine.
   - Breast Cancer:
-    - [ ] Local: NB, LR, KMs
-    - [ ] Lazy: NB, LR, KMs. Cloud machine.
-    - [ ] Cloud: TF
+    - [x] Local: NB, LR, KMs
+    - [x] Lazy: NB, LR, KMs. Cloud machine.
+    - [x] Cloud: TF, NB
   - California Housing:
     - [ ] Cloud: lR
   - CIFAR:
@@ -81,12 +79,17 @@ Cloud Mode
 
 ## Saturday 8/7
 
+- [ ] Continue working on the documentation.
+
 ## Sunday 9/7
 
 - [ ] Submit the documentation.
 
 ## Monday 10/7
 
+
+- [ ] Solve read/write disc.
+- [ ] Fix the configuration handler.
 - [ ] Submit the code.
 
 # Documentation
