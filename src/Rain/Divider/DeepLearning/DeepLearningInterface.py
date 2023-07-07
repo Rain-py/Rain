@@ -53,6 +53,22 @@ class DeepLearningInterface:
     def reduce_gradients_sync(self, gradients):
         pass
 
+
+    def worker_process_sync(self, worker_id, iteration_num, X_train_partition, y_train_partition):
+        flag = False
+        # handle fault tolerance
+        while not flag:
+            try:
+                self.divider_ambassador.iteration(self.workers_ids[worker_id], self.workers_IPs[worker_id], self.workers_ports[worker_id], self.data_status[worker_id], iteration_num+1, iteration_num+1, X_train_partition, y_train_partition)
+                flag = True
+            except Exception as e:
+                self.logger.log('debug', f"Error in iteration {iteration_num} in worker {self.workers_ids[worker_id]}: {e}")
+                ip, port = self.divider_ambassador.inform_coord(self.workers_IPs[worker_id], self.workers_ports[worker_id], worker_id)
+                self.workers_IPs[worker_id] = ip
+                self.workers_ports[worker_id] = port
+                self.data_status[worker_id] = 0
+                self.logger.log('debug', f"Worker {worker_id + 1} is restarted on {ip}:{port} and data_status is reset to 0")
+
     
     def train_centralized_sync(self, X_train_partitions, y_train_partitions):
         try:  
@@ -65,14 +81,18 @@ class DeepLearningInterface:
                 # Notice, the algo.py is stateless
                 self.save_model(i+1) #self.partitions,
                 threads = list()
+
                 for j in range(self.partitions): # note to be considered number of workers != number of partitions
-                    thread = threading.Thread(target=self.divider_ambassador.iteration, args=(self.workers_ids[j], self.workers_IPs[j], self.workers_ports[j], self.data_status[j], i+1, i+1, X_train_partitions[j], y_train_partitions[j]))
-                    if i == 0:
-                        self.data_status[j] = 1
+                    thread = threading.Thread(target=self.worker_process_sync, args=(j, i, X_train_partitions[j], y_train_partitions[j]))
+                    # thread = threading.Thread(target=self.divider_ambassador.iteration, args=(self.workers_ids[j], self.workers_IPs[j], self.workers_ports[j], self.data_status[j], i+1, i+1, X_train_partitions[j], y_train_partitions[j]))
+                    # set the data status to 1, which means the data is already sent to the worker
                     threads.append(thread)
                     thread.start()
-                for thread in threads:
+               
+                for k,thread in enumerate(threads):
                     thread.join()
+                    self.data_status[k] = 1
+
                 # self.divider_ambassador.iteration(self.coordinator_IP, i+1) # start loop
                 gradients = self.receive_gradients_sync(self.partitions, i+1)
                 self.reduce_gradients_sync(gradients)
@@ -111,6 +131,8 @@ class DeepLearningInterface:
         for i in range(self.iterations):
             self.logger.log('debug', f"Starting iteration {i + 1}/{self.iterations}")  
             
+            # fault tolerance
+            # This flag is used to check if the worker completed the iteration successfully or not
             flag = False
             while not flag:
                 try:
