@@ -10,7 +10,7 @@ class Scheduler:
         self.data_base_path = TemporaryFilesManager.get_instance().create_temp_dir('scheduler/')
         self.logger = LogService("Scheduler")
 
-    def create_latency_matrix(instances):
+    def create_latency_matrix(self, instances):
         num_instances = len(instances)
         latency_matrix = [0 * num_instances for _ in range(num_instances)]
         IPs = instances
@@ -22,7 +22,7 @@ class Scheduler:
         
     # TODO : if partition > machine capacity
 
-    def distribute(data,instances,machines_capacity, default = True):
+    def distribute(self, data,instances,machines_capacity, default = True):
         # uniform distribution
         # if default scheduler is used 
         # or all the instances have the same capacity and the capacity is greater than the data size, then distribute the data uniformly
@@ -70,7 +70,7 @@ class Scheduler:
                     else:
                         unused_space += machines_capacity[item[1]] - item[0]
                 
-                loss = loss_function(latency, unused_space)
+                loss = self.loss_function(latency, unused_space)
                 print(loss)
                 if loss < min_loss:
                     min_loss = loss
@@ -78,7 +78,7 @@ class Scheduler:
             
             return best_group
 
-    def loss_function(predicted_latency, difference):
+    def loss_function(self, predicted_latency, difference):
         return predicted_latency + ( 1/difference)
 
 # data = [25,10,100]
