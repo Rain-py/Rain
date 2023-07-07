@@ -118,3 +118,11 @@ Menna:
 | Provisioner Ambassador|  [x]  |     [x]    |  [x]   |
 | Divider Ambassador    |  [x]  |     [x]    |  [x]   |
 
+
+ُExamples:
+
+tf_mode_data
+PT_mode_data
+Ml_mode_data
+NB_lazy_cloudmachine_breast
+LR_lazy_localmacine_breast
