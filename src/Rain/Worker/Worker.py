@@ -201,7 +201,6 @@ class Worker:
 
         dw = (A + A.T).dot(weights) - 2 * b
         dw = dw / n_samples
-        dw = dw / np.linalg.norm(dw)
         return dw
 
 

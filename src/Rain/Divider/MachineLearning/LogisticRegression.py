@@ -42,7 +42,7 @@ class LogisticRegression(MachineLearningInterface):
             
     def predict(self, X):
         z = self._sigmoid(X.dot(self.weights))    
-        y = np.where(z > 0.5, 1, 0)        
+        y = np.where(z > 0.5, 1, -1)        
         return y
     
 
