@@ -6,7 +6,8 @@ from Rain.LogService.LogService import LogService
 
 class Provisioner(ProvisionerAmbassador):
     def __init__(self, config):
-        super().__init__()
+        Coordinator_IP = '127.0.0.1'
+        super().__init__(Coordinator_IP)
         self.config = config
         self.logger = LogService("Provisioner")
         self.logger.log('debug', "Creating coordinator")

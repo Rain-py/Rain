@@ -202,7 +202,6 @@ class Worker:
         dw = (A + A.T).dot(weights) - 2 * b
         dw = dw / n_samples
         dw = dw / np.linalg.norm(dw)
-        print(f"Worker {self.id} ______________________ {dw.shape}")
         return dw
 
 
@@ -236,9 +235,9 @@ class Worker:
 
         # load the training data
         X_train = np.load(f"{self.base_path}/X_train_{self.id}.npy")
+        y_train = np.load(f"{self.base_path}/y_train_{self.id}.npy")
 
         if self.config["learning_type"] == "DL":
-            y_train = np.load(f"{self.base_path}/y_train_{self.id}.npy")
             # train the model and calculate the gradient
             gradient = self.calculate_gradient(model, X_train, y_train)
             # Send gradient to the server
@@ -251,14 +250,11 @@ class Worker:
                 # Send result to the server
                 self.send_data(result, self.id)
             elif self.algo == "GaussianNaiveBayes":
-                y_train = np.load(f"{self.base_path}/y_train_{self.id}.npy")
                 result = self.calculate_probabilities(X_train, y_train)
                 self.send_data(result, self.id)
             elif self.algo == "LogisticRegression":
-                y_train = np.load(f"{self.base_path}/y_train_{self.id}.npy")
                 result = self.calculate_logistic_regression_gradient(model, X_train, y_train)
                 self.send_data(result, self.id)
             elif self.algo == "LinearRegression":
-                y_train = np.load(f"{self.base_path}/y_train_{self.id}.npy")
                 result = self.calculate_linear_regression_gradient(model, X_train, y_train)
                 self.send_data(result, self.id)

@@ -124,6 +124,20 @@ class Coordinator(coord_pb2_grpc.coordinatorServicer):
                 working_ids.append(self.ids[i])
         return coord_pb2.WorkersInfoResponse(workers_ips=working_IPs, workers_ports=working_ports, workers_ids=working_ids)
 
+    def GetNWorkers(self, request: coord_pb2.Request, context: grpc.ServicerContext) -> coord_pb2.NumOfWorkers:
+        """
+        Defines the interface to return the number of workers.
+
+        Args:
+            request (NWorkersRequest): A `NWorkersRequest` message sent by the Divider.
+            context (grpc.ServicerContext): The context of the gRPC service.
+
+        Returns:
+            A `NWorkersResponse` message containing the number of workers.
+        """
+        self.logger.log('debug', f"coordinator is sending the number of workers to provisioner")
+        return coord_pb2.NumOfWorkers(NumOfWorkers=self.num_of_workers)
+
     def WorkerNotRespond (self, request: coord_pb2.WorkerNotRespondRequest, context: grpc.ServicerContext) -> coord_pb2.WorkerNotRespondResponse:
         """
         Defines the interface to handle the case when a worker does not respond.

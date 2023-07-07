@@ -141,12 +141,12 @@ class DividerAmbassador(divider_pb2_grpc.dividerServicer):
         # TODO: Remove writing and reading the file
         try:
             # X train data
-            response = worker_stub.download(
+            response = worker_stub.Download(
                 read_data(f"{self.data_base_path}X_train_{worker_id}.npy", X_train_partition, f"X_train_{worker_id}", ".npy", chunk_size=self.chunk_size)
                 )
             self.logger.log('debug', "divider receive: " + response.message + " from  worker after sending X_train")
             # y train data
-            response = worker_stub.download(
+            response = worker_stub.Download(
                 read_data(f"{self.data_base_path}y_train_{worker_id}.npy", y_train_partition, f"y_train_{worker_id}", ".npy", chunk_size=self.chunk_size)
             )
             self.logger.log('debug', f"divider receive: {response.message} from worker {worker_id} after sending y_train")
