@@ -24,6 +24,11 @@ class coordinatorStub(object):
                 request_serializer=Protos_dot_coord__pb2.WorkerNotRespondRequest.SerializeToString,
                 response_deserializer=Protos_dot_coord__pb2.WorkerNotRespondResponse.FromString,
                 )
+        self.GetNWorkers = channel.unary_unary(
+                '/coord.coordinator/GetNWorkers',
+                request_serializer=Protos_dot_coord__pb2.Request.SerializeToString,
+                response_deserializer=Protos_dot_coord__pb2.NumOfWorkers.FromString,
+                )
 
 
 class coordinatorServicer(object):
@@ -43,6 +48,12 @@ class coordinatorServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def GetNWorkers(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_coordinatorServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -55,6 +66,11 @@ def add_coordinatorServicer_to_server(servicer, server):
                     servicer.WorkerNotRespond,
                     request_deserializer=Protos_dot_coord__pb2.WorkerNotRespondRequest.FromString,
                     response_serializer=Protos_dot_coord__pb2.WorkerNotRespondResponse.SerializeToString,
+            ),
+            'GetNWorkers': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetNWorkers,
+                    request_deserializer=Protos_dot_coord__pb2.Request.FromString,
+                    response_serializer=Protos_dot_coord__pb2.NumOfWorkers.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -97,5 +113,22 @@ class coordinator(object):
         return grpc.experimental.unary_unary(request, target, '/coord.coordinator/WorkerNotRespond',
             Protos_dot_coord__pb2.WorkerNotRespondRequest.SerializeToString,
             Protos_dot_coord__pb2.WorkerNotRespondResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def GetNWorkers(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/coord.coordinator/GetNWorkers',
+            Protos_dot_coord__pb2.Request.SerializeToString,
+            Protos_dot_coord__pb2.NumOfWorkers.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
