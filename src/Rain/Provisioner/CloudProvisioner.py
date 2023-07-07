@@ -19,13 +19,15 @@ BASE_PORT = 50151
 class CloudProvisioner(ProvisionerInterface):
 
     ############## Constructors ##############
-    def __init__(self, subscription_id, location, setup):
+    def __init__(self, subscription_id, location, chunk_size, setup='ML'):
+        # credentials
         try:
             credentials = DefaultAzureCredential()
         except Exception as e:
             self.logger.log('error', f"Make sure you are authenticated with Azure:{e}")
             raise Exception("Make sure you are authenticated with Azure")
 
+        # Management Clients
         try:
             self.compute_client = ComputeManagementClient(
                 credentials, subscription_id)
@@ -42,8 +44,6 @@ class CloudProvisioner(ProvisionerInterface):
         self.ports = []
         self.ids = []
         self.num_workers = 0
-        # TODO: should be a parameter/temporary variable
-        self.vm_size = 'Standard_B2ms' # vcpu=2, RAM=8, price=0.08/hr
         self.data_base_path = TemporaryFilesManager.get_instance().create_temp_dir('prov/')
 
         # For the internal use only
@@ -59,15 +59,18 @@ class CloudProvisioner(ProvisionerInterface):
         self.nic_name_list = []
         self.ip_name_list = []
         self.vm_name_list = []
+        # TODO: should be a parameter/temporary variable
+        self.vm_size = 'Standard_B2ms' # vcpu=2, RAM=8, price=0.08/hr
+
+        # The custom data script
         tf_lib = setup == 'TF' 
         torch_lib = setup == 'PT'
         setup_script = "#cloud-config\n\nruncmd:\n  - sudo apt-get update\n  - sudo apt-get install -y apache2\n  - sudo apt install -y python3-pip\n  - sudo git clone https://gist.github.com/Mostafa-wael/ebd011579b7120e336e58671e5239248\n  - echo 'Installing...' > /var/www/html/index.html\n  - cd /ebd011579b7120e336e58671e5239248\n  - sudo chmod 777 setup.sh\n  - sudo ./setup.sh\n  - echo 'Done Installing ..' > /var/www/html/index.html\n"
         install_tf_script = "  - sudo pip install keras>=2.12,<2.13\n  - sudo pip install tensorflow==2.12.0\n"
         install_torch_script = "  - sudo pip install torch==2.0.1\n"
-        start_rain_worker = "  - sudo start_rain_worker\n"
+        start_rain_worker = f"  - sudo start_rain_worker --chunk_size {chunk_size} --setup {setup}\n"
         self.custom_data_script = setup_script + install_tf_script * tf_lib + install_torch_script * torch_lib + start_rain_worker
 
-        #  - python3 -c 'from Rain.Worker.WorkerAmbassador import WorkerAmbassador;  worker = WorkerAmbassador(50151, 1024*1024); worker.serve(); worker.wait_for_termination();'\n"
         self.logger = LogService("CloudProvisioner")
         self.logger.log('debug', f"Provisioner is initialized")
     ############## Destructors ##############

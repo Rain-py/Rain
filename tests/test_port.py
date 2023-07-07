@@ -21,14 +21,15 @@ port = 50151  # Replace with the target port
 
 # is_port_open(host, port)
 
-setup = 'ML'
+setup = 'PT'
+chunk_size = 1024*1024
+
 tf_lib = setup == 'TF' 
 torch_lib = setup == 'PT'
-       
 setup_script = "#cloud-config\n\nruncmd:\n  - sudo apt-get update\n  - sudo apt-get install -y apache2\n  - sudo apt install -y python3-pip\n  - sudo git clone https://gist.github.com/Mostafa-wael/ebd011579b7120e336e58671e5239248\n  - echo 'Installing...' > /var/www/html/index.html\n  - cd /ebd011579b7120e336e58671e5239248\n  - sudo chmod 777 setup.sh\n  - sudo ./setup.sh\n  - echo 'Done Installing ..' > /var/www/html/index.html\n"
 install_tf_script = "  - sudo pip install keras>=2.12,<2.13\n  - sudo pip install tensorflow==2.12.0\n"
 install_torch_script = "  - sudo pip install torch==2.0.1\n"
-start_rain_worker = "  - sudo start_rain_worker\n"
+start_rain_worker = f"  - sudo start_rain_worker --chunk_size {chunk_size} --setup {setup}\n"
 custom_data_script = setup_script + install_tf_script * tf_lib + install_torch_script * torch_lib + start_rain_worker
 
 print(custom_data_script)
