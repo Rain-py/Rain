@@ -1,4 +1,4 @@
-import numpy
+import numpy as np
 from typing import Tuple, List
 
 from Rain.Divider.DividerAmbassador import DividerAmbassador
@@ -68,13 +68,13 @@ class Divider:
             return
 
 
-    def __partition_data(self, X : numpy.ndarray, y : numpy.ndarray) -> Tuple[List[numpy.ndarray], List[numpy.ndarray]]:
+    def __partition_data(self, X : np.ndarray, y : np.ndarray) -> Tuple[List[np.ndarray], List[np.ndarray]]:
         """
         Private function to partition the data into subsets equal to the number of partitions passed.
 
         Args:
-            X (numpy.ndarray): X data
-            y (numpy.ndarray): y data
+            X (np.ndarray): X data
+            y (np.ndarray): y data
 
         Returns:
             tuple(list, list): X and y partitions
@@ -82,7 +82,7 @@ class Divider:
         num_samples = X.shape[0]
 
         # to make the data independent and identically distributed (i.i.d.) subsets
-        indices = numpy.random.permutation(num_samples) 
+        indices = np.random.permutation(num_samples) 
 
         # Use the shuffled indices to shuffle the datasets
         X = X[indices]
@@ -112,14 +112,14 @@ class Divider:
         """
         self.algorithm.send_info_to_workers(iteration_num)
 
-    def train(self, strategy : str, X : numpy.ndarray, y : numpy.ndarray) -> any:
+    def train(self, strategy : str, X : np.ndarray, y : np.ndarray) -> any:
         """
         Function to train the model.
 
         Args:
             strategy (str): strategy to update the model gradients.
-            X (numpy.ndarray): X train data
-            y (numpy.ndarray, optional): y train data. (if unsupervised, pass None)
+            X (np.ndarray): X train data
+            y (np.ndarray, optional): y train data. (if unsupervised, pass None)
 
         Raises:
             Exception: if the strategy is not valid. 
@@ -127,11 +127,24 @@ class Divider:
         Returns:
             any: the trained model.
         """
+        empty_y = False
         if y is None:
-            y = numpy.zeros(X.shape[0])
+            y = np.zeros(X.shape[0])
+            empty_y = True
         
         # partition the data
         X_train_partitions, y_train_partitions = self.__partition_data(X, y)
+
+        def create_empty_list(shape):
+            if len(shape) == 0:
+                return []
+            else:
+                return [create_empty_list(shape[1:]) for _ in range(shape[0])]
+            
+        if empty_y:
+            y_train_partitions = create_empty_list(X_train_partitions[0].shape)
+            print(y_train_partitions)
+            
         
         if strategy == 'sync':
             model = self.algorithm.train_centralized_sync(X_train_partitions, y_train_partitions)
@@ -139,6 +152,4 @@ class Divider:
             model = self.algorithm.train_centralized_async(X_train_partitions, y_train_partitions) 
         else:
             raise Exception("Invalid strategy")
-        return model 
-
-
+        return model

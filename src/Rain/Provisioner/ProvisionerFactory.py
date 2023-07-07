@@ -9,10 +9,17 @@ class ProvisionerFactory:
             try:
                 subscription_id = config["mode"]["params"]["subscription_id"]
                 location = config["mode"]["params"]["location"]
+                if config["learning_type"] == 'ML':
+                    setup = 'ML'
+                elif config["learning_type"] == 'DL':
+                    if config["DL"]["lib"]["type"] == "tensorflow":
+                        setup = 'TF'
+                elif config["DL"]["lib"]["type"] == "pytorch":
+                    setup = 'PT'
             except Exception as e:
                 raise Exception("Invalid provisioner config")
             return CloudProvisioner(subscription_id= subscription_id,
-                                    location=location)
+                                    location=location, setup=setup)
         elif config["mode"]["type"] == 'lazy':
             try:
                 ips = config["mode"]["params"]["ips"]

@@ -1,12 +1,12 @@
 from concurrent import futures # indicates the num of workers (threads)
 import grpc
-from Rain.Protos import provisioner_pb2, provisioner_pb2_grpc, worker_pb2, worker_pb2_grpc
+from Rain.Protos import provisioner_pb2, provisioner_pb2_grpc, worker_pb2, worker_pb2_grpc, coord_pb2, coord_pb2_grpc
 from Rain.LogService.LogService import LogService
 
 DEFAULT_NUM_WORKERS = 5 # to creates a thread pool executor with a maximum of DEFAULT_NUM_WORKERS worker threads. 
 
 class ProvisionerAmbassador(provisioner_pb2_grpc.provisionerServicer):
-    def __init__(self):
+    def __init__(self, Coordinator_IP):
         self.ips = [] 
         self.statuses = []
         self.ports = []
@@ -14,6 +14,7 @@ class ProvisionerAmbassador(provisioner_pb2_grpc.provisionerServicer):
         self.workers = []
         self.num_workers = 0
         self.server = None
+        self.Coordinator_IP = Coordinator_IP
         self.logger = LogService("ProvisionerAmbassador")
         self.options = [('grpc.max_send_message_length', 10 * 1024 * 1024),
                ('grpc.max_receive_message_length', 10 * 1024 * 1024)]
@@ -65,6 +66,23 @@ class ProvisionerAmbassador(provisioner_pb2_grpc.provisionerServicer):
             self.logger.log('error', f"Error receiving the number of workers: {e}")
             return provisioner_pb2.response(message = "Error receiving the number of workers")
 
+    def GetNumWorkers(self) -> None:
+        """
+        This function will be called from the coordinator side to get the number of workers.
+
+        Returns:
+            The number of workers.
+        """
+        try:
+            with grpc.insecure_channel(target=f"{self.Coordinator_IP}:50052") as channel:
+                coordinator_stub = coord_pb2_grpc.coordinatorStub(channel)
+                response = coordinator_stub.GetNWorkers(coord_pb2.Request(message="Get the number of workers"))
+                self.num_workers = response.NumOfWorkers
+            self.logger.log('debug', f"Provision requested the coordinator to get the number of workers")
+        except Exception as e:
+            self.logger.log('error', f"Error getting the number of workers: {e}")
+            return 0
+
     def SolveFailureWorker(self, request: provisioner_pb2.FailureWorker, context: grpc.ServicerContext) -> provisioner_pb2.NewWorker:
         """
         This function will be called from the coordinator side to solve the failure of a worker.
@@ -86,14 +104,19 @@ class ProvisionerAmbassador(provisioner_pb2_grpc.provisionerServicer):
 
     def start_coordinator(self)         -> None:
         pass
+    
     def create_workers(self)            -> None:
         pass
+    
     def create_worker(self, worker_id)  -> None:
         pass
+    
     def get_num_workers(self)           -> int:
         return self.num_workers
+    
     def delete_workers(self)            -> None:
         pass
+    
     def stop_worker(self,worker_ip, worker_port):
         try:
             with grpc.insecure_channel(target=worker_ip + f":{str(worker_port)}", compression=grpc.Compression.Gzip, options=self.options) as channel:
@@ -147,9 +170,8 @@ class ProvisionerAmbassador(provisioner_pb2_grpc.provisionerServicer):
             
             self.start_coordinator()
 
-            # busy wait until receiving the number of workers
-            while self.num_workers == 0:
-                continue
+            
+            self.GetNumWorkers()
             # create the workers
             self.workers  = self.create_workers()
             return
@@ -157,5 +179,3 @@ class ProvisionerAmbassador(provisioner_pb2_grpc.provisionerServicer):
         except Exception as e:
             self.logger.log('error', f"Error in the provisioner server: {e}")
             return
-
-        

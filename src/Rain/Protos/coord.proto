@@ -6,6 +6,7 @@ service coordinator {
     rpc GetWorkersInfo(WorkersInfoRequest) returns (WorkersInfoResponse) {}
     // to inform coordinator that worker is not responding 
     rpc WorkerNotRespond(WorkerNotRespondRequest) returns (WorkerNotRespondResponse) {}
+    rpc GetNWorkers(Request) returns (NumOfWorkers) {}
   }
 
   // for workers info
@@ -33,4 +34,12 @@ service coordinator {
     int32 worker_port = 2;
   }
 
+  message Request {
+    string message = 1;
+  }
+
+  message NumOfWorkers{
+    // suggested number of worker must receive from divider
+    uint64 NumOfWorkers = 1;
+  }
   

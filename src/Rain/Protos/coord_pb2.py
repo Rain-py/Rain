@@ -13,7 +13,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x12Protos/coord.proto\x12\x05\x63oord\"%\n\x12WorkersInfoRequest\x12\x0f\n\x07message\x18\x01 \x01(\t\"V\n\x13WorkersInfoResponse\x12\x13\n\x0bworkers_ips\x18\x01 \x03(\t\x12\x15\n\rworkers_ports\x18\x02 \x03(\x05\x12\x13\n\x0bworkers_ids\x18\x03 \x03(\x05\"T\n\x17WorkerNotRespondRequest\x12\x11\n\tworker_ip\x18\x01 \x01(\t\x12\x13\n\x0bworker_port\x18\x02 \x01(\x05\x12\x11\n\tworker_id\x18\x03 \x01(\x05\"B\n\x18WorkerNotRespondResponse\x12\x11\n\tworker_ip\x18\x01 \x01(\t\x12\x13\n\x0bworker_port\x18\x02 \x01(\x05\x32\xaf\x01\n\x0b\x63oordinator\x12I\n\x0eGetWorkersInfo\x12\x19.coord.WorkersInfoRequest\x1a\x1a.coord.WorkersInfoResponse\"\x00\x12U\n\x10WorkerNotRespond\x12\x1e.coord.WorkerNotRespondRequest\x1a\x1f.coord.WorkerNotRespondResponse\"\x00\x62\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x12Protos/coord.proto\x12\x05\x63oord\"%\n\x12WorkersInfoRequest\x12\x0f\n\x07message\x18\x01 \x01(\t\"V\n\x13WorkersInfoResponse\x12\x13\n\x0bworkers_ips\x18\x01 \x03(\t\x12\x15\n\rworkers_ports\x18\x02 \x03(\x05\x12\x13\n\x0bworkers_ids\x18\x03 \x03(\x05\"T\n\x17WorkerNotRespondRequest\x12\x11\n\tworker_ip\x18\x01 \x01(\t\x12\x13\n\x0bworker_port\x18\x02 \x01(\x05\x12\x11\n\tworker_id\x18\x03 \x01(\x05\"B\n\x18WorkerNotRespondResponse\x12\x11\n\tworker_ip\x18\x01 \x01(\t\x12\x13\n\x0bworker_port\x18\x02 \x01(\x05\"\x1a\n\x07Request\x12\x0f\n\x07message\x18\x01 \x01(\t\"$\n\x0cNumOfWorkers\x12\x14\n\x0cNumOfWorkers\x18\x01 \x01(\x04\x32\xe5\x01\n\x0b\x63oordinator\x12I\n\x0eGetWorkersInfo\x12\x19.coord.WorkersInfoRequest\x1a\x1a.coord.WorkersInfoResponse\"\x00\x12U\n\x10WorkerNotRespond\x12\x1e.coord.WorkerNotRespondRequest\x1a\x1f.coord.WorkerNotRespondResponse\"\x00\x12\x34\n\x0bGetNWorkers\x12\x0e.coord.Request\x1a\x13.coord.NumOfWorkers\"\x00\x62\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -29,6 +29,10 @@ if _descriptor._USE_C_DESCRIPTORS == False:
   _globals['_WORKERNOTRESPONDREQUEST']._serialized_end=240
   _globals['_WORKERNOTRESPONDRESPONSE']._serialized_start=242
   _globals['_WORKERNOTRESPONDRESPONSE']._serialized_end=308
-  _globals['_COORDINATOR']._serialized_start=311
-  _globals['_COORDINATOR']._serialized_end=486
+  _globals['_REQUEST']._serialized_start=310
+  _globals['_REQUEST']._serialized_end=336
+  _globals['_NUMOFWORKERS']._serialized_start=338
+  _globals['_NUMOFWORKERS']._serialized_end=374
+  _globals['_COORDINATOR']._serialized_start=377
+  _globals['_COORDINATOR']._serialized_end=606
 # @@protoc_insertion_point(module_scope)
