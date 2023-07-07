@@ -65,7 +65,7 @@ class CloudProvisioner(ProvisionerInterface):
         install_tf_script = "  - sudo pip install keras>=2.12,<2.13\n  - sudo pip install tensorflow==2.12.0\n"
         install_torch_script = "  - sudo pip install torch==2.0.1\n"
         start_rain_worker = "  - sudo start_rain_worker\n"
-        custom_data_script = setup_script + install_tf_script * tf_lib + install_torch_script * torch_lib + start_rain_worker
+        self.custom_data_script = setup_script + install_tf_script * tf_lib + install_torch_script * torch_lib + start_rain_worker
 
         #  - python3 -c 'from Rain.Worker.WorkerAmbassador import WorkerAmbassador;  worker = WorkerAmbassador(50151, 1024*1024); worker.serve(); worker.wait_for_termination();'\n"
         self.logger = LogService("CloudProvisioner")
