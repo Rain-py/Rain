@@ -50,7 +50,6 @@ class TemporaryFilesManager:
         try:
             self.logger.info("TemporaryFilesManager is destroyed")
             self.cleanup_temp_dirs()
-            del self.logger
             return
         except Exception as e:
             self.logger.log('error', f"Error deleting:{e}")

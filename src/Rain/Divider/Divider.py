@@ -46,7 +46,6 @@ class Divider:
         try:
             del self.algorithm
             del self.divider_ambassador
-            del self.logger
         except Exception as e:
             self.logger.log('error', f"Error deleting: {e}")
 
@@ -135,15 +134,8 @@ class Divider:
         # partition the data
         X_train_partitions, y_train_partitions = self.__partition_data(X, y)
 
-        def create_empty_list(shape):
-            if len(shape) == 0:
-                return []
-            else:
-                return [create_empty_list(shape[1:]) for _ in range(shape[0])]
-            
         if empty_y:
-            y_train_partitions = create_empty_list(X_train_partitions[0].shape)
-            print(y_train_partitions)
+            y_train_partitions = [np.empty(1)] * len(y_train_partitions)
             
         
         if strategy == 'sync':

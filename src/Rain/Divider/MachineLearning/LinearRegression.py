@@ -31,7 +31,6 @@ class LinearRegression(MachineLearningInterface):
         for _ in range(self.iterations):
             dw = (A + A.T).dot(self.weights) - 2 * b
             dw = dw / n_samples
-            dw = dw / np.linalg.norm(dw)
 
             # update weights
             self.weights = self.weights - self.learning_rate * dw    

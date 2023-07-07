@@ -1,19 +1,11 @@
 import numpy as np
 import dill
-import torch
-from torch.utils.data import TensorDataset, DataLoader
+from Rain.Worker.WorkerInterface import WorkerInterface
 
-class Worker:
+class WorkerML(WorkerInterface):
     def __init__(self, id, data_base_path, iteration_num):
-        self.id = id
-        self.base_path = data_base_path
-        self.iteration_num = iteration_num
-        self.config = None
-        self.epochs = None
-        self.optimizer = None
-        self.lib = None
-        self.loss = None
-        self.batch_size = None
+        super().__init__(id, data_base_path, iteration_num)
+        self.algo = None
 
 
     def receive_data(self):
@@ -24,7 +16,6 @@ class Worker:
             print("Error in loading the data: ", e)
             return
 
-
     def send_data(self, msg, ID):
         try:
             dill.dump(msg, open(f"{self.base_path}{ID}_{self.iteration_num}_trained.pkl", "wb"))
@@ -32,60 +23,6 @@ class Worker:
         except Exception as e:
             print("Error in sending the data: ", e)
             return
-
-
-    def calculate_gradient(self, model, X_train, y_train):
-        if self.lib == "tensorflow":
-            try:
-                old_weights = model.get_weights()
-                model.compile(loss=self.loss, optimizer=self.optimizer, metrics=['accuracy'])
-                model.fit(X_train, y_train, epochs=self.epochs, batch_size=self.batch_size)
-                new_weights = model.get_weights()
-                gradients = [(new_weights[i] - old_weights[i]) / -self.lr for i in range(len(new_weights))]
-                return gradients
-            except Exception as e:
-                print("Error in calculating the gradient: ", e)
-                return
-        elif self.lib == "pytorch":
-            try:
-                # Convert numpy arrays to PyTorch tensors
-                X_train = torch.from_numpy(X_train).float()
-                y_train = torch.from_numpy(y_train).long()
-                # Create a TensorDataset
-                train_dataset = TensorDataset(X_train, y_train)
-                # Create a DataLoader for the training dataset with the defined batch size
-                train_loader = DataLoader(train_dataset, batch_size=self.batch_size, shuffle=False)
-                
-                old_weights = [param.clone() for param in model.parameters()]
-                for epoch in range(self.epochs):
-                    total_correct, total_samples, total_loss = 0, 0, 0
-                    for i, (data, labels) in enumerate(train_loader):
-                        # Forward pass
-                        outputs = model(data)
-                        loss = self.loss(outputs, labels)
-
-                        # Backward and optimize
-                        self.optimizer.zero_grad()
-                        loss.backward()
-                        self.optimizer.step()
-
-                        # Compute training accuracy
-                        _, predicted = torch.max(outputs.data, 1)
-                        total_correct += (predicted == labels).sum().item()
-                        total_samples += labels.size(0)
-                        total_loss += loss.item()
-
-                    print('Epoch [{}/{}], Loss: {:.4f}, Accuracy: {:.4f}'
-                        .format(epoch+1, self.epochs, total_loss / (i + 1), total_correct / total_samples))
-
-                new_weights = [param.clone() for param in model.parameters()]
-                gradient = [(new_weights[i] - old_weights[i]) / -self.lr for i in range(len(new_weights))]
-                gradient = [x.detach().numpy() for x in gradient]
-                return gradient
-            except Exception as e:
-                print("Error in calculating the gradient: ", e)
-                return
-    
 
     def calculate_cluster_means(self, model, X_train):
         if model.cluster_centers is None:
@@ -110,7 +47,6 @@ class Worker:
         
         return result
 
-
     def _calculate_distances(self, X, cluster_centers):
         n_clusters = cluster_centers.shape[0]
         n_samples = X.shape[0]
@@ -121,7 +57,6 @@ class Worker:
 
         return distances
     
-
     def calculate_probabilities(self, X_train, y_train):
         result = {
             "class_counts": {},
@@ -135,7 +70,6 @@ class Worker:
         result["class_likelihoods"] = self.calculate_class_likelihoods(X_train, y_train)
         return result
     
-
     def calculate_class_likelihoods(self, X, y):
         num_features = X.shape[1]
         class_likelihoods = []
@@ -153,7 +87,6 @@ class Worker:
             class_likelihoods.append(feature_likelihoods)
         return np.asarray(class_likelihoods)
 
-
     def calculate_feature_likelihood(self, feature_values):
         feature_likelihood = {
             'sum': np.sum(feature_values),
@@ -162,13 +95,11 @@ class Worker:
         }
         return feature_likelihood
     
-
     def sigmoid(self, z):
         # clip large negative values to avoid overflow
         z = np.clip(z, -500, 500)
         return 1 / (1 + np.exp(-z))
     
-
     def calculate_logistic_regression_gradient(self, model, X, y):
         n_samples, n_features = X.shape
         
@@ -201,6 +132,8 @@ class Worker:
 
         dw = (A + A.T).dot(weights) - 2 * b
         dw = dw / n_samples
+        dw = dw / np.linalg.norm(dw)
+        print(f"Worker {self.id} ______________________ {dw.shape}")
         return dw
 
 
@@ -216,17 +149,11 @@ class Worker:
             self.config = data["config"]
             model = data["model"]
             
-            if self.config["learning_type"] == "DL":
-                config = self.config["DL"]
-                self.lib = config["lib"]["type"]
-                self.optimizer = config["lib"]["params"]["optimizer"]
-                self.loss = config["lib"]["params"]["loss"]
-                self.epochs = config["epochs"]
-                self.batch_size = config["batch_size"]
-                self.lr = config["lr"]
-            elif self.config["learning_type"] == "ML":
+            if self.config["learning_type"] == "ML":
                 config = self.config["ML"]
                 self.algo = config["algorithm"]["type"]
+            else:
+                raise Exception("Learning type is not supported")
 
         except Exception as e:
             print("Error in configuring the parameters: ", e)
@@ -234,26 +161,26 @@ class Worker:
 
         # load the training data
         X_train = np.load(f"{self.base_path}/X_train_{self.id}.npy")
-        y_train = np.load(f"{self.base_path}/y_train_{self.id}.npy")
 
-        if self.config["learning_type"] == "DL":
-            # train the model and calculate the gradient
-            gradient = self.calculate_gradient(model, X_train, y_train)
-            # Send gradient to the server
-            self.send_data(gradient, self.id)
-
-        elif self.config["learning_type"] == "ML":
+        if self.config["learning_type"] == "ML":
             if self.algo == "KMeans":
                 # find the cluster means
                 result = self.calculate_cluster_means(model, X_train)
                 # Send result to the server
                 self.send_data(result, self.id)
             elif self.algo == "GaussianNaiveBayes":
+                y_train = np.load(f"{self.base_path}/y_train_{self.id}.npy")
                 result = self.calculate_probabilities(X_train, y_train)
                 self.send_data(result, self.id)
             elif self.algo == "LogisticRegression":
+                y_train = np.load(f"{self.base_path}/y_train_{self.id}.npy")
                 result = self.calculate_logistic_regression_gradient(model, X_train, y_train)
                 self.send_data(result, self.id)
             elif self.algo == "LinearRegression":
+                y_train = np.load(f"{self.base_path}/y_train_{self.id}.npy")
                 result = self.calculate_linear_regression_gradient(model, X_train, y_train)
                 self.send_data(result, self.id)
+            else:
+                raise Exception("Algorithm is not supported")
+        else:
+            raise Exception("Learning type is not supported")
