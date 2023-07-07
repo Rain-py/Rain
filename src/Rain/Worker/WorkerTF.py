@@ -53,7 +53,7 @@ class WorkerTF(WorkerInterface):
             self.config = data["config"]
             model = data["model"]
             
-            if self.config["learning_type"] == "DL":
+            if self.config["learning_type"] == "DL" and self.config["DL"]["lib"]["type"] == "tensorflow":
                 config = self.config["DL"]
                 self.lib = config["lib"]["type"]
                 self.optimizer = config["lib"]["params"]["optimizer"]
@@ -71,7 +71,7 @@ class WorkerTF(WorkerInterface):
         # load the training data
         X_train = np.load(f"{self.base_path}/X_train_{self.id}.npy")
 
-        if self.config["learning_type"] == "DL":
+        if self.config["learning_type"] == "DL" and self.config["DL"]["lib"]["type"] == "tensorflow":
             y_train = np.load(f"{self.base_path}/y_train_{self.id}.npy")
             # train the model and calculate the gradient
             gradient = self.calculate_gradient(model, X_train, y_train)

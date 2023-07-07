@@ -4,10 +4,9 @@ import grpc
 from Rain.Protos import worker_pb2, worker_pb2_grpc
 from Rain.LogService.LogService import LogService
 from Rain.TemporaryFilesManager.TemporaryFilesManager import TemporaryFilesManager
-from Rain.Worker.Worker import Worker
-
+from Rain.Worker.WorkerFactory import WorkerFactory
 class WorkerAmbassador(worker_pb2_grpc.workerServicer):
-    def __init__(self, port : int, chunk_size = 9 * 1024*1024) -> None:
+    def __init__(self, port : int, chunk_size = 9 * 1024*1024, setup='ML') -> None:
         """
         Function to initialize the worker ambassador.
         
@@ -21,6 +20,7 @@ class WorkerAmbassador(worker_pb2_grpc.workerServicer):
         self.data_base_path = TemporaryFilesManager.get_instance().create_temp_dir(f'worker_{self.port}/')
         # create a logger for the worker 
         self.logger = LogService(f"Worker_{self.port}")
+        self.setup = setup # the setup of the worker: ML, TF, PT
         
         # create the directory if it does not exist
         if not os.path.exists(self.data_base_path):
@@ -126,7 +126,7 @@ class WorkerAmbassador(worker_pb2_grpc.workerServicer):
         try:
             self.logger.log('info', f"Running the worker with id: {request.worker_id} on iteration: {request.iteration_num}")
             # create a worker and run it
-            worker = Worker(request.worker_id, self.data_base_path, request.iteration_num)
+            worker = WorkerFactory.create_worker(self.setup, request.worker_id, self.data_base_path, request.iteration_num)
             worker.run()
             # return success message
             return worker_pb2.ExecuteFileResponse(message='Executed!')

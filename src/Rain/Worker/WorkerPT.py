@@ -8,8 +8,6 @@ class WorkerPT(WorkerInterface):
     def __init__(self, id, data_base_path, iteration_num):
         super().__init__(id, data_base_path, iteration_num)
         
-
-
     def receive_data(self):
         try:
             data = dill.load(open(f"{self.base_path}{self.iteration_num}.pkl", "rb"))
@@ -18,7 +16,6 @@ class WorkerPT(WorkerInterface):
             print("Error in loading the data: ", e)
             return
 
-
     def send_data(self, msg, ID):
         try:
             dill.dump(msg, open(f"{self.base_path}{ID}_{self.iteration_num}_trained.pkl", "wb"))
@@ -26,7 +23,6 @@ class WorkerPT(WorkerInterface):
         except Exception as e:
             print("Error in sending the data: ", e)
             return
-
 
     def calculate_gradient(self, model, X_train, y_train):
         if self.lib == "pytorch":
@@ -70,7 +66,6 @@ class WorkerPT(WorkerInterface):
                 return
         else:
             raise Exception("The library is not supported by this worker.")
-    
 
     def run(self):
         try:
@@ -84,7 +79,7 @@ class WorkerPT(WorkerInterface):
             self.config = data["config"]
             model = data["model"]
             
-            if self.config["learning_type"] == "DL":
+            if self.config["learning_type"] == "DL" and self.config["DL"]["lib"]["type"] == "pytorch":
                 config = self.config["DL"]
                 self.lib = config["lib"]["type"]
                 self.optimizer = config["lib"]["params"]["optimizer"]
@@ -103,7 +98,7 @@ class WorkerPT(WorkerInterface):
         # load the training data
         X_train = np.load(f"{self.base_path}/X_train_{self.id}.npy")
 
-        if self.config["learning_type"] == "DL":
+        if self.config["learning_type"] == "DL" and self.config["DL"]["lib"]["type"] == "pytorch":
             y_train = np.load(f"{self.base_path}/y_train_{self.id}.npy")
             # train the model and calculate the gradient
             gradient = self.calculate_gradient(model, X_train, y_train)
