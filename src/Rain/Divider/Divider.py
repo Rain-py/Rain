@@ -46,7 +46,6 @@ class Divider:
         try:
             del self.algorithm
             del self.divider_ambassador
-            del self.logger
         except Exception as e:
             self.logger.log('error', f"Error deleting: {e}")
 

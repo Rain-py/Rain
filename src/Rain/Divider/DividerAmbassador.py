@@ -223,7 +223,10 @@ class DividerAmbassador(divider_pb2_grpc.dividerServicer):
             except Exception as e:
                 self.logger.log('error', "Error executing the model on the worker: " + str(e))
                 raise Exception("Error executing the model on the worker")
+            
 
+            # if iteration_num == 1 and worker_id == 2 and not flag:
+            #     raise Exception(f"worker{worker_id} is down in the iteration {iteration_num}")
 
             try:
                     # receive the model from the worker
