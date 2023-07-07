@@ -115,6 +115,8 @@ class DividerAmbassador(divider_pb2_grpc.dividerServicer):
         self.logger = LogService("DividerAmbassador")
         self.coordinator_IP = '127.0.0.1'
         self.chunk_size = chunk_size
+        self.options = [('grpc.max_send_message_length', 10 * 1024 * 1024),
+               ('grpc.max_receive_message_length', 10 * 1024 * 1024)]
         
     def __del__(self):
         try:
@@ -190,7 +192,7 @@ class DividerAmbassador(divider_pb2_grpc.dividerServicer):
             None
         """
         self.logger.log('debug', f'{worker_ip}:{worker_port}')
-        with grpc.insecure_channel(target=f'{worker_ip}:{worker_port}', compression=grpc.Compression.Gzip) as channel:
+        with grpc.insecure_channel(target=f'{worker_ip}:{worker_port}', compression=grpc.Compression.Gzip, options=self.options) as channel:
             worker_stub = worker_pb2_grpc.workerStub(channel)
             try:
                 # send data to the worker
@@ -273,7 +275,7 @@ class DividerAmbassador(divider_pb2_grpc.dividerServicer):
         Returns:
             A tuple containing the IP addresses, port numbers, and IDs of the workers.
         """
-        with grpc.insecure_channel(target=coordinator_IP + ":50052", compression=grpc.Compression.Gzip) as channel:
+        with grpc.insecure_channel(target=coordinator_IP + ":50052", compression=grpc.Compression.Gzip, options=self.options) as channel:
             # create an interface for the grpc client (coord)
             coord_stub = coord_pb2_grpc.coordinatorStub(channel)
             response = coord_stub.GetWorkersInfo(
@@ -289,7 +291,7 @@ class DividerAmbassador(divider_pb2_grpc.dividerServicer):
         Returns:
             None
         """
-        self.server = grpc.server(futures.ThreadPoolExecutor(max_workers=2), compression=grpc.Compression.Gzip)
+        self.server = grpc.server(futures.ThreadPoolExecutor(max_workers=2), compression=grpc.Compression.Gzip, options=self.options)
         divider_pb2_grpc.add_dividerServicer_to_server(self, self.server)
         self.server.add_insecure_port(
             "[::]:50053"
@@ -308,7 +310,7 @@ class DividerAmbassador(divider_pb2_grpc.dividerServicer):
         Returns:
             A list of IP addresses of the workers.
         """
-        with grpc.insecure_channel(target=coordinator_IP + ":50052", compression=grpc.Compression.Gzip) as channel:
+        with grpc.insecure_channel(target=coordinator_IP + ":50052", compression=grpc.Compression.Gzip, options=self.options) as channel:
             # create an interface for the grpc client (coord)
             coord_stub = coord_pb2_grpc.coordinatorStub(channel)
             response = coord_stub.get_worker_IPs(

@@ -7,7 +7,7 @@ from Rain.TemporaryFilesManager.TemporaryFilesManager import TemporaryFilesManag
 from Rain.Worker.Worker import Worker
 
 class WorkerAmbassador(worker_pb2_grpc.workerServicer):
-    def __init__(self, port : int, chunk_size = 1024) -> None:
+    def __init__(self, port : int, chunk_size = 9 * 1024*1024) -> None:
         """
         Function to initialize the worker ambassador.
         
@@ -25,6 +25,8 @@ class WorkerAmbassador(worker_pb2_grpc.workerServicer):
         # create the directory if it does not exist
         if not os.path.exists(self.data_base_path):
             os.makedirs(self.data_base_path) 
+        self.options = [('grpc.max_send_message_length', 10 * 1024 * 1024),
+               ('grpc.max_receive_message_length', 10 * 1024 * 1024)]
 
     def __del__(self) -> None:
         """
@@ -156,7 +158,7 @@ class WorkerAmbassador(worker_pb2_grpc.workerServicer):
         """
         try:
             # create a gRPC server
-            self.server = grpc.server(futures.ThreadPoolExecutor(max_workers=1), compression=grpc.Compression.Gzip)
+            self.server = grpc.server(futures.ThreadPoolExecutor(max_workers=1), compression=grpc.Compression.Gzip, options=self.options)
             # add the worker to the server
             worker_pb2_grpc.add_workerServicer_to_server(self, self.server)
             # listen on port 50051 as a server based

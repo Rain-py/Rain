@@ -15,6 +15,8 @@ class ProvisionerAmbassador(provisioner_pb2_grpc.provisionerServicer):
         self.num_workers = 0
         self.server = None
         self.logger = LogService("ProvisionerAmbassador")
+        self.options = [('grpc.max_send_message_length', 10 * 1024 * 1024),
+               ('grpc.max_receive_message_length', 10 * 1024 * 1024)]
 
     def __del__(self):
         try:
@@ -94,7 +96,7 @@ class ProvisionerAmbassador(provisioner_pb2_grpc.provisionerServicer):
         pass
     def stop_worker(self,worker_ip, worker_port):
         try:
-            with grpc.insecure_channel(target=worker_ip + f":{str(worker_port)}", compression=grpc.Compression.Gzip) as channel:
+            with grpc.insecure_channel(target=worker_ip + f":{str(worker_port)}", compression=grpc.Compression.Gzip, options=self.options) as channel:
                 worker_stub = worker_pb2_grpc.workerStub(channel)
                 worker_stub.StopWorker(worker_pb2.StopSignal(message = "Stop the worker"))
                 return 
@@ -132,7 +134,9 @@ class ProvisionerAmbassador(provisioner_pb2_grpc.provisionerServicer):
         try:
             # create a gRPC server
             # This executor is responsible for handling incoming requests concurrently. By default, gRPC servers use a thread pool executor to process incoming RPCs
-            self.server = grpc.server(futures.ThreadPoolExecutor(max_workers=DEFAULT_NUM_WORKERS), compression=grpc.Compression.Gzip)
+            options = [('grpc.max_send_message_length', 100 * 1024 * 1024),
+               ('grpc.max_receive_message_length', 100 * 1024 * 1024)]
+            self.server = grpc.server(futures.ThreadPoolExecutor(max_workers=DEFAULT_NUM_WORKERS), compression=grpc.Compression.Gzip, options=options)
             # add the provisioner to the server
             provisioner_pb2_grpc.add_provisionerServicer_to_server(self, self.server)
             # listen on port 50054

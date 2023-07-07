@@ -35,6 +35,9 @@ class Coordinator(coord_pb2_grpc.coordinatorServicer):
         self.num_of_workers = num_of_workers
         self.num_partitions = num_partitions
 
+        self.options = [('grpc.max_send_message_length', 10 * 1024 * 1024),
+               ('grpc.max_receive_message_length', 10 * 1024 * 1024)]
+        
     def __del__(self):
         try:
             self.stop_serving()
@@ -55,7 +58,7 @@ class Coordinator(coord_pb2_grpc.coordinatorServicer):
         try:
             self.logger.log('debug', f"sending the num of workers to the provisioner")
             # instantiate a channel to the provisioner
-            with grpc.insecure_channel(target=self.provisioner_IP + ":50054", compression=grpc.Compression.Gzip) as channel:
+            with grpc.insecure_channel(target=self.provisioner_IP + ":50054", compression=grpc.Compression.Gzip, options=self.options) as channel:
                 # create an interface for the grpc client (provisioner)
                 provisioner_stub = provisioner_pb2_grpc.provisionerStub(channel)
 
@@ -80,7 +83,7 @@ class Coordinator(coord_pb2_grpc.coordinatorServicer):
             A tuple containing a list of IPs, a list of statuses, a list of port numbers, and a list of IDs of the workers.
         """
         try:
-            with grpc.insecure_channel(target=self.provisioner_IP +':50054', compression=grpc.Compression.Gzip) as channel:
+            with grpc.insecure_channel(target=self.provisioner_IP +':50054', compression=grpc.Compression.Gzip, options=self.options) as channel:
                 # create an interface for the grpc client (provisioner)
                 provisioner_stub = provisioner_pb2_grpc.provisionerStub(channel) 
                 # call function send Status from provisioner stub 
@@ -154,7 +157,7 @@ class Coordinator(coord_pb2_grpc.coordinatorServicer):
             None
         """
         try:
-            self.server = grpc.server(futures.ThreadPoolExecutor(max_workers=2), compression=grpc.Compression.Gzip)
+            self.server = grpc.server(futures.ThreadPoolExecutor(max_workers=2), compression=grpc.Compression.Gzip, options=self.options)
 
             coord_pb2_grpc.add_coordinatorServicer_to_server(self, self.server)
 
