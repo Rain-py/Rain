@@ -10,7 +10,7 @@ class Provisioner(ProvisionerAmbassador):
         self.config = config
         self.logger = LogService("Provisioner")
         self.logger.log('debug', "Creating coordinator")
-        self.coordinator = Coordinator(divider_IP='127.0.0.1', provisioner_IP= '127.0.0.1')
+        self.coordinator = Coordinator(divider_IP='127.0.0.1', provisioner_IP= '127.0.0.1', num_of_workers = config["mode"]["params"]["num_of_workers"], num_partitions= config["partitions"])
         try:
             self.provisioner = ProvisionerFactory.create_provisioner(self.config)
         except Exception as e:

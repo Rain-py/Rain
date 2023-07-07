@@ -56,7 +56,7 @@ Cloud Mode
 Cloud Mode
 
 - [ ] Fault tolerance in the coordinator.
-- [ ] Solve hard coding the number of workers in the coordinator.
+- [x] Solve hard coding the number of workers in the coordinator.
 - [ ] Test scheduling on multiple workers.
 - [ ] Solve the K-means problem.
 - [ ] Add stratified partitioning.

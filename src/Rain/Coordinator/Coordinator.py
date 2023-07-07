@@ -9,47 +9,13 @@ from Rain.LogService.LogService import LogService
 from Rain.Protos import (
     coord_pb2,
     coord_pb2_grpc,
-    worker_pb2,
-    worker_pb2_grpc,
     provisioner_pb2,
     provisioner_pb2_grpc,
-    divider_pb2_grpc,
 )
-
-# def read_file(filepath: str, logger: LogService, chunk_size: int = 1024) -> Iterator[coord_pb2.File]:
-    
-#     """
-#     A generator function that reads a file in chunks and send it as stream of small chunks by yields the data as protobuf messages.
-
-#     Args:
-#         filepath (str): The path to the file to be read.
-#         chunk_size (int): The size of each chunk to be read, in bytes.
-
-#     Yields:
-#         An instance of `coord_pb2.File` containing either the metadata of the file or a chunk of file data.
-#     """
-#     # split filepath on '/' to get the filename and extension
-#     split_data = filepath.split("/")
-#     filename, extension = split_data[-1].split(".")[0], "." + split_data[-1].split(".")[1]
-#     try:
-#         metadata = coord_pb2.MetaData(filename=filename, extension=extension)
-#         yield coord_pb2.File(metadata=metadata)
-#         with open(filepath, mode="rb") as f:
-#             while True:
-#                 chunk = f.read(chunk_size)
-#                 if chunk:
-#                     entry_request = coord_pb2.File(chunk_data=chunk)
-#                     yield entry_request
-#                 else:  # The chunk was empty, which means we're at the end of the file
-#                     return
-#     except Exception as e:
-#         logger = logger
-#         logger.log("error", f"Error reading the file: {e}")
-#         return coord_pb2.File(chunk_data=b'')
 
 ## Coordinator class
 class Coordinator(coord_pb2_grpc.coordinatorServicer):
-    def __init__(self, divider_IP: str, provisioner_IP: str) -> None:
+    def __init__(self, divider_IP: str, provisioner_IP: str, num_of_workers : int, num_partitions :int) -> None:
         """
         Initializes the Coordinator object.
 
@@ -66,7 +32,9 @@ class Coordinator(coord_pb2_grpc.coordinatorServicer):
         self.logger.log('debug', f"Coordinator is initialized")
         self.divider_IP = divider_IP  
         self.provisioner_IP = provisioner_IP
-        
+        self.num_of_workers = num_of_workers
+        self.num_partitions = num_partitions
+
     def __del__(self):
         try:
             self.stop_serving()
@@ -195,7 +163,7 @@ class Coordinator(coord_pb2_grpc.coordinatorServicer):
             self.server.start()
             self.logger.log('info', f"coordinator is serving")
             # TODO: Critical, should be solved!!!
-            self.set_num_of_workers(3)
+            self.set_num_of_workers(self.num_of_workers)
             
         except Exception as e:
             self.logger.log('error', f"Error in the coordinator server: {e}")
