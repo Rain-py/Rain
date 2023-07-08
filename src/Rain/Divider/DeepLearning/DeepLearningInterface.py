@@ -181,7 +181,7 @@ class DeepLearningInterface:
 
     # ______________________ Semi-Asynchronous Training ______________________
 
-    def worker_process_semi_sync(self, worker_id, X_train_partition, y_train_partition):
+    def worker_process_semi_async(self, worker_id, X_train_partition, y_train_partition):
         lock = threading.Lock()
         # get the workers info from coordinator
         self.workers_IPs, self.workers_ports, self.workers_ids = self.divider_ambassador.GetWorkersInfo(self.coordinator_IP)
@@ -230,7 +230,7 @@ class DeepLearningInterface:
             self.logger.log('debug', f"Iteration {i + 1}/{self.iterations} complete for worker {worker_id + 1}.")
 
 
-    def train_centralized_semi_sync(self, X_train_partitions, y_train_partitions):
+    def train_centralized_semi_async(self, X_train_partitions, y_train_partitions):
         try:
             self.iterations_threshold = self.config["iterations_threshold"]
             for id in range(self.num_of_workers):
@@ -238,7 +238,7 @@ class DeepLearningInterface:
 
             threads = list()
             for id in range(self.num_of_workers):
-                thread = threading.Thread(target=self.worker_process_semi_sync, args=(id, X_train_partitions[id - 1], y_train_partitions[id - 1]))
+                thread = threading.Thread(target=self.worker_process_semi_async, args=(id, X_train_partitions[id - 1], y_train_partitions[id - 1]))
                 threads.append(thread)
                 thread.start()
             

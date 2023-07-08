@@ -215,8 +215,8 @@ class Divider:
             model = self.algorithm.train_centralized_sync(X_train_partitions, y_train_partitions)
         elif strategy == 'async':
             model = self.algorithm.train_centralized_async(X_train_partitions, y_train_partitions) 
-        elif strategy == 'semi_sync':
-            model = self.algorithm.train_centralized_semi_sync(X_train_partitions, y_train_partitions)
+        elif strategy == 'semi_async':
+            model = self.algorithm.train_centralized_semi_async(X_train_partitions, y_train_partitions)
         else:
             raise Exception("Invalid strategy")
         return model
