@@ -46,7 +46,7 @@ jobs:
         python3 -m pip install twine
 
     - name: Build the package
-      run: python -m build .
+      run: python3 -m build .
     - name: Install the package
       run: python3 -m pip install -U dist/*.whl
 
@@ -54,4 +54,4 @@ jobs:
       run: python3 -m pip install -U tox
 
     - name: Test
-      run: python -m tox -e py
+      run: python3 -m tox -e py
