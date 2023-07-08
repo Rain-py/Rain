@@ -27,12 +27,17 @@ jobs:
       run: git clone https://gist.github.com/Mostafa-wael/ebd011579b7120e336e58671e5239248
     - name: Install Rain Dependencies
       run: |
-        echo 'Installing...'
-        cd ebd011579b7120e336e58671e5239248
-        sudo chmod 777 setup.sh
-        sudo ./setup.sh
-        python -m pip install -U numpy==1.22
-        python -m pip uninstall -y Rain
+        python -m pip install -U grpcio==1.56.0                                                                                         
+        python -m pip install -U grpcio-tools==1.56.0                                                                                   
+        python -m pip install -U protobuf==4.21.6                                                                                  
+        python -m pip install -U dill==0.3.6                                                                                            
+        python -m pip install -U numpy==1.22  
+        python -m pip install -U azure-mgmt-compute==29.1.0                                                                             
+        python -m pip install -U azure-mgmt-core==1.4.0                                                                                 
+        python -m pip install -U azure-mgmt-network==23.0.0                                                                             
+        python -m pip install -U azure-mgmt-resource==23.0.0                                                                            
+        python -m pip install -U azure-storage-blob==12.13.0                                                                            
+        python -m pip install -U azure-identity==1.12.0                                                                                 
 
     - name: Install build dependencies
       run: |

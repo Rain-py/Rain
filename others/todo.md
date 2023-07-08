@@ -93,6 +93,7 @@ Cloud Mode
 - [ ] Remove port 80(with the apache installation)and 22(with the SSH keys) from the cloud provisioner. [Easy]
 - [ ] Add Linting. [Easy]
 - [ ] Release Rain on Pypi. [Easy]
+- [ ] Fix all logging(types/ add more details in the log, ... ) [Easy]
 - [ ] Solve read/write disc.[Medium]
 - [ ] Add test pipelines.[Medium]
 - [ ] Test lazy mode on personal laptops. [Medium]
