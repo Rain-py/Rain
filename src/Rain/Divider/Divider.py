@@ -31,6 +31,13 @@ class Divider:
         # create a temporary directory for the divider to store its data.      
         self.model_base_path = TemporaryFilesManager.get_instance().create_temp_dir('divider/')
 
+        # check if the task is regression to decide whether or not stratified partitioning is needed
+        self.regression_task = False
+        if config["learning_type"] == "ML":
+            if config["ML"]["algorithm"]["type"] == "LinearRegression":
+                self.regression_task = True
+
+
         # define the interface.
         if config["learning_type"] == "DL":
             self.algorithm = DeepLearningFactory.create_DL_interface(model, config, self.divider_ambassador)
@@ -65,6 +72,72 @@ class Divider:
         except Exception as e:
             self.logger.log('error', "Error stopping serving: " + str(e))
             return
+
+    def __partition_data_stratified(self, X : np.ndarray, y : np.ndarray) -> Tuple[List[np.ndarray], List[np.ndarray]]:
+        num_samples = X.shape[0]
+
+        # to make the data independent and identically distributed (i.i.d.) subsets
+        indices = np.random.permutation(num_samples) 
+
+        # Use the shuffled indices to shuffle the datasets
+        X = X[indices]
+        y = y[indices]
+        
+        one_hot = False
+        if len(y.shape) == 2 and y.shape[1] > 1:
+            y = np.argmax(y, axis=1)
+            one_hot = True
+        
+        # Partition the dataset into subsets
+        subsets = np.array_split(X, self.partitions)
+
+        subset_sizes = []
+        for i, subset in enumerate(subsets):
+            subset_sizes.append(len(subset))
+
+        # Calculate the frequency of each label
+        label_counts = np.bincount(y)
+
+        # Calculate the percentage of each label
+        label_percentages = label_counts / len(y)
+
+        subset_label_counts = (subset_sizes[0] * label_percentages)
+        for j in range(len(subset_label_counts) - 1):
+            subset_label_counts[j] = round(subset_label_counts[j])
+        subset_label_counts[-1] = subset_sizes[0] - np.sum(subset_label_counts[:-1])
+        subset_label_counts = subset_label_counts.astype(int)
+
+        X_train_partitions = np.full((self.partitions, len(np.unique(y))), None)
+        y_train_partitions = np.full((self.partitions, len(np.unique(y))), None)
+        for i, label in enumerate(np.unique(y)):
+            X_label = X[y==label]
+            y_label = y[y==label]
+            count = subset_label_counts[i]
+            for j in range(self.partitions):
+                if j != self.partitions - 1:
+                    X_train_partitions[j][i] = X_label[j * count : (j + 1) * count]
+                    y_train_partitions[j][i] = y_label[j * count : (j + 1) * count]
+                else:
+                    X_train_partitions[j][i] = X_label[j * count :]
+                    y_train_partitions[j][i] = y_label[j * count :]
+
+        X_train = []
+        y_train = []
+        for i in range(self.partitions):
+            result_x = X_train_partitions[i][0]
+            for array in X_train_partitions[i][1:]:
+                result_x = np.vstack((result_x, array))
+            X_train.append(result_x)
+
+            result_y = y_train_partitions[i][0]
+            for array in y_train_partitions[i][1:]:
+                result_y = np.concatenate((result_y, array))
+            
+            if one_hot:
+                result_y = np.eye(len(np.unique(y)))[result_y]
+            y_train.append(result_y)
+
+        return X_train, y_train
 
 
     def __partition_data(self, X : np.ndarray, y : np.ndarray) -> Tuple[List[np.ndarray], List[np.ndarray]]:
