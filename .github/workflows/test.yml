@@ -22,6 +22,8 @@ jobs:
         python-version: ${{ matrix.python }}
     - name: Install Python and Git
       run: sudo apt install -y python3-pip git
+    - name: Install asyncssh
+      run: sudo pip install asyncssh
     - name: Clone Repository
       run: git clone https://gist.github.com/Mostafa-wael/ebd011579b7120e336e58671e5239248
     - name: Install Dependencies
