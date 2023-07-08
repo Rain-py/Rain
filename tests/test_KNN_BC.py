@@ -15,8 +15,8 @@ def getData():
     X, y = load_breast_cancer(return_X_y=True)
     print(f"Breast cancer dataset shape: {X.shape}")
 
-    for label in np.unique(y):
-        print(f"Percentage of label ({label}) in the dataset is: {(np.sum(y == label) / len(y)).round(2)}")
+    # for label in np.unique(y):
+    #     print(f"Percentage of label ({label}) in the dataset is: {(np.sum(y == label) / len(y)).round(2)}")
 
     # split dataset into train and test sets
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, stratify=y)
@@ -37,7 +37,7 @@ class TestML(unittest.TestCase):
         # Evaluate the Sklearn model
         y_pred_sklearn = knn_classifier.predict(X_test)
         accuracy_sklearn = (np.sum(y_pred_sklearn == y_test) / len(y_test) * 100).round(2)
-        print(f"Accuracy of Sklearn kNN classifier is: {accuracy_sklearn}%")
+        print(f"Accuracy of Sklearn KNN classifier is: {accuracy_sklearn}%")
         
         # Train the Rain model
         knn_classifier = KNN_classifier_rain(n_neighbors=5, metric= "euclidean")
@@ -45,10 +45,10 @@ class TestML(unittest.TestCase):
         # Evaluate the Rain model
         y_pred_rain = knn_classifier.predict(X_test)
         accuracy_rain = (np.sum(y_pred_rain == y_test) / len(y_test) * 100).round(2)
-        print(f"Accuracy of Rain kNN classifier is: {accuracy_rain}%")
+        print(f"Accuracy of Rain KNN classifier is: {accuracy_rain}%")
 
-        # Assert that the ratio between them is more than 0.95
-        self.assertTrue(accuracy_rain / accuracy_sklearn > 0.95)
+        # Assert that the two models produce the same results
+        self.assertTrue((y_pred_rain == y_pred_sklearn).sum() == len(y_pred_sklearn))
 
         
 

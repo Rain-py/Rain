@@ -15,8 +15,8 @@ def getData():
     X, y = load_breast_cancer(return_X_y=True)
     print(f"Breast cancer dataset shape: {X.shape}")
 
-    for label in np.unique(y):
-        print(f"Percentage of label ({label}) in the dataset is: {(np.sum(y == label) / len(y)).round(2)}")
+    # for label in np.unique(y):
+    #     print(f"Percentage of label ({label}) in the dataset is: {(np.sum(y == label) / len(y)).round(2)}")
 
     # split dataset into train and test sets
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, stratify=y)
@@ -47,8 +47,8 @@ class TestML(unittest.TestCase):
         accuracy_rain = (np.sum(y_pred_rain == y_test) / len(y_test) * 100).round(2)
         print(f"Accuracy of Rain naive bayes classifier is: {accuracy_rain}%")
 
-        # Assert that the ratio between them is more than 0.95
-        self.assertTrue(accuracy_rain / accuracy_sklearn > 0.95)
+        # Assert that the two models produce the same results
+        self.assertTrue((y_pred_rain == y_pred_sklearn).sum() == len(y_pred_sklearn))
 
         
 
