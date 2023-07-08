@@ -139,7 +139,6 @@ class Divider:
 
         return X_train, y_train
 
-
     def __partition_data(self, X : np.ndarray, y : np.ndarray) -> Tuple[List[np.ndarray], List[np.ndarray]]:
         """
         Private function to partition the data into subsets equal to the number of partitions passed.
@@ -174,15 +173,6 @@ class Divider:
                 y_train_partitions.append(y[i * partition_size : (i + 1) * partition_size])
 
         return X_train_partitions, y_train_partitions
-
-    def send_info_to_workers(self, iteration_num : int) -> None:
-        """
-        Function to send the model info to the workers.
-
-        Args:
-            iteration_num (int): the iteration number of the training.
-        """
-        self.algorithm.send_info_to_workers(iteration_num)
 
     def train(self, strategy : str, X : np.ndarray, y : np.ndarray) -> any:
         """
