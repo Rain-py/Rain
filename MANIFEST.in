@@ -12,3 +12,4 @@ recursive-include src *.proto
 recursive-include src *.pyi
 recursive-include src *.txt
 recursive-include tests *.py
+recursive-include src Dockerfile
