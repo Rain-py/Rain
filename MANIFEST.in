@@ -1,0 +1,14 @@
+include tox.ini
+recursive-include Examples *.ipynb
+recursive-include Examples *.py
+recursive-include data *.dat
+recursive-include others *.ipynb
+recursive-include others *.md
+recursive-include others *.py
+recursive-include src *.csv
+recursive-include src *.html
+recursive-include src *.md
+recursive-include src *.proto
+recursive-include src *.pyi
+recursive-include src *.txt
+recursive-include tests *.py
