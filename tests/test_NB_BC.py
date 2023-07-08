@@ -7,7 +7,9 @@ import numpy as np
 from sklearn.preprocessing import StandardScaler
 from sklearn.datasets import load_breast_cancer
 from sklearn.model_selection import train_test_split
-from Rain.Rain import Rain
+from sklearn.naive_bayes import GaussianNB as naive_bayes_classifier_sklearn
+from Rain.Divider.MachineLearning.GaussianNaiveBayes import GaussianNaiveBayes as naive_bayes_classifier_rain
+
 
 def getData():
     X, y = load_breast_cancer(return_X_y=True)
@@ -20,44 +22,36 @@ def getData():
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, stratify=y)
     return X_train, y_train, X_test, y_test
 
-config = {
-  "mode": {
-      "type": "local",
-      "params": {
-        "num_of_workers": 2,
-      }
-    },
-  "temp_data_path": "./",
-  "partitions": 2,
-  "iterations": 3,
-  "chunk_size": 1024*1024,
-  "learning_type": "ML",
-  "ML": {
-      "algorithm": {
-      "type": "GaussianNaiveBayes",
-    }  
-  }
-}
-ACCURACY_THRESHOLD = 85
-class TestRain(unittest.TestCase):
+class TestML(unittest.TestCase):
 
-    def test_sync(self):
+    def test_NB(self):
         # Prepare data
         X_train, y_train, X_test, y_test = getData()
         standard_scaler = StandardScaler()
         X_train = standard_scaler.fit_transform(X_train)
         X_test = standard_scaler.transform(X_test)
 
-        # Train model
-        rain = Rain(config)
-        model = rain.train(X_train, y_train)
+        # Train the Sklearn model
+        naive_bayes_classifier = naive_bayes_classifier_sklearn(var_smoothing=0)
+        naive_bayes_classifier.fit(X_train, y_train)
+        # Evaluate the Sklearn model
+        y_pred_sklearn = naive_bayes_classifier.predict(X_test)
+        accuracy_sklearn = (np.sum(y_pred_sklearn == y_test) / len(y_test) * 100).round(2)
+        print(f"Accuracy of Sklearn naive bayes classifier is: {accuracy_sklearn}%")
+        
+        # Train the Rain model
+        naive_bayes_classifier = naive_bayes_classifier_rain()
+        naive_bayes_classifier.fit(X_train, y_train)
+        # Evaluate the Rain model
+        y_pred_rain = naive_bayes_classifier.predict(X_test)
+        accuracy_rain = (np.sum(y_pred_rain == y_test) / len(y_test) * 100).round(2)
+        print(f"Accuracy of Rain naive bayes classifier is: {accuracy_rain}%")
 
-        # Evaluate the model
-        y_pred = model.predict(X_test)
-        accuracy = np.sum(y_pred == y_test) / len(y_test) * 100
-        print(f"Accuracy of naive bayes classifier is: {accuracy.round(2)}%")
+        # Assert that the ratio between them is more than 0.9
+        self.assertTrue(accuracy_rain / accuracy_sklearn > 0.9)
 
-        self.assertGreater(accuracy, ACCURACY_THRESHOLD)
+        
+
 
 
 
