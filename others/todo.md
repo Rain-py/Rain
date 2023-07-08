@@ -94,9 +94,21 @@ Cloud Mode
 - [ ] Add Linting. [Easy]
 - [ ] Release Rain on Pypi. [Easy]
 - [ ] Fix all logging(types/ add more details in the log, ... ) [Easy]
+- [ ] Allow the user to define the used machine in the cloud mode. [Easy]
+- [ ] Remove the number of workers from the lazy mode. [Easy]
+- [ ] Add a price manager to get the vm specs and choose the right one. [Medium]
+- [ ] In the cloud mode, allow communication from the the local machine IP only.
 - [ ] Solve read/write disc.[Medium]
+- [ ] Use poetry instead of pipenv. [Medium]
 - [ ] Add test pipelines.[Medium]
 - [ ] Test lazy mode on personal laptops. [Medium]
 - [ ] In the cloud mode, stop the VMs without closing them. [Hard]
 - [ ] Check all the TODOs.
 - [ ] **Submit the code**.
+
+## Future work
+
+- [ ] Add a scheduler.
+- [ ] Improve fault tolerance.
+- [ ] Add a planar to decide the number of workers/partitions.
+- [ ] Add JWT authentication.
