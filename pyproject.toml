@@ -95,7 +95,6 @@ dependencies = [ # Optional
   "grpcio==1.56.0",
   "grpcio-tools==1.56.0",
   'protobuf>=4.21.6,<5.0',
-  'numpy==1.22',
   "dill==0.3.6",
   'azure-mgmt-compute==29.1.0',
   'azure-mgmt-core==1.4.0',
