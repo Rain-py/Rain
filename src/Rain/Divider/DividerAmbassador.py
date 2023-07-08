@@ -13,6 +13,7 @@ from Rain.Protos import (
     worker_pb2_grpc,
     worker_pb2
 )
+DEFAULT_NUM_WORKERS = 5 # to creates a thread pool executor with a maximum of DEFAULT_NUM_WORKERS worker threads. 
 
 def read_file(filepath: str, chunk_size: int = 1024) -> Iterator[divider_pb2.File]:
     """
@@ -294,7 +295,7 @@ class DividerAmbassador(divider_pb2_grpc.dividerServicer):
         Returns:
             None
         """
-        self.server = grpc.server(futures.ThreadPoolExecutor(max_workers=2), compression=grpc.Compression.Gzip, options=self.options)
+        self.server = grpc.server(futures.ThreadPoolExecutor(max_workers=DEFAULT_NUM_WORKERS), compression=grpc.Compression.Gzip, options=self.options)
         divider_pb2_grpc.add_dividerServicer_to_server(self, self.server)
         self.server.add_insecure_port(
             "[::]:50053"
