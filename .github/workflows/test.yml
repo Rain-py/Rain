@@ -27,26 +27,19 @@ jobs:
       run: git clone https://gist.github.com/Mostafa-wael/ebd011579b7120e336e58671e5239248
     - name: Install Rain Dependencies
       run: |
-        python3 -m pip install -U grpcio==1.56.0                                                                                         
-        python3 -m pip install -U grpcio-tools==1.56.0                                                                                   
-        python3 -m pip install -U protobuf==4.21.6                                                                                  
-        python3 -m pip install -U dill==0.3.6                                                                                            
-        python3 -m pip install -U numpy==1.22  
-        python3 -m pip install -U azure-mgmt-compute==29.1.0                                                                             
-        python3 -m pip install -U azure-mgmt-core==1.4.0                                                                                 
-        python3 -m pip install -U azure-mgmt-network==23.0.0                                                                             
-        python3 -m pip install -U azure-mgmt-resource==23.0.0                                                                            
-        python3 -m pip install -U azure-storage-blob==12.13.0                                                                            
-        python3 -m pip install -U azure-identity==1.12.0 
+        echo 'Installing...'
+        cd ebd011579b7120e336e58671e5239248
+        sudo chmod 777 setup.sh
+        sudo ./setup.sh
+        python -m pip uninstall -y Rain 
         python3 -m pip install -U scikit-learn                                                                               
 
     - name: Install build dependencies
       run: |
         python3 -m pip install -U setuptools wheel build wheel
-        python3 -m pip install twine
 
     - name: Build the package
-      run: python -m build .
+      run: python3 -m build .
     - name: Install the package
       run: python3 -m pip install -U dist/*.whl
 
@@ -54,4 +47,4 @@ jobs:
       run: python3 -m pip install -U tox
 
     - name: Test
-      run: python -m tox -e py
+      run: python3 -m tox -e py
