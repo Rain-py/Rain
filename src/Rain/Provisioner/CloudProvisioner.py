@@ -3,8 +3,7 @@ import socket
 from azure.identity import DefaultAzureCredential
 from azure.mgmt.compute import ComputeManagementClient
 from azure.mgmt.compute.models import (HardwareProfile, LinuxConfiguration,
-                                       OSProfile, SshConfiguration,
-                                       SshPublicKey)
+                                       OSProfile)
 from azure.mgmt.network import NetworkManagementClient
 from azure.mgmt.resource import ResourceManagementClient
 
@@ -64,10 +63,10 @@ class CloudProvisioner(ProvisionerInterface):
         # The custom data script
         tf_lib = setup == 'TF' 
         torch_lib = setup == 'PT'
-        setup_script = "#cloud-config\n\nruncmd:\n  - sudo apt-get update\n  - sudo apt install -y python3-pip\n  - sudo git clone https://gist.github.com/Mostafa-wael/ebd011579b7120e336e58671e5239248\n   - cd /ebd011579b7120e336e58671e5239248\n  - sudo chmod 777 setup.sh\n  - sudo ./setup.sh\n"
+        setup_script = "#cloud-config\n\nruncmd:\n  - sudo apt-get update\n  - sudo apt-get install -y apache2\n  - sudo apt install -y python3-pip\n  - sudo git clone https://gist.github.com/Mostafa-wael/ebd011579b7120e336e58671e5239248\n  - echo 'Installing...' > /var/www/html/index.html\n  - cd /ebd011579b7120e336e58671e5239248\n  - sudo chmod 777 setup.sh\n  - sudo ./setup.sh\n  - echo 'Done Installing Rain' > /var/www/html/index.html\n"
         install_tf_script = "  - sudo pip install keras>=2.12,<2.13\n  - sudo pip install tensorflow==2.12.0\n"
         install_torch_script = "  - sudo pip install torch==2.0.1\n"
-        start_rain_worker = f"  - sudo start_rain_worker --chunk_size {chunk_size} --setup {setup}\n"
+        start_rain_worker = f"  - echo 'Worker is running...' > /var/www/html/index.html\n  - sudo start_rain_worker --chunk_size {chunk_size} --setup {setup}\n"
         self.custom_data_script = setup_script + install_tf_script * tf_lib + install_torch_script * torch_lib + start_rain_worker
 
         self.logger = LogService("CloudProvisioner")
@@ -122,7 +121,7 @@ class CloudProvisioner(ProvisionerInterface):
         return subnet
 
     def create_network_security_group(self, network_security_group_name):
-        # Add inbound security rules for the BASE_PORT
+        # Add inbound security rules for ports 80 and 22
         security_rule_grpc = {
             'name': 'grpc',
             'protocol': 'Tcp',
@@ -134,7 +133,29 @@ class CloudProvisioner(ProvisionerInterface):
             'source_address_prefix': '*',
             'source_port_range': '*'
         }
-        security_rules = [security_rule_grpc]
+        security_rule_ssh = {
+            'name': 'ssh',
+            'protocol': 'Tcp',
+            'destination_port_range': '22',
+            'destinationAddressPrefix': '*',
+            'access': 'Allow',
+            'direction': 'Inbound',
+            'priority': 101,
+            'source_address_prefix': '*',
+            'source_port_range': '*'
+        }
+        security_rule_http = {
+            'name': 'http',
+            'protocol': 'Tcp',
+            'destination_port_range': '80',
+            'destinationAddressPrefix': '*',
+            'access': 'Allow',
+            'direction': 'Inbound',
+            'priority': 102,
+            'source_address_prefix': '*',
+            'source_port_range': '*'
+        }
+        security_rules = [security_rule_ssh, security_rule_http, security_rule_grpc]
         nsg_params = {
             'location': self.location,
             'security_rules': security_rules
@@ -210,7 +231,7 @@ class CloudProvisioner(ProvisionerInterface):
         self.nic_name_list.append(nic.name)
         return nic
 
-    def create_virtual_machine(self, virtual_machine_name, vm_size, public_key,
+    def create_virtual_machine(self, virtual_machine_name, vm_size,
                                custom_data_script):
         # Create the image reference
         image_reference = {
@@ -231,7 +252,7 @@ class CloudProvisioner(ProvisionerInterface):
                                    admin_password=admin_password,
                                    custom_data=custom_data_encoded,
                                    linux_configuration=LinuxConfiguration(
-                                       disable_password_authentication=True))
+                                       disable_password_authentication=False))
         except Exception as e:
             self.logger.log('error', f"Error creating OS profile:{e}")            
             raise Exception("Error creating OS profile")
@@ -262,7 +283,7 @@ class CloudProvisioner(ProvisionerInterface):
         except Exception as e:
             self.logger.log('error', f"Error creating virtual machine:{e}")            
             raise Exception("Error creating virtual machine")
-        self.logger.log('debug', f"Created virtual machine: {vm.name}")
+        self.logger.log('debug', f"Created virtual machine: {vm.name}. You can access the machine using the following credentials: username: {admin_username}, password: {admin_password}")
         return vm
 
     ############## Resources Deletion ##############
@@ -311,32 +332,6 @@ class CloudProvisioner(ProvisionerInterface):
             self.resource_group_name, virtual_machine_name).wait()
 
     ############## Utility Methods ############## 
-    def create_ssh_key_pair(self, private_key_path, public_key_path):
-        try:
-            # Generate an SSH key pair
-            # key = paramiko.RSAKey.generate(2048)
-            key = asyncssh.generate_private_key('ssh-rsa')
-
-            # Save the private key to a file
-            key.write_private_key(private_key_path)
-            # key.write_private_key_file(private_key_path)
-            # save the private key to a string
-            # private_key = key.get_base64()
-            private_key = key.export_private_key().decode("utf-8")
-
-            # Save the public key to a file
-            with open(public_key_path, 'w') as f:
-                key.write_public_key(public_key_path)
-                # f.write(f'ssh-rsa {key.get_base64()}')
-            # Save the public key to a string
-            # public_key = f'ssh-rsa {key.get_base64()}'
-            public_key = key.export_public_key().decode("utf-8")
-        except Exception as e:
-            self.logger.log('error', f"Error creating SSH key pair:{e}")            
-            raise Exception("Error creating SSH key pair")
-        self.logger.log('debug', f"Created SSH key pair at {private_key_path} and {public_key_path}")
-        return private_key, public_key
-
     def get_ip_address_by_vm_name(self, vm_name):
         try:
             # Get the public IP address
@@ -394,17 +389,9 @@ class CloudProvisioner(ProvisionerInterface):
             return
         self.logger.log('debug', f"Creating {self.num_workers} worker{'' if self.num_workers==1 else 's'}")
         try:
-            # Creating the required keys
-            private_key, public_key = self.create_ssh_key_pair(
-            private_key_path=f'{self.data_base_path}/private_key.pem',
-            public_key_path=f'{self.data_base_path}/public_key.pem')
-        except Exception as e:
-            self.logger.log('error', f"Error configuring the workers: {e}")
-            return
-        try:
             for i in range(num_workers):
                 self.logger.log('debug', f'Creating worker {self.vm_name}{i+1}')
-                self.create_virtual_machine(f'{self.vm_name}{i+1}', self.vm_size, public_key,
+                self.create_virtual_machine(f'{self.vm_name}{i+1}', self.vm_size,
                                         self.custom_data_script)
                 self.ids.append(i+1)
                 self.logger.log('info', f"Created worker {self.vm_name}{i+1}")
