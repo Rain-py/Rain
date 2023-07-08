@@ -3,11 +3,11 @@
 # setup.py that excludes installing the "tests" package
 
 import unittest
-from Rain.Rain import Rain
+import numpy as np
 from sklearn.preprocessing import StandardScaler
 from sklearn.datasets import load_breast_cancer
 from sklearn.model_selection import train_test_split
-import numpy as np
+from Rain.Rain import Rain
 
 def getData():
     X, y = load_breast_cancer(return_X_y=True)
