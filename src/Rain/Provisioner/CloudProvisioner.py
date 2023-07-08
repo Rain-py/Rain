@@ -1,5 +1,4 @@
 import base64
-import asyncssh
 import socket
 from azure.identity import DefaultAzureCredential
 from azure.mgmt.compute import ComputeManagementClient
@@ -65,10 +64,10 @@ class CloudProvisioner(ProvisionerInterface):
         # The custom data script
         tf_lib = setup == 'TF' 
         torch_lib = setup == 'PT'
-        setup_script = "#cloud-config\n\nruncmd:\n  - sudo apt-get update\n  - sudo apt-get install -y apache2\n  - sudo apt install -y python3-pip\n  - sudo git clone https://gist.github.com/Mostafa-wael/ebd011579b7120e336e58671e5239248\n  - echo 'Installing...' > /var/www/html/index.html\n  - cd /ebd011579b7120e336e58671e5239248\n  - sudo chmod 777 setup.sh\n  - sudo ./setup.sh\n  - echo 'Done Installing Rain' > /var/www/html/index.html\n"
+        setup_script = "#cloud-config\n\nruncmd:\n  - sudo apt-get update\n  - sudo apt install -y python3-pip\n  - sudo git clone https://gist.github.com/Mostafa-wael/ebd011579b7120e336e58671e5239248\n   - cd /ebd011579b7120e336e58671e5239248\n  - sudo chmod 777 setup.sh\n  - sudo ./setup.sh\n"
         install_tf_script = "  - sudo pip install keras>=2.12,<2.13\n  - sudo pip install tensorflow==2.12.0\n"
         install_torch_script = "  - sudo pip install torch==2.0.1\n"
-        start_rain_worker = f"  - echo 'Worker is running...' > /var/www/html/index.html\n  - sudo start_rain_worker --chunk_size {chunk_size} --setup {setup}\n"
+        start_rain_worker = f"  - sudo start_rain_worker --chunk_size {chunk_size} --setup {setup}\n"
         self.custom_data_script = setup_script + install_tf_script * tf_lib + install_torch_script * torch_lib + start_rain_worker
 
         self.logger = LogService("CloudProvisioner")
@@ -123,7 +122,7 @@ class CloudProvisioner(ProvisionerInterface):
         return subnet
 
     def create_network_security_group(self, network_security_group_name):
-        # Add inbound security rules for ports 80 and 22
+        # Add inbound security rules for the BASE_PORT
         security_rule_grpc = {
             'name': 'grpc',
             'protocol': 'Tcp',
@@ -135,29 +134,7 @@ class CloudProvisioner(ProvisionerInterface):
             'source_address_prefix': '*',
             'source_port_range': '*'
         }
-        security_rule_ssh = {
-            'name': 'ssh',
-            'protocol': 'Tcp',
-            'destination_port_range': '22',
-            'destinationAddressPrefix': '*',
-            'access': 'Allow',
-            'direction': 'Inbound',
-            'priority': 101,
-            'source_address_prefix': '*',
-            'source_port_range': '*'
-        }
-        security_rule_http = {
-            'name': 'http',
-            'protocol': 'Tcp',
-            'destination_port_range': '80',
-            'destinationAddressPrefix': '*',
-            'access': 'Allow',
-            'direction': 'Inbound',
-            'priority': 102,
-            'source_address_prefix': '*',
-            'source_port_range': '*'
-        }
-        security_rules = [security_rule_ssh, security_rule_http, security_rule_grpc]
+        security_rules = [security_rule_grpc]
         nsg_params = {
             'location': self.location,
             'security_rules': security_rules
@@ -242,15 +219,6 @@ class CloudProvisioner(ProvisionerInterface):
             'sku': '20_04-lts-gen2',
             'version': 'latest'
         }
-        # Create the SSH configuration
-        try:
-            ssh_configuration = SshConfiguration(public_keys=[
-                SshPublicKey(path='/home/rain/.ssh/authorized_keys',
-                             key_data=public_key)
-            ])
-        except Exception as e:
-            self.logger.log('error', f"Error creating SSH configuration:{e}")            
-            raise Exception("Error creating SSH configuration")
         # Set the admin username and password for the VM
         admin_username = 'rain'
         admin_password = 'passw0rd#1'
@@ -263,8 +231,7 @@ class CloudProvisioner(ProvisionerInterface):
                                    admin_password=admin_password,
                                    custom_data=custom_data_encoded,
                                    linux_configuration=LinuxConfiguration(
-                                       disable_password_authentication=True,
-                                       ssh=ssh_configuration))
+                                       disable_password_authentication=True))
         except Exception as e:
             self.logger.log('error', f"Error creating OS profile:{e}")            
             raise Exception("Error creating OS profile")

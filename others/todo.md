@@ -91,8 +91,11 @@ Cloud Mode
 - [ ] Delete rain files after training. [Easy]
 - [ ] Stop server in the coordinator doesn't work. Has a TODO. [Easy]
 - [ ] Remove port 80(with the apache installation)and 22(with the SSH keys) from the cloud provisioner. [Easy]
+- [ ] Add Linting. [Easy]
+- [ ] Release Rain on Pypi. [Easy]
 - [ ] Solve read/write disc.[Medium]
 - [ ] Add test pipelines.[Medium]
+- [ ] Test lazy mode on personal laptops. [Medium]
 - [ ] In the cloud mode, stop the VMs without closing them. [Hard]
 - [ ] Check all the TODOs.
 - [ ] **Submit the code**.
