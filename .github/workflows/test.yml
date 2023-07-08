@@ -20,24 +20,30 @@ jobs:
       uses: actions/setup-python@v3
       with:
         python-version: ${{ matrix.python }}
+
     - name: Install Python and Git
       run: sudo apt install -y python3-pip git
-    - name: Clone Repository
+    - name: Clone Dependencies gist
       run: git clone https://gist.github.com/Mostafa-wael/ebd011579b7120e336e58671e5239248
-    - name: Install Dependencies
+    - name: Install Rain Dependencies
       run: |
         echo 'Installing...'
         cd ebd011579b7120e336e58671e5239248
         sudo chmod 777 setup.sh
         sudo ./setup.sh
+        python -m pip install -U numpy==1.22
         python -m pip uninstall -y Rain
+
     - name: Install build dependencies
       run: |
         python -m pip install -U setuptools wheel build wheel
         python -m pip install twine
-    - name: Build
+
+    - name: Build the package
       run: python -m build .
+
     - name: Install test dependencies
       run: python -m pip install -U tox
+
     - name: Test
       run: python -m tox -e py
