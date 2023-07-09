@@ -93,9 +93,10 @@ Cloud Mode
 - [ ] Remove port 80(with the apache installation)and 22(with the SSH keys) from the cloud provisioner. [Easy]
 - [ ] Add Linting. [Easy]
 - [ ] Release Rain on Pypi. [Easy]
-- [ ] Fix all logging(types/ add more details in the log, ... ) [Easy]
+- [ ] Fix all logging(types/ add more details in the log, ... ) and add them to the configuration. [Easy]
 - [ ] Allow the user to define the used machine in the cloud mode. [Easy]
 - [ ] Remove the number of workers from the lazy mode. [Easy]
+- [ ] Documentation that covered installation instructions, usage guides, and detailed API documentation [Easy]
 - [ ] Add a price manager to get the vm specs and choose the right one. [Medium]
 - [ ] In the cloud mode, allow communication from the the local machine IP only.
 - [ ] Solve read/write disc.[Medium]
