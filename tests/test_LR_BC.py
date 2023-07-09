@@ -23,7 +23,7 @@ def getData():
 
 class TestML(unittest.TestCase):
 
-    def test_NB(self):
+    def test_LR(self):
         # Prepare data
         X_train, y_train, X_test, y_test = getData()
         standard_scaler = StandardScaler()

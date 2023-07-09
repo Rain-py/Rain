@@ -165,7 +165,7 @@ class Worker:
 
     def sigmoid(self, z):
         # clip large negative values to avoid overflow
-        z = np.clip(z, -500, 500)
+        z = np.clip(z, -600, 600)
         return 1 / (1 + np.exp(-z))
     
 
