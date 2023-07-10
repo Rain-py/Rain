@@ -5,6 +5,7 @@ from Rain.Protos import worker_pb2, worker_pb2_grpc
 from Rain.LogService.LogService import LogService
 from Rain.TemporaryFilesManager.TemporaryFilesManager import TemporaryFilesManager
 from Rain.Worker.WorkerFactory import WorkerFactory
+import threading
 class WorkerAmbassador(worker_pb2_grpc.workerServicer):
     def __init__(self, port : int, chunk_size = 9 * 1024*1024, setup='ML') -> None:
         """
@@ -150,6 +151,7 @@ class WorkerAmbassador(worker_pb2_grpc.workerServicer):
             this function is not used in the current implementation.
         """
         response = worker_pb2.StopSignal(message='Worker stopped!')
+        self.stop_event.set()
         return response
          
     def serve(self) -> None:
@@ -157,6 +159,7 @@ class WorkerAmbassador(worker_pb2_grpc.workerServicer):
         Function to start the worker ambassador as a server to listen on the given port.
         """
         try:
+            self.stop_event = threading.Event()
             # create a gRPC server
             self.server = grpc.server(futures.ThreadPoolExecutor(max_workers=1), compression=grpc.Compression.Gzip, options=self.options)
             # add the worker to the server
@@ -169,9 +172,11 @@ class WorkerAmbassador(worker_pb2_grpc.workerServicer):
         except Exception as e:
             self.logger.log('error', f"Error in the worker server: {e}")
             return
+    
     def wait_for_termination(self)  -> None:
         """
         Function to wait for the worker server to terminate.
         """
-        self.server.wait_for_termination()
+        self.stop_event.wait()
+        self.server.stop(0)
     

@@ -61,7 +61,10 @@ class Provisioner(ProvisionerAmbassador):
 
     def delete_workers(self):
         try:
-            self.provisioner.delete_workers()
+            # self.provisioner.delete_workers()
+            for i in range(self.num_workers):
+                self.stop_worker(self.ips[i], self.ports[i])
+            self.logger.log('info', f"Workers deleted")    
         except Exception as e:
             self.logger.log('error', f"Error deleting workers: {e}")
             return

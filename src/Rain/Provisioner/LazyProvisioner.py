@@ -21,7 +21,8 @@ class LazyProvisioner(ProvisionerInterface):
             return
 
     def delete_workers(self):
-        self.logger.log('info', f"Delete your workers, please")      
+        # self.logger.log('info', f"Delete your workers, please")  
+        pass
     
     def create_workers(self, num_workers = None):
         self.logger.log('info', f"Creating {num_workers} workers")
