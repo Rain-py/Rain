@@ -8,7 +8,7 @@
 - [ ] Remove port 80(with the apache installation)and 22(with the SSH keys) from the cloud provisioner. [Easy]
 - [ ] Add Linting. [Easy]
 - [ ] Release Rain on Pypi. [Easy]
-- [ ] Allow the user to define the used machine in the cloud mode. [Easy]
+- [x] Allow the user to define the used machine in the cloud mode. [Easy]
 - [ ] Remove the number of workers from the lazy mode. [Easy]
 - [ ] Documentation that covered installation instructions, usage guides, and detailed API documentation [Easy]
 - [ ] Add a price manager to get the vm specs and choose the right one. [Medium]

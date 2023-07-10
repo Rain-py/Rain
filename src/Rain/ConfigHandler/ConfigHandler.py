@@ -27,7 +27,7 @@ class ConfigHandler:
         # check that config["partitions"] is a valid integer
         try:
             if "partitions" not in self.config["partitions"]:
-                self.config["partitions"] = 1
+                raise Exception(f"Error in partitions: Not specified")
                 return
             self.config["partitions"] = int(self.config["partitions"])
         except Exception as e:
@@ -37,7 +37,7 @@ class ConfigHandler:
         # check that config["iterations"] is a valid integer
         try:
             if "iterations" not in self.config:
-                self.config["iterations"] = 1
+                raise Exception(f"Error in iterations: Not specified")
                 return
             self.config["iterations"] = int(self.config["iterations"])
         except Exception as e:
@@ -158,12 +158,7 @@ class ConfigHandler:
         # check that config["mode"] is a valid dictionary
         try:
             if "mode" not in self.config:
-                self.config["mode"] = {
-                    "type": "local",
-                    "params": {
-                        "num_of_workers": 1
-                    }
-                }
+                raise Exception(f"Error in mode: Not specified")
             if type(self.config["mode"]) != dict:
                 raise Exception(f"Error in mode: {e}")
             # check that mode is belong to: (local, cloud, lazy)
@@ -225,41 +220,41 @@ class ConfigHandler:
         except Exception as e:
             raise Exception(f"Error in mode: {e}")
 
-# Config example:
-'''
-config = {
-    "mode": {
-      "type": "lazy",
+if __name__ == "__main__":
+    print ("Starting ConfigHandler")
+    config = {
+  "mode": {
+      "type": "cloud",
       "params": {
-        "num_of_workers": 1,
-        "ips": ['127.0.0.1'],
-        "ports": [50151]
+          "num_of_workers": 1,
+          "subscription_id": "a7ef3688-af58-4835-953c-e51f219fbd0f", # Mostafa's ID
+          # "subscription_id":'6e14c264-a7fc-4db4-a23a-d972c21a2d99', # Menna's ID
+          # "subscription_id": '82305756-d4a0-442d-8e73-625e1ced2113', # Nada's ID
+          "location": 'eastus'
       }
     },
-    "temp_data_path": "../../../",
-    "partitions": 1,
-    "iterations": 1,
-    "learning_type": "DL",
-    "DL": {
+  "temp_data_path": "../../../",
+  "partitions": 1,
+  "iterations": 3,
+  "chunk_size": 1024*1024,
+  "learning_type": "DL",
+  "DL": {
     "lib": {
       "type": "tensorflow",
       "params": {
         "loss": tf.keras.losses.CategoricalCrossentropy(),
         "optimizer": tf.keras.optimizers.Adam(learning_rate=0.001),
 
-                }
-            },
-    "ML":   {
-      "algorithm": {
-      "type": "KMeans",
-      "params": {
-        "K": 2,
-                }
-                    }    
-            }
+      }
+    },
     "lr": 0.001,
-    "epochs": 1,
-    "batch_size": 128,
+    "epochs": 5,
+    "batch_size": 16,
   }
 }
-'''
+    config_handler = ConfigHandler()
+    try:
+        config_handler.validate_config(config)
+        print("Config is valid")
+    except Exception as e:
+        print(f"Config is not valid: {e}")
