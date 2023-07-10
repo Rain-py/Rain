@@ -34,7 +34,7 @@ class DeepLearningInterface:
             with open(file_path, "wb") as f:
                 dill.dump(data, f)
         except Exception as e:
-            self.logger.log('debug', f"Error in saving the info to the file: {e}")
+            self.logger.log('error', f"Error in saving the info to the file: {e}")
             return
 
     # ________________________ Synchronous Training ________________________
@@ -46,7 +46,7 @@ class DeepLearningInterface:
                 msg = dill.load(open(f"{self.model_base_path}{j + 1}_{iteration_num}_trained.pkl", "rb"))
                 gradients.append(msg)
         except Exception as e:
-            self.logger.log('debug', f"Error in receiving the gradients from the workers: {e}")
+            self.logger.log('error', f"Error in receiving the gradients from the workers: {e}")
             return
         return gradients
     
@@ -64,12 +64,12 @@ class DeepLearningInterface:
                 self.divider_ambassador.iteration(self.workers_ids[worker_id], self.workers_IPs[worker_id], self.workers_ports[worker_id], self.data_status[worker_id], iteration_num+1, iteration_num+1, X_train_partition, y_train_partition)
                 flag = True
             except Exception as e:
-                self.logger.log('debug', f"Error in iteration {iteration_num} in worker {self.workers_ids[worker_id]}: {e}")
+                self.logger.log('error', f"Error in iteration {iteration_num} in worker {self.workers_ids[worker_id]}: {e}")
                 ip, port = self.divider_ambassador.inform_coord(self.workers_IPs[worker_id], self.workers_ports[worker_id], worker_id)
                 self.workers_IPs[worker_id] = ip
                 self.workers_ports[worker_id] = port
                 self.data_status[worker_id] = 0
-                self.logger.log('debug', f"Worker {worker_id + 1} is restarted on {ip}:{port} and data_status is reset to 0")
+                self.logger.log('error', f"Worker {worker_id + 1} is restarted on {ip}:{port} and data_status is reset to 0")
 
     
     def train_centralized_sync(self, X_train_partitions, y_train_partitions):
@@ -79,7 +79,7 @@ class DeepLearningInterface:
             self.data_status = [0] * len(self.workers_IPs) # 0 means no data sent yet, 1 means data is already sent to the workers
         
             for i in range(self.iterations):   
-                self.logger.log('debug', f"Starting iteration {i + 1}/{self.iterations}")
+                self.logger.log('info', f"Starting iteration {i + 1}/{self.iterations}")
                 # Notice, the algo.py is stateless
                 self.save_model(i+1) #self.partitions,
                 threads = list()
@@ -98,10 +98,10 @@ class DeepLearningInterface:
                 # self.divider_ambassador.iteration(self.coordinator_IP, i+1) # start loop
                 gradients = self.receive_gradients_sync(self.partitions, i+1)
                 self.reduce_gradients_sync(gradients)
-                self.logger.log('debug', f"Iteration {i + 1}/{self.iterations} complete.")
+                self.logger.log('info', f"Iteration {i + 1}/{self.iterations} complete.")
             return self.model
         except Exception as e:
-            self.logger.log('debug', f"Error in training the model: {e}")
+            self.logger.log('error', f"Error in training the model: {e}")
             return
 
     # ________________________________________________________________________ 
@@ -115,7 +115,7 @@ class DeepLearningInterface:
             msg = dill.load(open(f"{self.model_base_path}{worker_id}_{iteration_num}_trained.pkl", "rb"))
             gradients = msg
         except Exception as e:
-            print(f"Error in receiving the gradients from the workers: {e}")
+            self.logger.log('error', f"Error in receiving the gradients from the workers: {e}")
             return
         return gradients
     
@@ -131,7 +131,7 @@ class DeepLearningInterface:
         self.data_status = [0] * len(self.workers_IPs) # 0 means no data sent yet, 1 means data is already sent to the workers
         
         for i in range(self.iterations):
-            self.logger.log('debug', f"Starting iteration {i + 1}/{self.iterations}")  
+            self.logger.log('info', f"Starting iteration {i + 1}/{self.iterations}")  
             
             # fault tolerance
             # This flag is used to check if the worker completed the iteration successfully or not
@@ -141,12 +141,12 @@ class DeepLearningInterface:
                     self.divider_ambassador.iteration(self.workers_ids[worker_id], self.workers_IPs[worker_id], self.workers_ports[worker_id], self.data_status[worker_id], i+1, self.workers_ids[worker_id], X_train_partition, y_train_partition)
                     completed_iteration = True
                 except Exception as e:
-                    self.logger.log('debug', f"Error in iteration {i} in worker {worker_id + 1}: {e}")
+                    self.logger.log('error', f"Error in iteration {i} in worker {worker_id + 1}: {e}")
                     ip, port = self.divider_ambassador.inform_coord(self.workers_IPs[worker_id], self.workers_ports[worker_id], worker_id)
                     self.workers_IPs[worker_id] = ip
                     self.workers_ports[worker_id] = port
                     self.data_status[worker_id] = 0
-                    self.logger.log('debug', f"Worker {worker_id + 1} is restarted on {ip}:{port} and data_status is reset to 0")
+                    self.logger.log('error', f"Worker {worker_id + 1} is restarted on {ip}:{port} and data_status is reset to 0")
 
             # sending data (x_train , y_train) to workers only once
             self.data_status[worker_id] = 1
@@ -154,7 +154,7 @@ class DeepLearningInterface:
             gradient = self.receive_gradients_async(worker_id + 1, worker_id + 1)
             self.reduce_gradients_async(gradient, worker_id + 1)
             self.save_model(worker_id + 1) 
-            self.logger.log('debug', f"Iteration {i + 1}/{self.iterations} complete for worker {worker_id + 1}.")
+            self.logger.log('info', f"Iteration {i + 1}/{self.iterations} complete for worker {worker_id + 1}.")
         
     
     def train_centralized_async(self, X_train_partitions, y_train_partitions):
@@ -175,7 +175,7 @@ class DeepLearningInterface:
             return self.model
 
         except Exception as e:
-            self.logger.log('debug', f"Error in training the model: {e}")
+            self.logger.log('error', f"Error in training the model: {e}")
             return
     # ________________________________________________________________________
 
@@ -188,7 +188,7 @@ class DeepLearningInterface:
         self.data_status = [0] * len(self.workers_IPs) # 0 means no data sent yet, 1 means data is already sent to the workers
         
         for i in range(self.iterations):
-            self.logger.log('debug', f"Starting iteration {i + 1}/{self.iterations}")  
+            self.logger.log('info', f"Starting iteration {i + 1}/{self.iterations}")  
             
             # fault tolerance
             # This flag is used to check if the worker completed the iteration successfully or not
@@ -198,12 +198,12 @@ class DeepLearningInterface:
                     self.divider_ambassador.iteration(self.workers_ids[worker_id], self.workers_IPs[worker_id], self.workers_ports[worker_id], self.data_status[worker_id], i+1, self.workers_ids[worker_id], X_train_partition, y_train_partition)
                     completed_iteration = True
                 except Exception as e:
-                    self.logger.log('debug', f"Error in iteration {i} in worker {worker_id + 1}: {e}")
+                    self.logger.log('error', f"Error in iteration {i} in worker {worker_id + 1}: {e}")
                     ip, port = self.divider_ambassador.inform_coord(self.workers_IPs[worker_id], self.workers_ports[worker_id], worker_id)
                     self.workers_IPs[worker_id] = ip
                     self.workers_ports[worker_id] = port
                     self.data_status[worker_id] = 0
-                    self.logger.log('debug', f"Worker {worker_id + 1} is restarted on {ip}:{port} and data_status is reset to 0")
+                    self.logger.log('error', f"Worker {worker_id + 1} is restarted on {ip}:{port} and data_status is reset to 0")
 
             # sending data (x_train , y_train) to workers only once
             self.data_status[worker_id] = 1
@@ -227,7 +227,7 @@ class DeepLearningInterface:
                 if in_sync_count == len(temp_status) - 1:
                     break
             self.save_model(worker_id + 1) 
-            self.logger.log('debug', f"Iteration {i + 1}/{self.iterations} complete for worker {worker_id + 1}.")
+            self.logger.log('info', f"Iteration {i + 1}/{self.iterations} complete for worker {worker_id + 1}.")
 
 
     def train_centralized_semi_async(self, X_train_partitions, y_train_partitions):
@@ -249,5 +249,5 @@ class DeepLearningInterface:
             return self.model
 
         except Exception as e:
-            self.logger.log('debug', f"Error in training the model: {e}")
+            self.logger.log('error', f"Error in training the model: {e}")
             return

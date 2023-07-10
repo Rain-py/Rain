@@ -26,7 +26,7 @@ class Rain:
         self.logger.log("error", f"Error in the config: {e}")
       # create a temporary directory for the Rain to store its data.
       self.temp_manager = TemporaryFilesManager.get_instance(config["temp_data_path"] if "temp_data_path" in config else None)
-      self.logger.log('debug', f"Rain is initialized")
+      self.logger.log('info', f"Rain is initialized")
       # create a provisioner to instantiate the workers.
       self.provisioner = Provisioner(self.config)
       # create a divider proxy to divide the data and train the model.

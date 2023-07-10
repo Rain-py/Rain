@@ -37,7 +37,7 @@ class DividerProxy():
         """
         try:
             self.divider.serve()
-            self.logger.log('debug', f"Training Started")
+            self.logger.log('info', f"Training Started")
             # train
             model = self.divider.train(strategy, X_train, y_train)
             self.divider.stop_serving()

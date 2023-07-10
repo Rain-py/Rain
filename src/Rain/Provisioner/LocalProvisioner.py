@@ -19,7 +19,7 @@ class LocalProvisioner(ProvisionerInterface):
         self.chunk_size = chunk_size
         self.setup = setup
         self.logger = LogService("LocalProvisioner")
-        self.logger.log('debug', f"Provisioner is initialized")
+        self.logger.log('info', f"Provisioner is initialized")
     
     def __del__(self):
         try:
@@ -32,10 +32,10 @@ class LocalProvisioner(ProvisionerInterface):
         for worker in self.workers:
             worker.stop_serving()
             del worker
-        self.logger.log('debug', f"Workers are deleted")      
+        self.logger.log('info', f"Workers are deleted")      
     
     def create_workers(self, num_workers):
-        self.logger.log('debug', f"Creating {num_workers} workers")
+        self.logger.log('info', f"Creating {num_workers} workers")
         self.num_workers = num_workers
         try:
             self.ips = ['127.0.0.1'] * self.num_workers
