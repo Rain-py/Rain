@@ -17,7 +17,7 @@ BASE_PORT = 50151
 class CloudProvisioner(ProvisionerInterface):
 
     ############## Constructors ##############
-    def __init__(self, subscription_id, location, chunk_size, setup='ML'):
+    def __init__(self, subscription_id, location, vm_size = 'Standard_B2ms', chunk_size=1024*1024, setup='ML'):
         # credentials
         try:
             credentials = DefaultAzureCredential()
@@ -58,7 +58,7 @@ class CloudProvisioner(ProvisionerInterface):
         self.ip_name_list = []
         self.vm_name_list = []
         # TODO: should be a parameter/temporary variable
-        self.vm_size = 'Standard_B2ms' # vcpu=2, RAM=8, price=0.08/hr
+        self.vm_size = vm_size
 
         # The custom data script
         tf_lib = setup == 'TF' 
@@ -70,7 +70,7 @@ class CloudProvisioner(ProvisionerInterface):
         self.custom_data_script = setup_script + install_tf_script * tf_lib + install_torch_script * torch_lib + start_rain_worker
 
         self.logger = LogService("CloudProvisioner")
-        self.logger.log('debug', f"Provisioner is initialized")
+        self.logger.log('info', f"Provisioner is initialized")
     ############## Destructors ##############
     def __del__(self):
         try:
@@ -86,7 +86,7 @@ class CloudProvisioner(ProvisionerInterface):
         except Exception as e:
             self.logger.log('error', f"Error creating resource group:{e}")            
             raise Exception("Error creating resource group")
-        self.logger.log('debug', f"Created resource group: {self.resource_group_name}")
+        self.logger.log('info', f"Created resource group: {self.resource_group_name}")
 
     def create_virtual_network(self, vnet_name):
         vnet_params = {
@@ -109,7 +109,7 @@ class CloudProvisioner(ProvisionerInterface):
         except Exception as e:
             self.logger.log('error', f"Error creating virtual network:{e}")            
             raise Exception("Error creating virtual network")
-        self.logger.log('debug', f"Created virtual network: {virtual_network.name}")
+        self.logger.log('info', f"Created virtual network: {virtual_network.name}")
 
         try:
             subnet = self.network_client.subnets.get(self.resource_group_name,
@@ -168,7 +168,7 @@ class CloudProvisioner(ProvisionerInterface):
         except Exception as e:
             self.logger.log('error', f"Error creating network security group:{e}")            
             raise Exception("Error creating network security group")
-        self.logger.log('debug', f"Created network security group: {nsg.name}")
+        self.logger.log('info', f"Created network security group: {nsg.name}")
         return nsg
 
     def setup_networking(self):
@@ -179,7 +179,7 @@ class CloudProvisioner(ProvisionerInterface):
         except Exception as e:
             self.logger.log('error', f"Error setting up networking:{e}")            
             raise Exception("Error setting up networking")
-        self.logger.log('debug', f"Network setup completed")
+        self.logger.log('info', f"Network setup completed")
 
 
     def create_public_ip_address(self, public_ip_name):
@@ -226,7 +226,7 @@ class CloudProvisioner(ProvisionerInterface):
         except Exception as e:
             self.logger.log('error', f"Error creating network interface:{e}")            
             raise Exception("Error creating network interface")
-        self.logger.log('debug', f"Created network interface: {nic.name}")
+        self.logger.log('info', f"Created network interface: {nic.name}")
         # add to list
         self.nic_name_list.append(nic.name)
         return nic
@@ -283,22 +283,22 @@ class CloudProvisioner(ProvisionerInterface):
         except Exception as e:
             self.logger.log('error', f"Error creating virtual machine:{e}")            
             raise Exception("Error creating virtual machine")
-        self.logger.log('debug', f"Created virtual machine: {vm.name}. You can access the machine using the following credentials: username: {admin_username}, password: {admin_password}")
+        self.logger.log('info', f"Created virtual machine: {vm.name}. You can access the machine using the following credentials: username: {admin_username}, password: {admin_password}")
         return vm
 
     ############## Resources Deletion ##############
     def delete_resource_group(self):
-        self.logger.log('debug', f"Deleting resource group: {self.resource_group_name}")
+        self.logger.log('info', f"Deleting resource group: {self.resource_group_name}")
         self.resource_client.resource_groups.begin_delete(
             self.resource_group_name).wait()
 
     def delete_virtual_network(self):
-        self.logger.log('debug', f"Deleting virtual network: {self.vnet_name}")
+        self.logger.log('info', f"Deleting virtual network: {self.vnet_name}")
         self.network_client.virtual_networks.begin_delete(
             self.resource_group_name, self.vnet_name).wait()
 
     def delete_network_security_group(self):
-        self.logger.log('debug', f"Deleting network security group: {self.nsg_name}")
+        self.logger.log('info', f"Deleting network security group: {self.nsg_name}")
         self.network_client.network_security_groups.begin_delete(
             self.resource_group_name, self.nsg_name).wait()
 
@@ -317,17 +317,17 @@ class CloudProvisioner(ProvisionerInterface):
         self.logger.log('debug', 'Networking cleanup completed')
 
     def delete_network_interface(self, nic_name):
-        self.logger.log('debug', f"Deleting network interface: {nic_name}")
+        self.logger.log('info', f"Deleting network interface: {nic_name}")
         self.network_client.network_interfaces.begin_delete(
             self.resource_group_name, nic_name).wait()
 
     def delete_public_ip_address(self, public_ip_name):
-        self.logger.log('debug', f"Deleting public IP address: {public_ip_name}")
+        self.logger.log('info', f"Deleting public IP address: {public_ip_name}")
         self.network_client.public_ip_addresses.begin_delete(
             self.resource_group_name, public_ip_name).wait()
 
     def delete_virtual_machine(self, virtual_machine_name):
-        self.logger.log('debug', f"Deleting virtual machine: {virtual_machine_name}")
+        self.logger.log('info', f"Deleting virtual machine: {virtual_machine_name}")
         self.compute_client.virtual_machines.begin_delete(
             self.resource_group_name, virtual_machine_name).wait()
 
@@ -377,17 +377,17 @@ class CloudProvisioner(ProvisionerInterface):
         except Exception as e:
             self.logger.log('error', f"Error deleting networking:{e}")
             raise Exception("Error deleting networking")
-        self.logger.log('debug', f"Workers are deleted")      
+        self.logger.log('info', f"Workers are deleted")      
 
     def create_workers(self, num_workers):
         self.num_workers = num_workers
         try:
-            self.logger.log('debug',"Setup the networking for the workers")
+            self.logger.log('info',"Setup the networking for the workers")
             self.setup_networking()
         except Exception as e:
             self.logger.log('error', f"Error setting up networking: {e}, please check azure: https://portal.azure.com/#home")
             return
-        self.logger.log('debug', f"Creating {self.num_workers} worker{'' if self.num_workers==1 else 's'}")
+        self.logger.log('info', f"Creating {self.num_workers} worker{'' if self.num_workers==1 else 's'}")
         try:
             for i in range(num_workers):
                 self.logger.log('debug', f'Creating worker {self.vm_name}{i+1}')

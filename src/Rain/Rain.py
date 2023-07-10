@@ -1,11 +1,10 @@
-
-
 from Rain.Provisioner.Provisioner import Provisioner
 from Rain.Divider.DividerProxy import DividerProxy
 from Rain.LogService.LogService import LogService
 from Rain.TemporaryFilesManager.TemporaryFilesManager import TemporaryFilesManager
-# from Rain.ConfigHandler.ConfigHandler import ConfigHandler
-import numpy
+import numpy as np
+
+
 class Rain:
     def __init__(self, config : dict, model : any = None) -> None:
       """
@@ -27,7 +26,7 @@ class Rain:
         self.logger.log("error", f"Error in the config: {e}")
       # create a temporary directory for the Rain to store its data.
       self.temp_manager = TemporaryFilesManager.get_instance(config["temp_data_path"] if "temp_data_path" in config else None)
-      self.logger.log('debug', f"Rain is initialized")
+      self.logger.log('info', f"Rain is initialized")
       # create a provisioner to instantiate the workers.
       self.provisioner = Provisioner(self.config)
       # create a divider proxy to divide the data and train the model.
@@ -44,13 +43,13 @@ class Rain:
       except Exception as e:
           self.logger.log('error', f"Error deleting: {e}")
 
-    def train(self, X_train : numpy.ndarray, y_train : numpy.ndarray, strategy : str = 'sync') -> any:
+    def train(self, X_train : np.ndarray, y_train : np.ndarray, strategy : str = 'sync') -> any:
       """
       Function to train the model.
       
       Args:
-          X_train (numpy.ndarray): X train data
-          y_train (numpy.ndarray): y train data (if unsupervised, pass None)
+          X_train (np.ndarray): X train data
+          y_train (np.ndarray): y train data (if unsupervised, pass None)
           strategy (str, optional): strategy to update the model gradients. Defaults to 'sync'.
 
       Returns:

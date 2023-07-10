@@ -17,12 +17,12 @@ class LogisticRegression(MachineLearningInterface):
 
     def _sigmoid(self, z):
         # clip large negative values to avoid overflow
-        z = np.clip(z, -500, 500)
+        z = np.clip(z, -600, 600)
         return 1 / (1 + np.exp(-z))
     
 
     def _initialize_weights(self, n_features):
-        self.weights = np.random.randn(n_features)
+        self.weights = np.zeros(n_features)
         
 
     def fit(self, X, y):
@@ -73,5 +73,5 @@ class LogisticRegression(MachineLearningInterface):
             with open(file_path, "wb") as f:
                 dill.dump(data, f)
         except Exception as e:
-            self.logger.log('debug', f"Error in saving the info to the file: {e}")
+            self.logger.log('error', f"Error in saving the info to the file: {e}")
             return

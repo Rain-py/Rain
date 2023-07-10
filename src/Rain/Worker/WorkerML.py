@@ -97,7 +97,7 @@ class WorkerML(WorkerInterface):
     
     def sigmoid(self, z):
         # clip large negative values to avoid overflow
-        z = np.clip(z, -500, 500)
+        z = np.clip(z, -600, 600)
         return 1 / (1 + np.exp(-z))
     
     def calculate_logistic_regression_gradient(self, model, X, y):
@@ -120,7 +120,7 @@ class WorkerML(WorkerInterface):
     def calculate_linear_regression_gradient(self, model, X, y):
         n_samples, n_features = X.shape
         if model.weights is None:
-            weights = np.random.randn(n_features + 1)
+            weights = np.zeros(n_features + 1)
         else:
             weights = model.weights
 

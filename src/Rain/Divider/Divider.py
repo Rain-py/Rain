@@ -68,7 +68,7 @@ class Divider:
         """
         try:
             self.divider_ambassador.stop_serving()
-            self.logger.log('debug', f"Divider stopped serving")
+            self.logger.log('info', f"Divider stopped serving")
         except Exception as e:
             self.logger.log('error', "Error stopping serving: " + str(e))
             return
@@ -139,7 +139,6 @@ class Divider:
 
         return X_train, y_train
 
-
     def __partition_data(self, X : np.ndarray, y : np.ndarray) -> Tuple[List[np.ndarray], List[np.ndarray]]:
         """
         Private function to partition the data into subsets equal to the number of partitions passed.
@@ -175,15 +174,6 @@ class Divider:
 
         return X_train_partitions, y_train_partitions
 
-    def send_info_to_workers(self, iteration_num : int) -> None:
-        """
-        Function to send the model info to the workers.
-
-        Args:
-            iteration_num (int): the iteration number of the training.
-        """
-        self.algorithm.send_info_to_workers(iteration_num)
-
     def train(self, strategy : str, X : np.ndarray, y : np.ndarray) -> any:
         """
         Function to train the model.
@@ -215,6 +205,8 @@ class Divider:
             model = self.algorithm.train_centralized_sync(X_train_partitions, y_train_partitions)
         elif strategy == 'async':
             model = self.algorithm.train_centralized_async(X_train_partitions, y_train_partitions) 
+        elif strategy == 'semi_async':
+            model = self.algorithm.train_centralized_semi_async(X_train_partitions, y_train_partitions)
         else:
             raise Exception("Invalid strategy")
         return model

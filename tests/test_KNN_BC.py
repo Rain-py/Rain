@@ -7,8 +7,8 @@ import numpy as np
 from sklearn.preprocessing import StandardScaler
 from sklearn.datasets import load_breast_cancer
 from sklearn.model_selection import train_test_split
-from sklearn.naive_bayes import GaussianNB as naive_bayes_classifier_sklearn
-from Rain.Divider.MachineLearning.GaussianNaiveBayes import GaussianNaiveBayes as naive_bayes_classifier_rain
+from sklearn.neighbors import KNeighborsClassifier as KNN_classifier_sklearn
+from Rain.Divider.MachineLearning.KNN import KNN as KNN_classifier_rain
 
 
 def getData():
@@ -32,20 +32,20 @@ class TestML(unittest.TestCase):
         X_test = standard_scaler.transform(X_test)
 
         # Train the Sklearn model
-        naive_bayes_classifier = naive_bayes_classifier_sklearn(var_smoothing=0)
-        naive_bayes_classifier.fit(X_train, y_train)
+        knn_classifier = KNN_classifier_sklearn(n_neighbors=5, metric= "euclidean")
+        knn_classifier.fit(X_train, y_train)
         # Evaluate the Sklearn model
-        y_pred_sklearn = naive_bayes_classifier.predict(X_test)
+        y_pred_sklearn = knn_classifier.predict(X_test)
         accuracy_sklearn = (np.sum(y_pred_sklearn == y_test) / len(y_test) * 100).round(2)
-        print(f"Accuracy of Sklearn naive bayes classifier is: {accuracy_sklearn}%")
+        print(f"Accuracy of Sklearn KNN classifier is: {accuracy_sklearn}%")
         
         # Train the Rain model
-        naive_bayes_classifier = naive_bayes_classifier_rain()
-        naive_bayes_classifier.fit(X_train, y_train)
+        knn_classifier = KNN_classifier_rain(n_neighbors=5, metric= "euclidean")
+        knn_classifier.fit(X_train, y_train)
         # Evaluate the Rain model
-        y_pred_rain = naive_bayes_classifier.predict(X_test)
+        y_pred_rain = knn_classifier.predict(X_test)
         accuracy_rain = (np.sum(y_pred_rain == y_test) / len(y_test) * 100).round(2)
-        print(f"Accuracy of Rain naive bayes classifier is: {accuracy_rain}%")
+        print(f"Accuracy of Rain KNN classifier is: {accuracy_rain}%")
 
         # Assert that the two models produce the same results
         self.assertTrue((y_pred_rain == y_pred_sklearn).sum() == len(y_pred_sklearn))

@@ -146,14 +146,14 @@ class DividerAmbassador(divider_pb2_grpc.dividerServicer):
             response = worker_stub.Download(
                 read_data(f"{self.data_base_path}X_train_{worker_id}.npy", X_train_partition, f"X_train_{worker_id}", ".npy", chunk_size=self.chunk_size)
                 )
-            self.logger.log('debug', "divider receive: " + response.message + " from  worker after sending X_train")
+            self.logger.log('debug', f"divider received: '{response.message}'from  worker after sending X_train")
             # y train data
             response = worker_stub.Download(
                 read_data(f"{self.data_base_path}y_train_{worker_id}.npy", y_train_partition, f"y_train_{worker_id}", ".npy", chunk_size=self.chunk_size)
             )
-            self.logger.log('debug', f"divider receive: {response.message} from worker {worker_id} after sending y_train")
+            self.logger.log('debug', f"divider received: '{response.message}' from worker {worker_id} after sending y_train")
         except Exception as e:
-            self.logger.log('debug', "Error sending the data to the worker: " + str(e))
+            self.logger.log('debug', f"Error sending the data to the worker: {e}")
             return
 
     def inform_coord(self, worker_ip : str, worker_port : int, worker_id: int) -> Tuple[str, int]:
@@ -192,7 +192,7 @@ class DividerAmbassador(divider_pb2_grpc.dividerServicer):
         Returns:
             None
         """
-        self.logger.log('debug', f'{worker_ip}:{worker_port}')
+        self.logger.log('info', f'Executing one iteration of federated learning on {worker_ip}:{worker_port}')
         with grpc.insecure_channel(target=f'{worker_ip}:{worker_port}', compression=grpc.Compression.Gzip, options=self.options) as channel:
             worker_stub = worker_pb2_grpc.workerStub(channel)
             try:
@@ -217,10 +217,10 @@ class DividerAmbassador(divider_pb2_grpc.dividerServicer):
   
             try:
                 # execute the model
-                self.logger.log('debug', f"divider begins executing iteration{iteration_num} for worker{worker_id}")
+                self.logger.log('info', f"divider begins executing iteration{iteration_num} for worker{worker_id}")
                 filename, extension = 'Algo', '.py'
                 response = worker_stub.Execute(worker_pb2.ExecuteData(filename=filename,extension=extension,worker_id=str(worker_id), iteration_num=str(model_name)))
-                self.logger.log('debug', "divider received: " + response.message + f" after executing the model on worker{worker_id}")
+                self.logger.log('debug', f"divider received: '{response.message}'  after executing the model on worker{worker_id}")
             except Exception as e:
                 self.logger.log('error', "Error executing the model on the worker: " + str(e))
                 raise Exception("Error executing the model on the worker")
@@ -285,7 +285,7 @@ class DividerAmbassador(divider_pb2_grpc.dividerServicer):
             response = coord_stub.GetWorkersInfo(
                 coord_pb2.WorkersInfoRequest(message="get workers info")
             )
-            self.logger.log('debug', "divider received: information from coordinator")
+            self.logger.log('debug', "divider received information from coordinator")
             return response.workers_ips, response.workers_ports, response.workers_ids
 
     def serve(self) -> None:
