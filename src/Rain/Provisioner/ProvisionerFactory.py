@@ -25,10 +25,11 @@ class ProvisionerFactory:
             try:
                 subscription_id = config["mode"]["params"]["subscription_id"]
                 location = config["mode"]["params"]["location"]
+                vm_size = config["mode"]["params"]["vm_size"]
             except Exception as e:
-                raise Exception("Invalid provisioner config")
+                raise Exception(f"Invalid provisioner config:{e}")
             return CloudProvisioner(subscription_id= subscription_id,
-                                    location=location, chunk_size=config["chunk_size"], setup=setup)
+                                    location=location,vm_size=vm_size ,chunk_size=config["chunk_size"], setup=setup)
         elif config["mode"]["type"] == 'lazy':
             try:
                 ips = config["mode"]["params"]["ips"]

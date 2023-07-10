@@ -17,7 +17,7 @@ BASE_PORT = 50151
 class CloudProvisioner(ProvisionerInterface):
 
     ############## Constructors ##############
-    def __init__(self, subscription_id, location, chunk_size, setup='ML'):
+    def __init__(self, subscription_id, location, vm_size = 'Standard_B2ms', chunk_size=1024*1024, setup='ML'):
         # credentials
         try:
             credentials = DefaultAzureCredential()
@@ -58,7 +58,7 @@ class CloudProvisioner(ProvisionerInterface):
         self.ip_name_list = []
         self.vm_name_list = []
         # TODO: should be a parameter/temporary variable
-        self.vm_size = 'Standard_B2ms' # vcpu=2, RAM=8, price=0.08/hr
+        self.vm_size = vm_size
 
         # The custom data script
         tf_lib = setup == 'TF' 
