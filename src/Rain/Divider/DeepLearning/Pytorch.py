@@ -16,7 +16,7 @@ class Pytorch(DeepLearningInterface):
                 gradient_avg.append(np.array([np.array(g).mean(axis=0) for g in zip(*gradient_list_tuple)]))
         
         except Exception as e:
-            self.logger.log('debug', f"Error in reducing the gradients: {e}")
+            self.logger.log('error', f"Error in reducing the gradients: {e}")
             return
 
         try:
@@ -31,7 +31,7 @@ class Pytorch(DeepLearningInterface):
             self.model.load_state_dict(state_dict)
         
         except Exception as e:
-            self.logger.log('debug', f"Error in calculating the new weights: {e}")
+            self.logger.log('error', f"Error in calculating the new weights: {e}")
             return
 
 
@@ -49,8 +49,8 @@ class Pytorch(DeepLearningInterface):
                 state_dict[key] = torch.from_numpy(value)
 
             self.model.load_state_dict(state_dict)
-            self.logger.log('debug', f"Asynchronous update is done by worker {worker_id}")
+            self.logger.log('info', f"Asynchronous update is done by worker {worker_id}")
 
         except Exception as e:
-            self.logger.log('debug', f"Error in calculating the new weights: {e}")
+            self.logger.log('error', f"Error in calculating the new weights: {e}")
             return

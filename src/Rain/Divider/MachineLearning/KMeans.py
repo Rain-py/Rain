@@ -81,5 +81,5 @@ class KMeans(MachineLearningInterface):
             with open(file_path, "wb") as f:
                 dill.dump(data, f)
         except Exception as e:
-            self.logger.log('debug', f"Error in saving the info to the file: {e}")
+            self.logger.log('error', f"Error in saving the info to the file: {e}")
             return

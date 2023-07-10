@@ -31,7 +31,7 @@ class Coordinator(coord_pb2_grpc.coordinatorServicer):
         self.data_base_path = TemporaryFilesManager.get_instance().create_temp_dir('coord/')
         self.server  = None
         self.logger = LogService("Coordinator")
-        self.logger.log('debug', f"Coordinator is initialized")
+        self.logger.log('info', f"Coordinator is initialized")
         self.divider_IP = divider_IP  
         self.provisioner_IP = provisioner_IP
         self.num_of_workers = num_of_workers

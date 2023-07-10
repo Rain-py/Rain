@@ -31,7 +31,7 @@ class MachineLearningInterface:
                 msg = dill.load(open(f"{self.model_base_path}{j + 1}_{iteration_num}_trained.pkl", "rb"))
                 msgs.append(msg)
         except Exception as e:
-            self.logger.log('debug', f"Error in receiving from the workers: {e}")
+            self.logger.log('error', f"Error in receiving from the workers: {e}")
             return
         return msgs
     
@@ -48,7 +48,7 @@ class MachineLearningInterface:
             self.data_status = [0] * len(self.workers_IPs) # 0 means no data sent yet, 1 means data is already sent to the workers
         
             for i in range(self.iterations):   
-                self.logger.log('debug', f"Starting iteration {i + 1}/{self.iterations}")
+                self.logger.log('info', f"Starting iteration {i + 1}/{self.iterations}")
                 # Notice, the algo.py is stateless
                 self.save_model(i + 1)
                 threads = list()
@@ -63,8 +63,8 @@ class MachineLearningInterface:
                 # self.divider_ambassador.iteration(self.coordinator_IP, i+1) # start loop
                 msgs = self.receive_sync(i + 1)
                 model = self.reduce_sync(msgs, final_iteration=(i == self.iterations - 1))
-                self.logger.log('debug', f"Iteration {i + 1}/{self.iterations} complete.")
+                self.logger.log('info', f"Iteration {i + 1}/{self.iterations} complete.")
             return model
         except Exception as e:
-            self.logger.log('debug', f"Error in training the model: {e}")
+            self.logger.log('error', f"Error in training the model: {e}")
             return

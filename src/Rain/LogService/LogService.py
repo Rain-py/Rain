@@ -38,7 +38,8 @@ class LogService:
             ValueError: un known log level
         """
         if level == 'debug':
-            self.logger.debug(message)
+            pass
+            # self.logger.debug(message)
         elif level == 'info':
             self.logger.info(message)
         elif level == 'warning':

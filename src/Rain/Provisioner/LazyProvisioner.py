@@ -11,7 +11,7 @@ class LazyProvisioner(ProvisionerInterface):
         self.ids = []
         self.num_workers = len(ips)
         self.logger = LogService("LazyProvisioner")
-        self.logger.log('debug', f"Provisioner is initialized")
+        self.logger.log('info', f"Provisioner is initialized")
     
     def __del__(self):
         try:
@@ -21,10 +21,10 @@ class LazyProvisioner(ProvisionerInterface):
             return
 
     def delete_workers(self):
-        self.logger.log('debug', f"Delete your workers, please")      
+        self.logger.log('info', f"Delete your workers, please")      
     
     def create_workers(self, num_workers = None):
-        self.logger.log('debug', f"Creating {num_workers} workers")
+        self.logger.log('info', f"Creating {num_workers} workers")
         try:
             self.statuses = [provisioner_pb2.Status.UP] * self.num_workers
             self.ids = [i+1 for i in range(self.num_workers)]

@@ -68,7 +68,7 @@ class Divider:
         """
         try:
             self.divider_ambassador.stop_serving()
-            self.logger.log('debug', f"Divider stopped serving")
+            self.logger.log('info', f"Divider stopped serving")
         except Exception as e:
             self.logger.log('error', "Error stopping serving: " + str(e))
             return

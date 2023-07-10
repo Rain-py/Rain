@@ -15,7 +15,7 @@ class Tensorflow(DeepLearningInterface):
                 gradient_avg.append(np.array([np.array(g).mean(axis=0) for g in zip(*gradient_list_tuple)]))
 
         except Exception as e:
-            self.logger.log('debug', f"Error in reducing the gradients: {e}")
+            self.logger.log('error', f"Error in reducing the gradients: {e}")
             return
         
         try:
@@ -27,7 +27,7 @@ class Tensorflow(DeepLearningInterface):
             self.model.compile(loss=self.loss, optimizer=self.optimizer, metrics=['accuracy'])
 
         except Exception as e:
-            self.logger.log('debug', f"Error in calculating the new weights: {e}")
+            self.logger.log('error', f"Error in calculating the new weights: {e}")
             return
         
     def reduce_gradients_async(self, gradient, worker_id):
@@ -40,8 +40,8 @@ class Tensorflow(DeepLearningInterface):
             # set the new weights
             self.model.set_weights(weights)
             self.model.compile(loss=self.loss, optimizer=self.optimizer, metrics=['accuracy'])
-            self.logger.log('debug', f"Asynchronous update is done by worker {worker_id}")
+            self.logger.log('info', f"Asynchronous update is done by worker {worker_id}")
 
         except Exception as e:
-            self.logger.log('debug', f"Error in calculating the new weights: {e}")
+            self.logger.log('error', f"Error in calculating the new weights: {e}")
             return
