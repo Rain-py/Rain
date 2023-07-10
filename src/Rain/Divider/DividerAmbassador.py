@@ -68,6 +68,7 @@ def read_data(filepath: str, data_partition, filename: str, extension: str, chun
                 yield entry_request
             else:  # The chunk was empty, which means we're at the end of the file
                 return
+                
     max_message_size = 1*1024*1024  # Update the maximum allowed message size
     data_size = data_partition[0].nbytes * len(data_partition)
     chunk_size = min(chunk_size, max_message_size)  # Set the chunk size to be within the maximum allowed size
@@ -157,8 +158,7 @@ class DividerAmbassador(divider_pb2_grpc.dividerServicer):
 
     def inform_coord(self, worker_ip : str, worker_port : int, worker_id: int) -> Tuple[str, int]:
         """
-        Informs the coordinator that the worker has received the data.
-
+        informs the coordinator that the worker is not responding.
         Args:
             worker_id (int): The ID of the worker being informed.
 
