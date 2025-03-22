@@ -49,13 +49,20 @@ The data parallelism technique is best used in case the data is too large to be 
 In data parallelism, it is essential that the worker nodes communicate with the parameter server so that they can share the model weights.
 
 ## Synchronous training
-Each worker performs the training loop (a specified number of epochs) on its data subset and computes the gradients $$ gradients=∇l(x,w_t) $$ i.e., it is equivalent to the partial derivative of the loss function with respect to the models’ parameters. Then the worker sends the gradients back to the parameter server and waits for the new updated model.
+Each worker performs the training loop (a specified number of epochs) on its data subset and computes the gradients 
+
+$$ gradients=∇l(x,w_t) $$
+
+i.e., it is equivalent to the partial derivative of the loss function with respect to the models’ parameters. Then the worker sends the gradients back to the parameter server and waits for the new updated model.
 
 The parameter server waits for all the workers to send their gradients to perform the global weight update which is done as follows:
 
-Find the average of the workers gradients: $$ gradients\_average=1/N  ∑_{i=1}^{i=N} workers\_gradients_i $$
+Find the average of the workers gradients: 
+
+$$ gradients\_average=1/N  ∑_{i=1}^{i=N} workers\_gradients_i $$
 
 Update the global weights of the model: 
+
 $$ w_{t+1}=w_t-η*gradients\_average, \:\: where\:η\:is\:the\:learning\:rate $$
 
 Then, the parameter server sends the new global weights to all the workers to start another training loop.
@@ -175,10 +182,15 @@ $$ p(y=+1|x)= θ(w^T x) $$
 $$ p(x)= θ(-w^T x)=1-θ(w^T x) $$
 
 Where θ(z) is the sigmoid function:
+
 $$ θ(z)=\dfrac{1}{1+ e^{-z}} $$
 
 Then a threshold for this probability is set to determine the class label for the new sample.
-However, the computation of the gradients $$ (∇_w E_{in}) $$ can be very expensive with increasing the training data size.
+However, the computation of the gradients 
+
+$$ (∇_w E_{in}) $$
+
+can be very expensive with increasing the training data size.
 
 A synchronous data parallelism technique is used to address this problem which is summarized as follows:
 <ul>
@@ -234,9 +246,17 @@ By substitution:
 
 $$ w_{opt}=(X^T X  )^{-1} X^T y$$
 
-We arrived at a closed form for the optimal weights w_opt  which is a function of the training data only. Given a dataset from which we construct the constant matrices X and y finding the best hypothesis exactly is as easy as plugging in this closed-form. It’s exactly the best hypothesis because it can be shown that E_in is convex with one global minimum so $$ ∇_w E_in=0 $$ is only satisfied there.
+We arrived at a closed form for the optimal weights w_opt  which is a function of the training data only. Given a dataset from which we construct the constant matrices X and y finding the best hypothesis exactly is as easy as plugging in this closed-form. It’s exactly the best hypothesis because it can be shown that E_in is convex with one global minimum so 
 
-Despite all the nice closed-form properties, if the dataset has N examples each of d dimensions, then computing $$ X^T X $$ takes O(d×n×d) and then inverting the resulting (1+d)×(1+d) matrix takes O(d^3) which can take a lot of time. It also takes O(dn) memory complexity (due to X which has the size of the whole dataset)
+$$ ∇_w E_{in}=0 $$
+
+is only satisfied there.
+
+Despite all the nice closed-form properties, if the dataset has N examples each of d dimensions, then computing 
+
+$$ X^T X $$
+
+takes O(d×n×d) and then inverting the resulting (1+d)×(1+d) matrix takes O(d^3) which can take a lot of time. It also takes O(dn) memory complexity (due to X which has the size of the whole dataset)
 
 <ul>
     <li>Thus, computing the closed-form is not always possible when dimensionality and/or the dataset size are too large.</li>
