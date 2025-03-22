@@ -59,11 +59,13 @@ The parameter server waits for all the workers to send their gradients to perfor
 
 Find the average of the workers gradients: 
 
-$$ gradients\_average=1/N  ∑_{i=1}^{i=N} workers\_gradients_i $$
+$$ gradients.average=\dfrac{1}{N}  ∑_{i=1}^{i=N} workers.gradients_i $$
 
 Update the global weights of the model: 
 
-$$ w_{t+1}=w_t-η*gradients\_average, \:\: where\:η\:is\:the\:learning\:rate $$
+$$ w_{t+1}=w_t-η*gradients.average $$
+
+where η is the learning rate 
 
 Then, the parameter server sends the new global weights to all the workers to start another training loop.
 
@@ -90,7 +92,7 @@ Each training worker performs a full training loop and sends the gradients back 
 
 The parameter server updates the global state of the model once it receives the gradients from any worker, the update is done using the Downpour SGD algorithm with learning rate adaptation:
 
-$$ w_{t+1}=w_t-\dfrac{η}{(number\_of\_workers)}*gradients $$
+$$ w_{t+1}=w_t-\dfrac{η}{(number.of.workers)}*gradients $$
 
 Then, the worker that sent the gradients should be able to read the new model weights after the global weight updates.
 
@@ -240,7 +242,7 @@ $$ ∇_w E_{in} =\dfrac{1}{M} [(A+A^T )w-2b]=0 $$
 
 $$ w_{opt}= (A+A^T )^{-1} 2b $$
 
-$$ Where\:A=X^T X,\:b=X^T y $$
+$$ Where\:A=X^T X,b=X^T y $$
 
 By substitution:
 
