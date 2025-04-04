@@ -4,19 +4,19 @@ Rain is a cutting-edge distribution framework specifically designed for AI workl
 
 ## Table of Contents
 
-1. [Literature Survey](#literature_survey)
-2. [Deep Learning](#deep_learning)
-3. [Model Parallelism](#model_parallelism)
-4. [Data Parallelism](#data_parallelism)
-5. [Synchronous training](#synch_training)
-6. [Downpour SGD](#downpour_sgd)
-7. [Asynchronous training](#async_training)
-8. [Maachine Learning](#machine_learning)
+1. [Literature Survey](#literature-survey)
+2. [Deep Learning](#deep-learning)
+3. [Model Parallelism](#model-parallelism)
+4. [Data Parallelism](#data-parallelism)
+5. [Synchronous training](#synch-training)
+6. [Downpour SGD](#downpour-sgd)
+7. [Asynchronous training](#async-training)
+8. [Machine Learning](#machine-learning)
 9. [K-nearest neighbors (KNN) algorithm](#knn)
-10. [Logistic Regression Algorithm](#logistic_regression)
-11. [Linear Regression Algorithm](#linear_regression)
-12. [Implemented Approach](#implemented_approach)
-13. [System Testing and Verification](#system_testing)
+10. [Logistic Regression Algorithm](#logistic-regression)
+11. [Linear Regression Algorithm](#linear-regression)
+12. [Implemented Approach](#implemented-approach)
+13. [System Testing and Verification](#system-testing)
 14. [Results](#results)
 
 ## Literature Survey
