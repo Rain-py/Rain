@@ -4,13 +4,13 @@ Rain is a cutting-edge distribution framework specifically designed for AI workl
 
 ## Table of Contents
 
-1. [Literature Survey](#literature-survey)
-2. [Deep Learning](#deep-learning)
-3. [Model Parallelism](#model-parallelism)
-4. [Data Parallelism](#data-parallelism)
-5. [Synchronous training](#synchronous-training)
-6. [Downpour SGD](#downpour-sgd)
-7. [Asynchronous training](#asynchronous-training)
+1. [Deep Learning](#deep-learning)
+2. [Model Parallelism](#model-parallelism)
+3. [Data Parallelism](#data-parallelism)
+4. [Synchronous training](#synchronous-training)
+5. [Downpour SGD](#downpour-sgd)
+6. [Asynchronous training](#asynchronous-training)
+7. [Semi-asynchronous training](#semi-asynchronous-training)
 8. [Machine Learning](#machine-learning)
 9. [K-nearest neighbors (KNN) algorithm](#k-nearest-neighbors-knn-algorithm)
 10. [Logistic Regression Algorithm](#logistic-regression-algorithm)
@@ -19,10 +19,7 @@ Rain is a cutting-edge distribution framework specifically designed for AI workl
 13. [System Testing and Verification](#system-testing-and-verification)
 14. [Results](#results)
 
-## Literature Survey
-
-Rain supports distributed machine learning and deep learning applications. The implementation of distributed ML algorithms is straightforward in some cases. However, distributed deep learning requires a strong understanding of some concepts which will be discussed extensively in this chapter. Also, a brief explanation of distributed ML algorithms will be discussed.
-
+Rain supports distributed machine learning and deep learning applications. The implementation of distributed ML algorithms is straightforward in some cases. However, distributed deep learning requires a strong understanding of some concepts which will be discussed extensively in the following sections. Also, a brief explanation of distributed ML algorithms will be discussed.
 
 ## Deep Learning
 
@@ -37,6 +34,7 @@ In certain exceptional circumstances, the size of the model might exceed the cap
 ## Data Parallelism
 
 The data parallelism technique is summarized as follows:
+
 <ol>
     <li>There is a master node (referred to as a parameter server) which holds the global state (i.e. the weights) of the model.</li>
     <li>Divide the data into N number of partitions, where N is the total number of available workers in the computer cluster.</li>
@@ -49,23 +47,30 @@ The data parallelism technique is best used in case the data is too large to be 
 In data parallelism, it is essential that the worker nodes communicate with the parameter server so that they can share the model weights.
 
 ## Synchronous training
-Each worker performs the training loop (a specified number of epochs) on its data subset and computes the gradients 
 
-$$ gradients=∇l(x,w_t) $$
+Each worker performs the training loop (a specified number of epochs) on its data subset and computes the gradients
+
+$$
+gradients=∇l(x,w_t)
+$$
 
 i.e., it is equivalent to the partial derivative of the loss function with respect to the models’ parameters. Then the worker sends the gradients back to the parameter server and waits for the new updated model.
 
 The parameter server waits for all the workers to send their gradients to perform the global weight update which is done as follows:
 
-Find the average of the workers gradients: 
+Find the average of the workers gradients:
 
-$$ gradientsAverage=\dfrac{1}{N}  ∑_{i=1}^{i=N} workersGradients_i $$
+$$
+gradientsAverage=\dfrac{1}{N}  ∑_{i=1}^{i=N} workersGradients_i
+$$
 
-Update the global weights of the model: 
+Update the global weights of the model:
 
-$$ w_{t+1}=w_t-η*gradientsAverage $$
+$$
+w_{t+1}=w_t-η*gradientsAverage
+$$
 
-where η is the learning rate 
+where η is the learning rate
 
 Then, the parameter server sends the new global weights to all the workers to start another training loop.
 
@@ -78,10 +83,11 @@ The averaging of gradients at the master node is done to apply consistent update
 Here each worker waits for all other workers to complete their training loops and calculate their respective gradients to be able to begin the next training loop. It is called synchronous because synchronization between all the workers and the master is required before starting the training loop. It is important to note that all workers produce different gradients as they are trained on different subsets of data, however at any point in time, all the workers have the exact same weights which helps to speed up the model convergence.
 
 ## Downpour SGD
+
 Downpour SGD (Stochastic Gradient Descent) is an optimization algorithm used in machine learning and deep learning for training large-scale models. It is an extension of the standard SGD algorithm that incorporates the idea of parallelism to improve efficiency. In traditional SGD, the model parameters are updated after each individual training example, which can be computationally expensive when dealing with large datasets. Downpour SGD addresses this limitation by introducing a distributed computing framework. In the Downpour SGD algorithm, multiple workers operate in parallel, each with a copy of the model. The training data is divided into smaller subsets, and each worker independently computes the gradients based on its assigned batch. Instead of updating the model parameters after each example, the workers accumulate the gradients locally. Then, the parameter server collects the gradients from the workers, applies them to update the global model, and broadcasts the updated parameters back to the workers. This process of updating and broadcasting the parameters happens asynchronously, allowing each worker to continue training with the most recent model while the update is being propagated. The key advantage of Downpour SGD is that it enables parallelism, as multiple workers can simultaneously compute gradients on different subsets of the training data. This helps to speed up the training process for large-scale models and big datasets. It also provides fault tolerance, as workers can recover from failures without compromising the overall progress of the training.
 
-
 ## Asynchronous training
+
 In the synchronous approach we are not able to use all the resources efficiently as a worker must wait for other workers in order to perform the next training loop. This is especially a problem when there is a significant difference in the computation powers among all the workers, in which case the whole training process is only as fast as the slowest worker in the cluster. The synchronization overhead becomes larger as the number of workers increases, which may degrade the training performance.
 
 Thus, in asynchronous training, we want workers to work independently in such a way that a worker need not wait for any other worker in the cluster. This technique aims to improve the training performance by reducing the synchronization overhead while maintaining the degradation of the model accuracy as small as possible.
@@ -92,7 +98,9 @@ Each training worker performs a full training loop and sends the gradients back 
 
 The parameter server updates the global state of the model once it receives the gradients from any worker, the update is done using the Downpour SGD algorithm with learning rate adaptation:
 
-$$ w_{t+1}=w_t-\dfrac{η}{(numberOfWorkers)}*gradients $$
+$$
+w_{t+1}=w_t-\dfrac{η}{(numberOfWorkers)}*gradients
+$$
 
 Then, the worker that sent the gradients should be able to read the new model weights after the global weight updates.
 
@@ -127,6 +135,10 @@ In asynchronous training, there may be some slow workers or large network commun
     </tr>
 </table>
 
+## Semi-asynchronous training
+
+We proposed a middle-ground scheme named semi-asynchronous training which combines the advantages of both synchronous and asynchronous training (fast model convergence and high resource utility). It performs asynchronous updates but it doesn’t permit a worker to be ahead of other workers in terms of global updates that this worker participated in by a specified threshold (number of updates). This is done to ensure that if a worker is very slow and there are others that are relatively faster, the fast workers don't wait too long waiting for the slow worker (as in synchronous training) and the model convergence doesn’t become very slow (as in asynchronous training). This technique was proven to achieve better overall performance metrics than the standard techniques.
+
 ## Machine Learning
 
 Machine learning algorithms can be divided into two categories: supervised learning and unsupervised learning. Supervised learning takes labeled inputs (e.g., a set of images labeled dogs and cats) and builds a model that can be used to predict future unlabeled inputs. Unsupervised learning aims to discover patterns about the data without relying on labeled instances (e.g., clustering customers into categories for market analysis).
@@ -136,14 +148,15 @@ Machine learning algorithms can be divided into two categories: supervised learn
 It is a supervised machine learning algorithm used for classification tasks. It is a non-parametric algorithm, meaning it does not make any assumptions about the underlying data distribution. The KNN classifier operates based on the principle that similar instances tend to exist in close proximity to each other. It determines the class of a new, unlabeled instance by examining the class labels of its k nearest neighbors in the training dataset. The value of k is a user-defined parameter that determines the number of neighbors considered. KNN has no training phase, it is ready for prediction once the training dataset is loaded.
 
 For one test example, it does the following:
+
 <ul>
     <li>Calculate the distance between the test example and all other training examples using a distance function.</li>
     <li>Find the k-nearest training examples (the ones that have the least distance to the test example).</li>
     <li>Classify the test example according to the majority of the nearest neighbors.</li>
 </ul>
 
-
 This is a very computationally intensive operation, for this reason, a synchronous data parallelism technique is used to address this problem which is summarized as follows:
+
 <ul>
     <li>There is a master node which is responsible for the reduction operation.</li>
     <li>Divide the data into N number of partitions, where N is the total number of available workers in the computer cluster.</li>
@@ -158,43 +171,61 @@ It is a probabilistic classifier that outputs probabilities that decide the clas
 
 Negative log-likelihood loss for a single example:
 
-$$ e_{in}(w)=log(1+ e^{-y_i w^T x_i}) $$
+$$
+e_{in}(w)=log(1+ e^{-y_i w^T x_i})
+$$
 
 The average loss for all the training examples is given by:
 
-$$ E_{in}(w)=\dfrac{1}{M} ∑_{i=1}^{i=M} log(1+ e^{-y_i w^T x_i }) $$
+$$
+E_{in}(w)=\dfrac{1}{M} ∑_{i=1}^{i=M} log(1+ e^{-y_i w^T x_i })
+$$
 
 To minimize this loss:
 
-$$ ∇_w E_{in} =0 $$
+$$
+∇_w E_{in} =0
+$$
 
-$$ ∇_w E_{in} =\dfrac{1}{M}∑_{i=1}^{i=M} (\dfrac{-y_i x_i}{1+e^{y_i w^T x_i}})=0 $$
+$$
+∇_w E_{in} =\dfrac{1}{M}∑_{i=1}^{i=M} (\dfrac{-y_i x_i}{1+e^{y_i w^T x_i}})=0
+$$
 
 Solving the equation to obtain the optimal 𝑤 is infeasible. Hence, we won’t be able to arrive at a closed form solution.
 
 So, we can apply the iterative gradient descent algorithm as follows:
 
-$$ w_{t+1}=w_t- η ∇_w E_{in} =w_t- η*\dfrac{1}{M}∑_{i=1}^{i=M} (\dfrac{-y_i x_i}{1+e^{y_i w^T x_i } }) $$
-
+$$
+w_{t+1}=w_t- η ∇_w E_{in} =w_t- η*\dfrac{1}{M}∑_{i=1}^{i=M} (\dfrac{-y_i x_i}{1+e^{y_i w^T x_i } })
+$$
 
 To predict a new sample x:
 
-$$ p(y=+1|x)= θ(w^T x) $$
+$$
+p(y=+1|x)= θ(w^T x)
+$$
 
-$$ p(x)= θ(-w^T x)=1-θ(w^T x) $$
+$$
+p(x)= θ(-w^T x)=1-θ(w^T x)
+$$
 
 Where θ(z) is the sigmoid function:
 
-$$ θ(z)=\dfrac{1}{1+ e^{-z}} $$
+$$
+θ(z)=\dfrac{1}{1+ e^{-z}}
+$$
 
 Then a threshold for this probability is set to determine the class label for the new sample.
-However, the computation of the gradients 
+However, the computation of the gradients
 
-$$ (∇_w E_{in}) $$
+$$
+(∇_w E_{in})
+$$
 
 can be very expensive with increasing the training data size.
 
 A synchronous data parallelism technique is used to address this problem which is summarized as follows:
+
 <ul>
     <li>There is a master node which holds the weights of the current iteration.</li>
     <li>Divide the data into N number of partitions, where N is the total number of available workers in the computer cluster.</li>
@@ -203,15 +234,21 @@ A synchronous data parallelism technique is used to address this problem which i
 
 Each worker performs the following computation using its data subset:
 
-$$ ∇_w E_{in}^{'}(w)=∑_{i=1}^{i=M^{'}} (\dfrac{-y_i x_i}{1+e^{y_i w^T x_i}}) $$
+$$
+∇_w E_{in}^{'}(w)=∑_{i=1}^{i=M^{'}} (\dfrac{-y_i x_i}{1+e^{y_i w^T x_i}})
+$$
 
 Where M' is the size of the worker’s data subset.
 
 The worker sends those partial gradients along with the size of the data subset to the master node which perform the following computation using the results from all the workers in the cluster:
 
-$$ M=∑_{i=1}^{i=N} M_i^{'} $$
+$$
+M=∑_{i=1}^{i=N} M_i^{'}
+$$
 
-$$ ∇_w E_{in} = \dfrac{1}{M} ∑_{i=1}^{i=N} (∇_w E_{in}^{'} (w))_{i} $$
+$$
+∇_w E_{in} = \dfrac{1}{M} ∑_{i=1}^{i=N} (∇_w E_{in}^{'} (w))_{i}
+$$
 
 Then, it updates the weights using the computed gradients and sends the new weights to all the workers to begin another iteration. This process is repeated for a pre-defined number of iterations.
 
@@ -223,40 +260,62 @@ It is a supervised machine learning algorithm used for predicting continuous num
 
 Define the following matrices:
 
-$$ X_{M * (1 + d)}= \begin{bmatrix} 1 & x_{1}^{T} \\ 1 & x_{2}^{T} \\ \vdots & \vdots \\ 1 & x_{M}^{T} \end{bmatrix} $$
+$$
+X_{M * (1 + d)}= \begin{bmatrix} 1 & x_{1}^{T} \\ 1 & x_{2}^{T} \\ \vdots & \vdots \\ 1 & x_{M}^{T} \end{bmatrix}
+$$
 
-$$ Y_{M * 1}= \begin{bmatrix} y_{1} \\ y_{2} \\ \vdots \\ y_{M} \end{bmatrix} $$
+$$
+Y_{M * 1}= \begin{bmatrix} y_{1} \\ y_{2} \\ \vdots \\ y_{M} \end{bmatrix}
+$$
 
-$$ w_{(1 + d) * 1}= \begin{bmatrix} w_{0} \\ w_{1} \\ \vdots \\ w_{d} \end{bmatrix} $$
+$$
+w_{(1 + d) * 1}= \begin{bmatrix} w_{0} \\ w_{1} \\ \vdots \\ w_{d} \end{bmatrix}
+$$
 
 Where d is the number of features and M is the total size of the training dataset.
 The average loss (mean square error loss) for all the training examples is given by:
 
-$$ E_in (w)=\dfrac{1}{M} ∑_{i=1}^{i=M} (w^T x_i-y_i )^2 $$
+$$
+E_in (w)=\dfrac{1}{M} ∑_{i=1}^{i=M} (w^T x_i-y_i )^2
+$$
 
 To minimize this loss:
 
-$$ ∇_w E_{in} =0 $$
+$$
+∇_w E_{in} =0
+$$
 
-$$ ∇_w E_{in} =\dfrac{1}{M} [(A+A^T )w-2b]=0 $$
+$$
+∇_w E_{in} =\dfrac{1}{M} [(A+A^T )w-2b]=0
+$$
 
-$$ w_{opt}= (A+A^T )^{-1} 2b $$
+$$
+w_{opt}= (A+A^T )^{-1} 2b
+$$
 
-$$ Where\:A=X^T X,b=X^T y $$
+$$
+Where\:A=X^T X,b=X^T y
+$$
 
 By substitution:
 
-$$ w_{opt}=(X^T X  )^{-1} X^T y$$
+$$
+w_{opt}=(X^T X  )^{-1} X^T y
+$$
 
-We arrived at a closed form for the optimal weights w_opt  which is a function of the training data only. Given a dataset from which we construct the constant matrices X and y finding the best hypothesis exactly is as easy as plugging in this closed-form. It’s exactly the best hypothesis because it can be shown that E_in is convex with one global minimum so 
+We arrived at a closed form for the optimal weights w_opt  which is a function of the training data only. Given a dataset from which we construct the constant matrices X and y finding the best hypothesis exactly is as easy as plugging in this closed-form. It’s exactly the best hypothesis because it can be shown that E_in is convex with one global minimum so
 
-$$ ∇_w E_{in}=0 $$
+$$
+∇_w E_{in}=0
+$$
 
 is only satisfied there.
 
-Despite all the nice closed-form properties, if the dataset has N examples each of d dimensions, then computing 
+Despite all the nice closed-form properties, if the dataset has N examples each of d dimensions, then computing
 
-$$ X^T X $$
+$$
+X^T X
+$$
 
 takes O(d×n×d) and then inverting the resulting (1+d)×(1+d) matrix takes O(d^3) which can take a lot of time. It also takes O(dn) memory complexity (due to X which has the size of the whole dataset)
 
@@ -269,7 +328,9 @@ Conclusively, numerical methods such as gradient descent can be alternatively us
 
 Weight update equation for one iteration:
 
-$$ w_{t+1}=w_t- η ∇_w E_{in} =w_t- η*\dfrac{1}{M} [(A+A^T ) w_t-2b] $$
+$$
+w_{t+1}=w_t- η ∇_w E_{in} =w_t- η*\dfrac{1}{M} [(A+A^T ) w_t-2b]
+$$
 
 However, this is a computationally intensive operation due to the size of the matrix A and vector b (their size increases by increasing the size of the training dataset).
 
@@ -281,29 +342,35 @@ for this reason, a synchronous data parallelism technique is used to address thi
     <li>Each worker node receives a copy of weights at the start of each iteration.</li>
 </ul>
 
-
 Each worker performs the following computation using its data subset:
 
-$$ ∇_w E_{in}^{'} (w)=\dfrac{1}{M^{'}} [(A+A^T ) w_t-2b] $$
+$$
+∇_w E_{in}^{'} (w)=\dfrac{1}{M^{'}} [(A+A^T ) w_t-2b]
+$$
 
 Where M' is the size of the worker’s data subset.
 
 The worker sends those partial gradients to the master node which averages these partial gradients to obtain the gradients to be used in the global weight update:
 
-$$ ∇_w E_{in}=\dfrac{1}{N} ∑_{i=1}^{i=N} (∇_w E_{in}^{'} (w))_i $$
+$$
+∇_w E_{in}=\dfrac{1}{N} ∑_{i=1}^{i=N} (∇_w E_{in}^{'} (w))_i
+$$
 
 Then, it updates the weights using the gradients average.
 
-$$ w_{t+1}=w_t- η ∇_w E_{in} $$
+$$
+w_{t+1}=w_t- η ∇_w E_{in}
+$$
 
 Then, it sends the new weights to all the workers to begin another iteration. This process is repeated for a predefined number of iterations.
 
 ## Implemented Approach
-Regarding deep learning, we implemented the data parallelism technique with one master node (parameter server) because it is a very common situation that the training dataset doesn’t fit in one machine. While huge models that can’t fit in one machine are most probably associated with a huge training dataset that can’t fit in one machine as well. So, huge training dataset is a very common problem in most of the AI problems currently.
 
-Also, we implemented synchronous training and asynchronous training for deep learning training. We proposed a middle-ground scheme named semi-asynchronous training which combines the advantages of both synchronous and asynchronous training (fast model convergence and high resource utility). It performs asynchronous updates but it doesn’t permit a worker to be ahead of other workers in terms of global updates that this worker participated in by a specified threshold (number of updates). This is done to ensure that if a worker is very slow and there are others that are relatively faster, the fast workers don't wait too long waiting for the slow worker (as in synchronous training) and the model convergence doesn’t become very slow (as in asynchronous training).
+We implemented the data parallelism technique with one master node (parameter server) and multiple workers architecture for ML and DL models because it is a very common situation that the training dataset doesn’t fit in one machine. While huge models that can’t fit in one machine are most probably associated with a huge training dataset that can’t fit in one machine as well. So, huge training dataset is a very common problem in most of the AI problems currently.
 
-Regarding machine learning, we implemented the mentioned data parallelism technique with one master node. Also, we implemented the synchronous training for all the implemented algorithms because the asynchronous is not suitable for most of these algorithms.
+Regarding deep learning models, we implemented synchronous training, asynchronous training, and semi-asynchronous training.
+
+Regarding machine learning models, we implemented the synchronous training for all the previously mentioned algorithms because the asynchronous is not suitable for most of these algorithms.
 
 ## System Testing and Verification
 
@@ -360,7 +427,6 @@ California housing dataset:
 MNIST CNN tensorflow model:
 
 <table><tr><th>Model</th><th>Accuracy</th></tr><tr><td>Sequential</td><td>98.2%</td></tr><tr><td>Sync</td><td>98.1%</td></tr><tr><td>Async</td><td>97.9%</td></tr><tr><td>Semi-async</td><td>97.9%</td></tr></table>
-
 
 MNIST CNN pytorch model:
 
