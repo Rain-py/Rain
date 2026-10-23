@@ -7,7 +7,7 @@ service divider {
     */
     rpc Upload(MetaData) returns (stream UploadFileResponse) {}
     /*
-    Recieve a file contains the weights from the workers.
+    Receive a file contains the weights from the workers.
     */
     rpc Download(stream File) returns (DownloadFileResponse) {}
   }

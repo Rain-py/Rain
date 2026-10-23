@@ -3,7 +3,7 @@ import grpc
 from Rain.Protos import provisioner_pb2, provisioner_pb2_grpc, worker_pb2, worker_pb2_grpc, coord_pb2, coord_pb2_grpc
 from Rain.LogService.LogService import LogService
 
-DEFAULT_NUM_WORKERS = 5 # to creates a thread pool executor with a maximum of DEFAULT_NUM_WORKERS worker threads. 
+DEFAULT_NUM_WORKERS = 5 # to create a thread pool executor with a maximum of DEFAULT_NUM_WORKERS worker threads. 
 
 class ProvisionerAmbassador(provisioner_pb2_grpc.provisionerServicer):
     def __init__(self, Coordinator_IP):
@@ -49,7 +49,7 @@ class ProvisionerAmbassador(provisioner_pb2_grpc.provisionerServicer):
     # DefineNWorkers(NumOfWorkers) returns () {}
     def DefineNWorkers(self, request: provisioner_pb2.NumOfWorkers, context: grpc.ServicerContext) -> provisioner_pb2.response:
         """
-        This function will be called from the coordinator side define the number of workers to be created.
+        This function will be called from the coordinator side to define the number of workers to be created.
 
         Args:
             request (provisioner_pb2.NumOfWorkersRequest): A `NumOfWorkersRequest` message sent by the coordinator.

@@ -41,7 +41,7 @@ class workerServicer(object):
     """Missing associated documentation comment in .proto file."""
 
     def Download(self, request_iterator, context):
-        """worker downloads (recieves) a file
+        """worker downloads (receives) a file
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')

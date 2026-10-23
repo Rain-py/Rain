@@ -39,7 +39,7 @@ class dividerServicer(object):
 
     def Download(self, request_iterator, context):
         """
-        Recieve a file contains the weights from the workers.
+        Receive a file contains the weights from the workers.
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')

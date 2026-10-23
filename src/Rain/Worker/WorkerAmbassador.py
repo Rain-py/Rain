@@ -89,11 +89,11 @@ class WorkerAmbassador(worker_pb2_grpc.workerServicer):
         Function to read and send data files to any service.
 
         Args:
-            request (worker_pb2.MetaData): the file name and extention to be sent.
+            request (worker_pb2.MetaData): the file name and extension to be sent.
             context (grpc.ServicerContext): the context of the request.
 
         Returns:
-            worker_pb2.UploadFileResponse: the chunck that will be send as response.
+            worker_pb2.UploadFileResponse: the chunk that will be sent as response.
 
         Yields:
             Iterator[worker_pb2.UploadFileResponse]: the file data as stream of chunks.

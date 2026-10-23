@@ -3,7 +3,7 @@ package worker;
 import "google/protobuf/empty.proto";
 
 service worker {
-    // worker downloads (recieves) a file
+    // worker downloads (receives) a file
     rpc Download(stream File) returns (DownloadFileResponse) {}
     // worker Uploads (sends) a file
     rpc Upload(MetaData) returns (stream UploadFileResponse) {}
